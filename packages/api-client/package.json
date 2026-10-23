@@ -8,12 +8,13 @@
   },
   "scripts": {
     "api:fetch": "node scripts/fetch-openapi.mjs",
-    "api:generate": "node scripts/generate.mjs && prettier --write src/generated",
+    "api:generate": "openapi-typescript openapi/v1.json --output src/generated/schema.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "openapi-fetch": "^0.17.0"
+    "openapi-fetch": "^0.17.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@slvn/config": "workspace:*",

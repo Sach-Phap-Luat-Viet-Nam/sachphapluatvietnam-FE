@@ -1,0 +1,32 @@
+/*
+ * Theme dùng chung cho storefront và admin (Tailwind CSS 4, CSS-first).
+ * Màu theo định hướng nhận diện (đặc tả mục 8.3): navy chủ đạo, đỏ đô nhấn, nền trắng / xám rất nhạt.
+ * Giá trị tạm thời, thay khi có bộ nhận diện chính thức. Cặp màu chữ/nền đều đạt tương phản WCAG AA.
+ */
+
+/* Quét class Tailwind trong component của package này (Tailwind bỏ qua node_modules khi tự dò). */
+@source "./";
+
+@theme {
+  --color-primary: #1b2f55;
+  --color-primary-hover: #13213d;
+  --color-primary-foreground: #ffffff;
+
+  --color-accent: #9b1c1c;
+  --color-accent-hover: #7a1515;
+  --color-accent-foreground: #ffffff;
+
+  --color-background: #ffffff;
+  --color-surface: #f5f6f8;
+  --color-foreground: #1c2330;
+  --color-muted: #5a6474;
+  --color-border: #d9dee5;
+
+  --color-danger: #b42318;
+  --color-success: #067647;
+  --color-warning: #93370d;
+  --color-warning-surface: #fffaeb;
+
+  /* `--font-be-vietnam-pro` do next/font đặt ở thẻ <html> của từng app. */
+  --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+}

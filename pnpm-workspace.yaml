@@ -7,3 +7,8 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   esbuild: true
+
+# openapi-typescript 7.x khai báo peer `typescript ^5` nhưng sinh type chạy đúng với TypeScript 6 (đã kiểm tra).
+peerDependencyRules:
+  allowedVersions:
+    openapi-typescript>typescript: "6"

@@ -22,7 +22,7 @@ bản patch cụ thể do `pnpm-lock.yaml` quyết định.
 | UI library | React | 19 | Theo bản Next.js hỗ trợ |
 | Ngôn ngữ | TypeScript | **6.0** | **Chưa lên 7.0**: `typescript-eslint` 8.x mới hỗ trợ `<6.1` |
 | CSS | Tailwind CSS | 4 | Cấu hình kiểu CSS-first (`@theme` trong file CSS) |
-| Lint | ESLint (flat config) + `eslint-config-next` | 10 / 16 | Có sẵn rule React Hooks, jsx-a11y |
+| Lint | ESLint (flat config) + `eslint-config-next` | **9** / 16 | **Chưa lên 10**: `eslint-plugin-react`, `-import`, `-jsx-a11y` (đi kèm `eslint-config-next`) mới hỗ trợ tới ESLint 9 |
 | Format | Prettier + `prettier-plugin-tailwindcss` | 3 | Tự sắp xếp class Tailwind |
 | Gọi API | `openapi-typescript` + `openapi-fetch` | 7 / 0.x | Type sinh từ OpenAPI của backend |
 | Server state (client) | TanStack Query | 5 | Chủ yếu dùng ở `admin` |

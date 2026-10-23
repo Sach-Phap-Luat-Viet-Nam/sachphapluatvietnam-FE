@@ -11,7 +11,11 @@ import { defaultExportAllowed, sharedRules } from "./rules.js";
 export const libraryConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  { rules: { ...sharedRules, "@next/next/no-html-link-for-pages": "off" } },
+  {
+    // Package không cài React (utils, api-client) thì "detect" báo warning; khai báo cố định theo major đang dùng.
+    settings: { react: { version: "19.3" } },
+    rules: { ...sharedRules, "@next/next/no-html-link-for-pages": "off" },
+  },
   { files: defaultExportAllowed, rules: { "import/no-default-export": "off" } },
   globalIgnores(["dist/**", "coverage/**", "src/generated/**"]),
 ]);
