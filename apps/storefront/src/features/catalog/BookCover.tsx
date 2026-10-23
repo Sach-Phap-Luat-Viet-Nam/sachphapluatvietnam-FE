@@ -37,7 +37,13 @@ export function BookCover({ book, size = "shelf", className }: BookCoverProps) {
   return (
     <span
       aria-hidden="true"
-      className={cn("flex p-2.5 sm:p-3.5", FRAME, COVER_COLORS[book.id % COVER_COLORS.length], COVER_SIZES[size], className)}
+      className={cn(
+        "flex p-2.5 sm:p-3.5",
+        FRAME,
+        COVER_COLORS[book.id % COVER_COLORS.length],
+        COVER_SIZES[size],
+        className,
+      )}
     >
       <span className="border-gold/60 text-cover-foil flex flex-1 flex-col items-center border px-1.5 py-3 text-center sm:py-5">
         <span className="text-[6px] tracking-[0.3em] sm:text-[7px]">SÁCH LUẬT VIỆT NAM</span>

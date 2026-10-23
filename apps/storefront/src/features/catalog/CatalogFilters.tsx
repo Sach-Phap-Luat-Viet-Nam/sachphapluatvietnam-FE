@@ -33,10 +33,7 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
       <fieldset className="flex flex-col">
         <legend className={LEGEND}>LOẠI SÁCH</legend>
         {[["", "Tất cả loại sách"], ...Object.entries(BOOK_TYPE_LABELS)].map(([value, label]) => (
-          <label
-            key={value}
-            className="has-checked:text-gold flex min-h-10 items-center gap-3 text-[15px]"
-          >
+          <label key={value} className="has-checked:text-gold flex min-h-10 items-center gap-3 text-[15px]">
             <input
               type="radio"
               name="type"
@@ -111,13 +108,7 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
                 index > 0 && "border-border border-l",
               )}
             >
-              <input
-                type="radio"
-                name="cover"
-                value={value}
-                defaultChecked={cover === value}
-                className="sr-only"
-              />
+              <input type="radio" name="cover" value={value} defaultChecked={cover === value} className="sr-only" />
               {label}
             </label>
           ))}

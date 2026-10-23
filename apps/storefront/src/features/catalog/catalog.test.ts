@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   PAGE_SIZE,
-  availabilityLabel,
+  PRICE_RANGES,
+  activeFilters,
+  availability,
   catalogHref,
   currentPage,
   flattenCategories,
+  isPriceRangeActive,
   pageCount,
   pageWindow,
+  priceRangeHref,
+  rootCategorySlug,
+  subcategoryGroup,
   toBooksQuery,
 } from "./catalog";
 
@@ -100,12 +106,93 @@ describe("flattenCategories", () => {
   });
 });
 
-describe("availabilityLabel", () => {
+describe("availability", () => {
   it("prefers edition status, then price, then stock", () => {
-    expect(availabilityLabel({ editionStatus: "upcoming", salePrice: 100000, inStock: true })).toBe("Sắp phát hành");
-    expect(availabilityLabel({ editionStatus: "discontinued", salePrice: 100000, inStock: true })).toBe("Ngừng bán");
-    expect(availabilityLabel({ editionStatus: "on_sale", salePrice: null, inStock: false })).toBe("Chưa có giá bán");
-    expect(availabilityLabel({ editionStatus: "on_sale", salePrice: 100000, inStock: false })).toBe("Tạm hết hàng");
-    expect(availabilityLabel({ editionStatus: "clearance", salePrice: 100000, inStock: true })).toBe("Còn hàng");
+    expect(availability({ editionStatus: "upcoming", salePrice: 100000, inStock: true })).toEqual({
+      label: "Sắp phát hành",
+      tone: "upcoming",
+    });
+    expect(availability({ editionStatus: "discontinued", salePrice: 100000, inStock: true }).label).toBe("Ngừng bán");
+    expect(availability({ editionStatus: "on_sale", salePrice: null, inStock: false }).label).toBe("Chưa có giá bán");
+    expect(availability({ editionStatus: "on_sale", salePrice: 100000, inStock: false })).toEqual({
+      label: "Tạm hết hàng",
+      tone: "muted",
+    });
+    expect(availability({ editionStatus: "clearance", salePrice: 100000, inStock: true })).toEqual({
+      label: "Còn hàng",
+      tone: "ok",
+    });
+  });
+});
+
+const tree = [
+  {
+    id: 1,
+    name: "Dân sự",
+    slug: "dan-su",
+    children: [
+      { id: 2, name: "Hợp đồng", slug: "hop-dong", children: [] },
+      { id: 4, name: "Thừa kế", slug: "thua-ke", children: [] },
+    ],
+  },
+  { id: 3, name: "Hình sự", slug: "hinh-su", children: [] },
+];
+
+describe("price ranges", () => {
+  const [, middle, top] = PRICE_RANGES;
+  it("links to a range and resets the page", () => {
+    expect(middle && priceRangeHref({ q: "luật", page: "3" }, middle)).toBe(
+      "/sach?q=lu%E1%BA%ADt&minPrice=150000&maxPrice=300000",
+    );
+    expect(top && priceRangeHref({ maxPrice: "100" }, top)).toBe("/sach?minPrice=300000");
+  });
+  it("detects the active range after normalising the query", () => {
+    expect(middle && isPriceRangeActive({ minPrice: "300000", maxPrice: "150000" }, middle)).toBe(true);
+    expect(top && isPriceRangeActive({ minPrice: "300000", maxPrice: "500000" }, top)).toBe(false);
+  });
+});
+
+describe("activeFilters", () => {
+  it("lists normalised filters with links that remove only that filter", () => {
+    const filters = activeFilters(
+      { q: " dân sự ", category: "hop-dong", type: "code", cover: "bad", minPrice: "150000", page: "2" },
+      flattenCategories(tree),
+    );
+    expect(filters.map((filter) => [filter.key, filter.label])).toEqual([
+      ["category", "Hợp đồng"],
+      ["type", "Bộ luật"],
+      ["price", "Từ 150.000 ₫"],
+      ["q", "“dân sự”"],
+    ]);
+    const type = filters.find((filter) => filter.key === "type");
+    expect(type?.removeHref).toBe("/sach?q=+d%C3%A2n+s%E1%BB%B1+&category=hop-dong&cover=bad&minPrice=150000");
+  });
+  it("removes both price bounds together and falls back to the slug for unknown categories", () => {
+    const filters = activeFilters({ category: "khong-co", minPrice: "100000", maxPrice: "200000" }, []);
+    expect(filters[0]?.label).toBe("khong-co");
+    expect(filters[1]).toEqual({ key: "price", label: "100.000 ₫ – 200.000 ₫", removeHref: "/sach?category=khong-co" });
+  });
+});
+
+describe("category tree helpers", () => {
+  it("shows children of an active root and siblings of an active child", () => {
+    expect(subcategoryGroup(tree, "dan-su")?.items.map((item) => [item.slug, item.active])).toEqual([
+      ["hop-dong", false],
+      ["thua-ke", false],
+    ]);
+    expect(subcategoryGroup(tree, "thua-ke")).toMatchObject({
+      parent: { slug: "dan-su" },
+      items: [
+        { slug: "hop-dong", active: false },
+        { slug: "thua-ke", active: true },
+      ],
+    });
+    expect(subcategoryGroup(tree, "hinh-su")).toBeNull();
+    expect(subcategoryGroup(tree, "")).toBeNull();
+  });
+  it("finds the root of a nested category", () => {
+    expect(rootCategorySlug(tree, "thua-ke")).toBe("dan-su");
+    expect(rootCategorySlug(tree, "hinh-su")).toBe("hinh-su");
+    expect(rootCategorySlug(tree, "khong-co")).toBeUndefined();
   });
 });

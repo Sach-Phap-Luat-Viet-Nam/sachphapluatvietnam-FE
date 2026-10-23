@@ -50,7 +50,7 @@ export function LoginForm() {
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="password" className={LABEL}>
-            MẬT KHẨU
+            Mật khẩu
           </label>
           <div className="relative">
             <input

@@ -184,12 +184,7 @@
     animation: stamp 0.7s cubic-bezier(0.3, 0.6, 0.2, 1.2) 1.9s both;
   }
   .foil-text {
-    background: linear-gradient(
-      110deg,
-      var(--color-gold) 38%,
-      #fff1cc 50%,
-      var(--color-gold) 62%
-    );
+    background: linear-gradient(110deg, var(--color-gold) 38%, #fff1cc 50%, var(--color-gold) 62%);
     background-size: 260% 100%;
     background-clip: text;
     color: transparent;

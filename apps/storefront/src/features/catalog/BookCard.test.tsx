@@ -28,23 +28,31 @@ const book: BookSummary = {
 };
 
 describe("BookCard", () => {
-  it("shows the API price, discount and book type", () => {
+  it("shows the API price, discount badge, book type and update label", () => {
     render(<BookCard book={book} />);
-    expect(screen.getByText("Bộ luật")).toBeInTheDocument();
-    expect(screen.getByText("-25%")).toBeInTheDocument();
+    expect(screen.getAllByText("Bộ luật")).not.toHaveLength(0);
+    expect(screen.getByText("Giảm 25%")).toBeInTheDocument();
     expect(screen.getAllByText("150.000 ₫")).not.toHaveLength(0);
     expect(screen.getAllByText("200.000 ₫")).not.toHaveLength(0);
+    expect(screen.getAllByText(book.updatedToText ?? "")).not.toHaveLength(0);
+    // Còn hàng thì không cần nhãn trạng thái trên thẻ.
+    expect(screen.queryByText("Còn hàng", { selector: "article > div span" })).not.toBeInTheDocument();
   });
 
-  it("hides the discount and list price when there is no price yet", () => {
-    render(<BookCard book={{ ...book, salePrice: null, listPrice: null, discountPercent: null }} />);
-    expect(screen.queryByText(/^-\d+%$/)).not.toBeInTheDocument();
-    expect(screen.getAllByText("Chưa có giá bán")).not.toHaveLength(0);
+  it("marks upcoming books and books without a price", () => {
+    render(
+      <BookCard
+        book={{ ...book, editionStatus: "upcoming", salePrice: null, listPrice: null, discountPercent: null }}
+      />,
+    );
+    expect(screen.getAllByText("Sắp phát hành")).not.toHaveLength(0);
+    expect(screen.queryByText(/^Giảm/)).not.toBeInTheDocument();
+    expect(screen.queryByText("150.000 ₫")).not.toBeInTheDocument();
   });
 
-  it("opens the quick view with stock status", async () => {
+  it("opens the quick view from the title with stock status", async () => {
     render(<BookCard book={{ ...book, inStock: false }} />);
-    await userEvent.click(screen.getByRole("button", { name: `Xem nhanh ${book.title}` }));
+    await userEvent.click(screen.getByRole("button", { name: book.title }));
     const dialog = screen.getByRole("dialog", { name: book.title });
     expect(dialog).toHaveAttribute("open");
     expect(dialog).toHaveTextContent("Tạm hết hàng");

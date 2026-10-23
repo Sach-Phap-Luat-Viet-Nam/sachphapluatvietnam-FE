@@ -10,14 +10,14 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
     expect(await screen.findByText("Anh/chị vui lòng nhập email hợp lệ.")).toBeVisible();
     expect(screen.getByText("Anh/chị vui lòng nhập mật khẩu.")).toBeVisible();
-    expect(screen.getByLabelText("EMAIL")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "true");
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
   it("toggles password visibility and explains the demo after valid submission", async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
-    await user.type(screen.getByLabelText("EMAIL"), "demo@example.com");
-    const password = screen.getByLabelText("MẬT KHẨU");
+    await user.type(screen.getByLabelText("Email"), "demo@example.com");
+    const password = screen.getByLabelText("Mật khẩu");
     await user.type(password, "test-password");
     expect(password).toHaveAttribute("type", "password");
     await user.click(screen.getByRole("button", { name: "Hiện mật khẩu" }));

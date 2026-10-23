@@ -21,7 +21,7 @@ export default function LoginPage() {
     <main id="noi-dung" className="relative overflow-hidden">
       <div
         aria-hidden="true"
-        className="bg-radial-[closest-side] from-gold/14 pointer-events-none absolute -bottom-72 -left-48 size-225 to-transparent"
+        className="from-gold/14 pointer-events-none absolute -bottom-72 -left-48 size-225 bg-radial-[closest-side] to-transparent"
       />
       <Container className="relative flex flex-wrap items-center gap-x-18 gap-y-12 py-12 sm:py-16">
         <section aria-label="Lợi ích khi có tài khoản" className="flex min-w-0 flex-[1_1_440px] flex-col gap-8">
