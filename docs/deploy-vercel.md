@@ -22,14 +22,26 @@ Deploy commit mới nhất có bản sửa; redeploy commit cũ không lấy tha
 | Biến           | Giá trị                                    | Ghi chú                                                           |
 | -------------- | ------------------------------------------ | ----------------------------------------------------------------- |
 | `API_BASE_URL` | `https://sachphapluatvietnam.onrender.com` | Gốc URL backend, không có `/api/v1`. Chỉ dùng phía server Next.js |
+| `PROXY_SECRET` | Secret do backend cấp (không ghi vào repo) | Giống hệt giá trị cấu hình trên Render. Local để trống            |
 
 - Khai báo trong Vercel → Settings → Environment Variables cho Production và Preview, sau đó deploy lại.
 - Local: copy `apps/storefront/.env.example` thành `apps/storefront/.env.local`. Chạy backend local thì đổi thành
   `http://localhost:5279`.
-- Biến này không có tiền tố `NEXT_PUBLIC_`. Backend chưa bật CORS nên trình duyệt không gọi thẳng được; request từ
-  trình duyệt sẽ đi qua proxy `rewrites` của Next.js, còn Server Component gọi trực tiếp tới URL này.
-- Biến được đọc và kiểm tra ở `apps/storefront/src/lib/env.ts`. Thiếu biến hoặc sai định dạng URL thì build/render lỗi
-  ngay, không chạy tiếp với giá trị rỗng.
+- Hai biến đều không có tiền tố `NEXT_PUBLIC_`. `API_BASE_URL` được đọc và kiểm tra ở `apps/storefront/src/lib/env.ts`;
+  thiếu biến hoặc sai định dạng URL thì build/render lỗi ngay.
+
+## Proxy `/api/v1`
+
+Backend chưa bật CORS nên trình duyệt không gọi thẳng được. Server Component gọi trực tiếp `API_BASE_URL`; còn request
+từ trình duyệt gọi `/api/v1/*` trên chính domain storefront, được `apps/storefront/src/proxy.ts` (file convention
+`proxy` của Next.js 16, trước đây là `middleware`) chuyển tiếp sang backend, giữ nguyên method, body, query và cookie.
+
+- Proxy xóa `x-client-ip`, `x-proxy-secret` do trình duyệt gửi, rồi gắn lại từ `x-forwarded-for` (Vercel ghi đè header
+  này bằng IP thật của khách) cùng `PROXY_SECRET`. Backend chỉ tin `x-client-ip` khi secret khớp, nhờ đó giới hạn
+  10 request/phút/IP của `/auth/*` và `/orders/lookup` tính theo từng khách, không theo IP của Vercel.
+- Thiếu `PROXY_SECRET` thì proxy không gắn hai header, backend dùng IP kết nối (là IP của Vercel khi deploy).
+- Cookie HttpOnly của backend (`sl_refresh`, `sl_cart`) được đặt trên domain storefront. Backend không được đặt thuộc
+  tính `Domain` cho cookie, nếu không trình duyệt sẽ bỏ cookie.
 
 ## Lỗi admin làm dừng deploy storefront
 
