@@ -1,0 +1,17 @@
+{
+  "name": "@slvn/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
+    "./tsconfig/library.json": "./tsconfig/library.json",
+    "./eslint/next": "./eslint/next.js",
+    "./eslint/library": "./eslint/library.js"
+  },
+  "dependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.2"
+  }
+}
