@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronDown, Menu, Search, ShieldCheck, UserRound } from "lucide-react";
+import { BookOpen, Search, ShieldCheck, UserRound } from "lucide-react";
 import { Container } from "@slvn/ui";
+import { CategoryNav, CategoryNavLoader } from "./CategoryNav";
 
 export function Header() {
   return (
@@ -53,47 +55,9 @@ export function Header() {
       </Container>
       <div className="border-border border-y">
         <Container className="flex h-13 items-center justify-between gap-6">
-          <nav aria-label="Điều hướng chính" className="hidden h-full items-center gap-9 md:flex">
-            <Link
-              href="/sach"
-              className="border-primary text-primary flex h-full items-center gap-2 border-b-2 font-semibold"
-            >
-              <BookOpen size={18} /> Tất cả sách luật
-            </Link>
-            <Link href="/sach?category=dan-su" className="hover:text-accent text-sm">
-              Dân sự
-            </Link>
-            <Link href="/sach?category=hinh-su" className="hover:text-accent text-sm">
-              Hình sự
-            </Link>
-            <Link href="/sach?category=kinh-te" className="hover:text-accent text-sm">
-              Kinh tế & Doanh nghiệp
-            </Link>
-            <Link href="/sach?type=textbook" className="hover:text-accent text-sm">
-              Giáo trình
-            </Link>
-          </nav>
-          <details className="group relative md:hidden">
-            <summary className="flex list-none items-center gap-2 py-3 font-medium">
-              <Menu size={20} /> Danh mục sách <ChevronDown size={16} />
-            </summary>
-            <nav
-              aria-label="Danh mục trên điện thoại"
-              className="border-border bg-background absolute top-full left-0 w-72 rounded-b-lg border p-3 shadow-lg"
-            >
-              {[
-                ["", "Tất cả sách luật"],
-                ["?category=dan-su", "Dân sự"],
-                ["?category=hinh-su", "Hình sự"],
-                ["?category=kinh-te", "Kinh tế & Doanh nghiệp"],
-                ["?type=textbook", "Giáo trình"],
-              ].map(([query, label]) => (
-                <Link className="hover:bg-surface block rounded px-3 py-3" href={`/sach${query}`} key={label}>
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </details>
+          <Suspense fallback={<CategoryNav categories={[]} />}>
+            <CategoryNavLoader />
+          </Suspense>
           <span className="text-muted ml-auto hidden text-xs lg:block">Biên soạn chuyên sâu · Cập nhật pháp luật</span>
         </Container>
       </div>

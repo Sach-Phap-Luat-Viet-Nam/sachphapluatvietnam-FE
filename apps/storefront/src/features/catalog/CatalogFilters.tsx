@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { ArrowRight, SlidersHorizontal } from "lucide-react";
-import { Button } from "@slvn/ui";
-import { CATEGORIES } from "./demo-books";
-import type { CatalogParams } from "./catalog";
-import { param } from "./catalog";
+import { Button, cn } from "@slvn/ui";
+import type { CatalogParams, FlatCategory } from "./catalog";
+import { BOOK_TYPE_LABELS, COVER_TYPE_LABELS, param } from "./catalog";
 
-export function CatalogFilters({ params }: { params: CatalogParams }) {
+/** Thụt lề danh mục con theo độ sâu; sâu hơn 3 cấp giữ mức cuối. */
+const CATEGORY_INDENT = ["", "pl-5", "pl-10", "pl-14"];
+
+export interface CatalogFiltersProps {
+  params: CatalogParams;
+  categories: readonly FlatCategory[];
+}
+
+export function CatalogFilters({ params, categories }: CatalogFiltersProps) {
   return (
     <details open className="border-border bg-background rounded-lg border p-5 lg:border-0 lg:p-0">
       <summary className="text-primary mb-5 flex list-none items-center justify-between font-semibold">
@@ -17,8 +24,14 @@ export function CatalogFilters({ params }: { params: CatalogParams }) {
         <fieldset className="border-border border-t pt-5">
           <legend className="text-primary pt-5 text-sm font-semibold">Danh mục</legend>
           <div className="mt-3 space-y-3">
-            {[{ slug: "", name: "Tất cả danh mục" }, ...CATEGORIES].map((category) => (
-              <label key={category.slug} className="text-muted flex items-center gap-3 text-sm">
+            {[{ slug: "", name: "Tất cả danh mục", depth: 0 }, ...categories].map((category) => (
+              <label
+                key={category.slug}
+                className={cn(
+                  "text-muted flex items-center gap-3 text-sm",
+                  CATEGORY_INDENT[Math.min(category.depth, CATEGORY_INDENT.length - 1)],
+                )}
+              >
                 <input
                   type="radio"
                   name="category"
@@ -67,22 +80,17 @@ export function CatalogFilters({ params }: { params: CatalogParams }) {
             className="border-border bg-background mt-3 h-11 w-full rounded border px-2 font-normal"
           >
             <option value="">Tất cả loại sách</option>
-            <option value="code">Bộ luật</option>
-            <option value="consolidated">Văn bản hợp nhất</option>
-            <option value="commentary">Chú giải</option>
-            <option value="qna">Hỏi đáp</option>
-            <option value="textbook">Giáo trình</option>
-            <option value="monograph">Sách chuyên khảo</option>
+            {Object.entries(BOOK_TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
         </label>
         <fieldset>
           <legend className="text-primary text-sm font-semibold">Loại bìa</legend>
           <div className="mt-3 flex flex-wrap gap-3">
-            {[
-              ["", "Tất cả"],
-              ["paperback", "Bìa mềm"],
-              ["hardcover", "Bìa cứng"],
-            ].map(([value, label]) => (
+            {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label]) => (
               <label className="text-muted flex items-center gap-2 text-sm" key={value}>
                 <input
                   type="radio"

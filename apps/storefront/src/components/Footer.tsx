@@ -16,9 +16,7 @@ export function Footer() {
           Khám phá tủ sách <ArrowUpRight size={17} />
         </Link>
       </Container>
-      <Container className="border-border text-muted border-t py-5 text-xs">
-        © 2026 Sách Luật Việt Nam. Giao diện xem trước · Dữ liệu sách minh họa.
-      </Container>
+      <Container className="border-border text-muted border-t py-5 text-xs">© 2026 Sách Luật Việt Nam.</Container>
     </footer>
   );
 }

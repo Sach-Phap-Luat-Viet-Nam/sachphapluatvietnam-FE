@@ -14,6 +14,8 @@ Project Vercel của website khách hàng sử dụng các giá trị sau:
 | Install Command                                            | Mặc định theo pnpm workspace                                                          |
 
 Root Directory là thiết lập trên dashboard, không được đặt qua `vercel.json`.
+Lưu cả phần Framework Settings và Root Directory trước khi deploy lại.
+Deploy commit mới nhất có bản sửa; redeploy commit cũ không lấy thay đổi source mới.
 
 ## Biến môi trường
 
@@ -26,9 +28,8 @@ Root Directory là thiết lập trên dashboard, không được đặt qua `ve
   `http://localhost:5279`.
 - Biến này không có tiền tố `NEXT_PUBLIC_`. Backend chưa bật CORS nên trình duyệt không gọi thẳng được; request từ
   trình duyệt sẽ đi qua proxy `rewrites` của Next.js, còn Server Component gọi trực tiếp tới URL này.
-- Code chưa đọc biến này. Phần đọc qua `lib/env.ts` sẽ làm khi tích hợp API.
-Lưu cả phần Framework Settings và Root Directory trước khi deploy lại.
-Deploy commit mới nhất có bản sửa; redeploy commit cũ không lấy thay đổi source mới.
+- Biến được đọc và kiểm tra ở `apps/storefront/src/lib/env.ts`. Thiếu biến hoặc sai định dạng URL thì build/render lỗi
+  ngay, không chạy tiếp với giá trị rỗng.
 
 ## Lỗi admin làm dừng deploy storefront
 

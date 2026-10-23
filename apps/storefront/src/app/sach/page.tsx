@@ -4,7 +4,16 @@ import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, LibraryBig, SearchX, S
 import { Container } from "@slvn/ui";
 import { CatalogFilters } from "@/features/catalog/CatalogFilters";
 import { BookCard } from "@/features/catalog/BookCard";
-import { getDemoCatalog, catalogHref, param } from "@/features/catalog/catalog";
+import { getBooks, getCategoryTree } from "@/features/catalog/api";
+import {
+  SORT_LABELS,
+  catalogHref,
+  flattenCategories,
+  pageCount,
+  pageWindow,
+  param,
+  toBooksQuery,
+} from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 
 export function generateMetadata(): Metadata {
@@ -22,7 +31,11 @@ export function generateMetadata(): Metadata {
 
 export default async function BooksPage({ searchParams }: { searchParams: Promise<CatalogParams> }) {
   const params = await searchParams;
-  const catalog = getDemoCatalog(params);
+  const [books, categoryTree] = await Promise.all([getBooks(toBooksQuery(params)), getCategoryTree()]);
+  const { page, limit, total } = books.meta;
+  const totalPages = pageCount(total, limit);
+  const firstShown = (page - 1) * limit + 1;
+  const hasFilters = Object.keys(params).some((key) => key !== "page" && key !== "sort" && param(params, key));
   return (
     <main id="noi-dung">
       <section className="border-border bg-paper overflow-hidden border-b">
@@ -52,13 +65,9 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
         </Container>
       </section>
       <Container className="py-8 sm:py-10">
-        <div className="border-border bg-surface text-muted mb-7 flex items-center gap-2 rounded-md border px-4 py-3 text-xs">
-          <BookOpen size={16} className="shrink-0" />
-          Bạn đang xem tủ sách minh họa. Giá và thông tin chưa phải dữ liệu bán hàng chính thức.
-        </div>
         <div className="grid items-start gap-8 lg:grid-cols-[215px_1fr] lg:gap-10">
           <aside aria-label="Lọc danh sách sách">
-            <CatalogFilters key={JSON.stringify(params)} params={params} />
+            <CatalogFilters key={JSON.stringify(params)} params={params} categories={flattenCategories(categoryTree)} />
             <div className="bg-primary text-primary-foreground mt-7 hidden rounded-lg p-5 lg:block">
               <BookOpen size={27} strokeWidth={1.3} />
               <h2 className="font-editorial mt-4 text-xl">
@@ -78,10 +87,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                   {param(params, "q") ? `Kết quả cho “${param(params, "q")}”` : "Tất cả sách luật"}
                 </h2>
                 <p className="text-muted mt-1 text-xs">
-                  {catalog.total} cuốn sách
-                  {catalog.total
-                    ? ` · Hiển thị ${(catalog.page - 1) * 8 + 1}–${Math.min(catalog.page * 8, catalog.total)}`
-                    : ""}
+                  {total} cuốn sách
+                  {books.items.length ? ` · Hiển thị ${firstShown}–${firstShown + books.items.length - 1}` : ""}
                 </p>
               </div>
               <form action="/sach" className="flex flex-wrap items-center gap-2">
@@ -99,9 +106,11 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                   defaultValue={param(params, "sort") || "newest"}
                   className="border-border bg-background h-10 rounded-md border px-3 text-sm"
                 >
-                  <option value="newest">Mới nhất</option>
-                  <option value="price_asc">Giá: thấp đến cao</option>
-                  <option value="price_desc">Giá: cao đến thấp</option>
+                  {Object.entries(SORT_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
                 <button
                   type="submit"
@@ -112,58 +121,69 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                 </button>
               </form>
             </div>
-            {catalog.items.length ? (
+            {books.items.length ? (
               <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 xl:grid-cols-4">
-                {catalog.items.map((book) => (
+                {books.items.map((book) => (
                   <BookCard key={book.id} book={book} />
                 ))}
               </div>
             ) : (
               <div className="flex min-h-80 flex-col items-center justify-center gap-4 text-center">
                 <SearchX size={40} strokeWidth={1} className="text-muted" />
-                <h3 className="text-primary text-xl font-semibold">Chưa tìm thấy sách phù hợp</h3>
-                <p className="text-muted text-sm">Thử từ khóa khác hoặc bỏ bớt bộ lọc.</p>
-                <Link href="/sach" className="text-accent font-medium underline underline-offset-4">
-                  Xem tất cả sách
-                </Link>
+                {hasFilters || page > 1 ? (
+                  <>
+                    <h3 className="text-primary text-xl font-semibold">Chưa tìm thấy sách phù hợp</h3>
+                    <p className="text-muted text-sm">Thử từ khóa khác hoặc bỏ bớt bộ lọc.</p>
+                    <Link href="/sach" className="text-accent font-medium underline underline-offset-4">
+                      Xem tất cả sách
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-primary text-xl font-semibold">Tủ sách đang được cập nhật</h3>
+                    <p className="text-muted text-sm">Sách sẽ sớm có mặt, mời bạn quay lại sau.</p>
+                  </>
+                )}
               </div>
             )}
-            <div className="border-border mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6">
-              <span className="text-muted text-xs">
-                Trang {catalog.page} / {catalog.pageCount}
-              </span>
-              <nav aria-label="Phân trang" className="flex items-center gap-2">
-                {catalog.page > 1 && (
-                  <Link
-                    aria-label="Trang trước"
-                    href={catalogHref(params, { page: String(catalog.page - 1) })}
-                    className="border-border rounded border p-2.5"
-                  >
-                    <ChevronLeft size={18} />
-                  </Link>
-                )}
-                {Array.from({ length: catalog.pageCount }, (_, i) => i + 1).map((page) => (
-                  <Link
-                    key={page}
-                    aria-label={`Trang ${page}`}
-                    aria-current={page === catalog.page ? "page" : undefined}
-                    href={catalogHref(params, { page: String(page) })}
-                    className={`flex size-10 items-center justify-center rounded text-sm ${page === catalog.page ? "bg-primary text-primary-foreground" : "border-border hover:bg-surface border"}`}
-                  >
-                    {page}
-                  </Link>
-                ))}
-                {catalog.page < catalog.pageCount && (
-                  <Link
-                    aria-label="Trang sau"
-                    href={catalogHref(params, { page: String(catalog.page + 1) })}
-                    className="border-border rounded border p-2.5"
-                  >
-                    <ChevronRight size={18} />
-                  </Link>
-                )}
-              </nav>
-            </div>
+            {totalPages > 1 && (
+              <div className="border-border mt-10 flex flex-wrap items-center justify-between gap-4 border-t pt-6">
+                <span className="text-muted text-xs">
+                  Trang {page} / {totalPages}
+                </span>
+                <nav aria-label="Phân trang" className="flex items-center gap-2">
+                  {page > 1 && (
+                    <Link
+                      aria-label="Trang trước"
+                      href={catalogHref(params, { page: String(page - 1) })}
+                      className="border-border rounded border p-2.5"
+                    >
+                      <ChevronLeft size={18} />
+                    </Link>
+                  )}
+                  {pageWindow(page, totalPages).map((number) => (
+                    <Link
+                      key={number}
+                      aria-label={`Trang ${number}`}
+                      aria-current={number === page ? "page" : undefined}
+                      href={catalogHref(params, { page: String(number) })}
+                      className={`flex size-10 items-center justify-center rounded text-sm ${number === page ? "bg-primary text-primary-foreground" : "border-border hover:bg-surface border"}`}
+                    >
+                      {number}
+                    </Link>
+                  ))}
+                  {page < totalPages && (
+                    <Link
+                      aria-label="Trang sau"
+                      href={catalogHref(params, { page: String(page + 1) })}
+                      className="border-border rounded border p-2.5"
+                    >
+                      <ChevronRight size={18} />
+                    </Link>
+                  )}
+                </nav>
+              </div>
+            )}
           </section>
         </div>
       </Container>
