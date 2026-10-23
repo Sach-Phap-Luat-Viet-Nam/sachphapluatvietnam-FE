@@ -14,6 +14,19 @@ Project Vercel của website khách hàng sử dụng các giá trị sau:
 | Install Command                                            | Mặc định theo pnpm workspace                                                          |
 
 Root Directory là thiết lập trên dashboard, không được đặt qua `vercel.json`.
+
+## Biến môi trường
+
+| Biến           | Giá trị                                    | Ghi chú                                                           |
+| -------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `API_BASE_URL` | `https://sachphapluatvietnam.onrender.com` | Gốc URL backend, không có `/api/v1`. Chỉ dùng phía server Next.js |
+
+- Khai báo trong Vercel → Settings → Environment Variables cho Production và Preview, sau đó deploy lại.
+- Local: copy `apps/storefront/.env.example` thành `apps/storefront/.env.local`. Chạy backend local thì đổi thành
+  `http://localhost:5279`.
+- Biến này không có tiền tố `NEXT_PUBLIC_`. Backend chưa bật CORS nên trình duyệt không gọi thẳng được; request từ
+  trình duyệt sẽ đi qua proxy `rewrites` của Next.js, còn Server Component gọi trực tiếp tới URL này.
+- Code chưa đọc biến này. Phần đọc qua `lib/env.ts` sẽ làm khi tích hợp API.
 Lưu cả phần Framework Settings và Root Directory trước khi deploy lại.
 Deploy commit mới nhất có bản sửa; redeploy commit cũ không lấy thay đổi source mới.
 
