@@ -28,7 +28,8 @@
   --color-book-green: #345950;
   --color-book-sand: #e4d5b8;
   --color-book-gold: #c5a66d;
-  --font-editorial: Georgia, "Times New Roman", serif;
+  /* `--font-noto-serif` do next/font đặt ở thẻ <html>; Georgia thiếu glyph tiếng Việt nên chỉ để dự phòng cuối. */
+  --font-editorial: var(--font-noto-serif, "Noto Serif"), "Times New Roman", serif;
 
   --color-danger: #b42318;
   --color-success: #067647;
