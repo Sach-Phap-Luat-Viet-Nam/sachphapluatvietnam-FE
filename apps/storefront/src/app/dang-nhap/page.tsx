@@ -27,11 +27,11 @@ export default function LoginPage() {
             </div>
             <div className="relative z-10 mt-16">
               <span className="bg-book-gold mb-7 block h-px w-12" />
-              <h1 className="font-editorial text-4xl leading-[1.3]">
+              <h2 className="font-editorial text-4xl leading-[1.3]">
                 Tri thức pháp luật.
                 <br />
                 <span className="text-book-sand italic">Giá trị bền lâu.</span>
-              </h1>
+              </h2>
               <p className="text-primary-foreground/75 mt-6 max-w-xs text-sm leading-7">
                 Một tài khoản, một tủ sách của riêng bạn. Tiếp nối hành trình khám phá và ứng dụng pháp luật mỗi ngày.
               </p>
@@ -55,9 +55,9 @@ export default function LoginPage() {
           </section>
           <section aria-labelledby="login-title" className="px-6 py-10 sm:px-12 sm:py-14">
             <p className="text-accent text-xs font-semibold tracking-[0.15em]">CHÀO MỪNG BẠN TRỞ LẠI</p>
-            <h2 id="login-title" className="font-editorial text-primary mt-3 text-4xl">
+            <h1 id="login-title" className="font-editorial text-primary mt-3 text-4xl">
               Đăng nhập
-            </h2>
+            </h1>
             <p className="text-muted mt-3 text-sm leading-6">Tiếp tục hành trình cùng Sách Luật Việt Nam.</p>
             <LoginForm />
           </section>

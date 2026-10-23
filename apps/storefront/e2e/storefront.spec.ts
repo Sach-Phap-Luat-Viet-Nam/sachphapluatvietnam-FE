@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("finds books and opens a preview", async ({ page }) => {
+test("finds books and opens a preview", async ({ page }, testInfo) => {
   await page.goto("/sach");
   await expect(page.getByRole("heading", { name: "Tủ sách pháp luật." })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("catalog.png"), fullPage: true });
   await page.getByLabel("Tìm theo tên sách hoặc ISBN").fill("Dân sự");
   await page.getByRole("button", { name: "Tìm sách", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Kết quả cho “Dân sự”" })).toBeVisible();
@@ -13,7 +14,7 @@ test("finds books and opens a preview", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test("navigates to login and validates fields", async ({ page }) => {
+test("navigates to login and validates fields", async ({ page }, testInfo) => {
   await page.goto("/sach");
   await page.getByRole("link", { name: "Đăng nhập" }).click();
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
@@ -22,5 +23,6 @@ test("navigates to login and validates fields", async ({ page }) => {
   await page.getByLabel(/^Mật khẩu/).fill("test-password");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("sau khi kết nối backend");
+  await page.screenshot({ path: testInfo.outputPath("login.png"), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

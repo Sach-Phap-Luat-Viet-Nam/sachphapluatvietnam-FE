@@ -42,7 +42,7 @@ export function Header() {
             <Search size={21} />
           </button>
         </form>
-        <Link href="/dang-nhap" className="text-primary flex items-center gap-2 text-sm font-medium">
+        <Link href="/dang-nhap" aria-label="Đăng nhập" className="text-primary flex items-center gap-2 text-sm font-medium">
           <UserRound size={22} />
           <span className="hidden sm:inline">Đăng nhập</span>
         </Link>
