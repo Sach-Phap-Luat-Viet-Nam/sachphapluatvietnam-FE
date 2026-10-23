@@ -1,21 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Be_Vietnam_Pro, Noto_Serif } from "next/font/google";
+import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const sans = Be_Vietnam_Pro({
   subsets: ["vietnamese", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600"],
   variable: "--font-be-vietnam-pro",
 });
 
-// Georgia thiếu glyph tiếng Việt trên nhiều máy (dấu lệch, lẫn font) nên tiêu đề dùng Noto Serif.
-const editorial = Noto_Serif({
+// Font tiêu đề phải có bộ glyph tiếng Việt (Georgia thiếu, dấu bị lệch hoặc lẫn font).
+const editorial = Playfair_Display({
   subsets: ["vietnamese", "latin"],
   style: ["normal", "italic"],
-  variable: "--font-noto-serif",
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
@@ -23,13 +23,15 @@ export const metadata: Metadata = {
   description: "Khám phá tủ sách pháp luật Việt Nam: bộ luật, chú giải và giáo trình chuyên sâu.",
 };
 
+export const viewport: Viewport = { themeColor: "#0d1524", colorScheme: "dark" };
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="vi" className={`${sans.variable} ${editorial.variable}`}>
       <body>
         <a
           href="#noi-dung"
-          className="focus:bg-background sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:p-3"
+          className="focus:bg-gold focus:text-ink sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:p-3"
         >
           Đến nội dung chính
         </a>
