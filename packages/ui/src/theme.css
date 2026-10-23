@@ -22,11 +22,19 @@
   --color-muted: #5a6474;
   --color-border: #d9dee5;
 
+  --color-paper: #f8f6f1;
+  --color-book-navy: #203857;
+  --color-book-red: #8d3238;
+  --color-book-green: #345950;
+  --color-book-sand: #e4d5b8;
+  --color-book-gold: #c5a66d;
+  --font-editorial: Georgia, "Times New Roman", serif;
+
   --color-danger: #b42318;
   --color-success: #067647;
   --color-warning: #93370d;
   --color-warning-surface: #fffaeb;
 
   /* `--font-be-vietnam-pro` do next/font đặt ở thẻ <html> của từng app. */
-  --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-be-vietnam-pro, ui-sans-serif), system-ui, sans-serif;
 }

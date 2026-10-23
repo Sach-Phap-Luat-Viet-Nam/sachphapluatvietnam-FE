@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "@slvn/ui/theme.css";
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans text-base antialiased;
+  }
+  button,
+  select,
+  summary {
+    @apply cursor-pointer;
+  }
+  a,
+  button,
+  input,
+  select,
+  summary {
+    @apply focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4;
+  }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+}

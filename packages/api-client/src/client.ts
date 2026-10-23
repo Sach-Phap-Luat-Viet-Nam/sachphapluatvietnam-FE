@@ -29,7 +29,8 @@ export function createApiClient({ baseUrl, headers, fetch }: CreateApiClientOpti
   });
 }
 
-type ApiResult<T> = { data: T; error?: never; response: Response } | { data?: never; error: unknown; response: Response };
+type ApiResult<T> =
+  { data: T; error?: never; response: Response } | { data?: never; error: unknown; response: Response };
 
 /**
  * Chờ kết quả từ client, trả `data` khi thành công và ném `ApiError` khi backend trả lỗi.

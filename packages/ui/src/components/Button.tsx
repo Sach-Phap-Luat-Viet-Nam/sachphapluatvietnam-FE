@@ -32,7 +32,7 @@ export interface ButtonClassOptions {
 export function buttonClassName({ variant = "primary", size = "md", className }: ButtonClassOptions = {}): string {
   return cn(
     "inline-flex items-center justify-center gap-2 rounded-md text-base font-medium transition-colors",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+    "focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
     VARIANT_CLASSES[variant],
     SIZE_CLASSES[size],

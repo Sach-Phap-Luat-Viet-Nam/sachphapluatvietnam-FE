@@ -14,21 +14,21 @@
 Chọn bản **LTS / ổn định mới nhất**, kiểm tra ngày **23/10/2026**. Ghim **major** trong `package.json`,
 bản patch cụ thể do `pnpm-lock.yaml` quyết định.
 
-| Hạng mục | Lựa chọn | Major | Ghi chú |
-| --- | --- | --- | --- |
-| Runtime | Node.js | **24 LTS** | Ghim trong `.nvmrc` và `engines`. Node 26 lên LTS cuối 10/2026, sẽ nâng sau |
-| Package manager | pnpm (workspace) | 12 | Ghim qua field `packageManager` |
-| Framework | Next.js (App Router) | **16** | 16.x là **Active LTS** theo support policy của Next.js |
-| UI library | React | 19 | Theo bản Next.js hỗ trợ |
-| Ngôn ngữ | TypeScript | **6.0** | **Chưa lên 7.0**: `typescript-eslint` 8.x mới hỗ trợ `<6.1` |
-| CSS | Tailwind CSS | 4 | Cấu hình kiểu CSS-first (`@theme` trong file CSS) |
-| Lint | ESLint (flat config) + `eslint-config-next` | **9** / 16 | **Chưa lên 10**: `eslint-plugin-react`, `-import`, `-jsx-a11y` (đi kèm `eslint-config-next`) mới hỗ trợ tới ESLint 9 |
-| Format | Prettier + `prettier-plugin-tailwindcss` | 3 | Tự sắp xếp class Tailwind |
-| Gọi API | `openapi-typescript` + `openapi-fetch` | 7 / 0.x | Type sinh từ OpenAPI của backend |
-| Server state (client) | TanStack Query | 5 | Chủ yếu dùng ở `admin` |
-| Form + validate | React Hook Form + Zod | 7 / 4 | Schema Zod dùng chung cho form và env |
-| Unit/component test | Vitest + Testing Library + MSW | 5 / 16 / 3 | Thay cho Jest ghi trong đặc tả mục 14.1 |
-| E2E test | Playwright | 1.x | Luồng chính: tìm sách, giỏ, đặt hàng, đăng nhập admin |
+| Hạng mục              | Lựa chọn                                    | Major      | Ghi chú                                                                                                              |
+| --------------------- | ------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| Runtime               | Node.js                                     | **24 LTS** | Ghim trong `.nvmrc` và `engines`. Node 26 lên LTS cuối 10/2026, sẽ nâng sau                                          |
+| Package manager       | pnpm (workspace)                            | 12         | Ghim qua field `packageManager`                                                                                      |
+| Framework             | Next.js (App Router)                        | **16**     | 16.x là **Active LTS** theo support policy của Next.js                                                               |
+| UI library            | React                                       | 19         | Theo bản Next.js hỗ trợ                                                                                              |
+| Ngôn ngữ              | TypeScript                                  | **6.0**    | **Chưa lên 7.0**: `typescript-eslint` 8.x mới hỗ trợ `<6.1`                                                          |
+| CSS                   | Tailwind CSS                                | 4          | Cấu hình kiểu CSS-first (`@theme` trong file CSS)                                                                    |
+| Lint                  | ESLint (flat config) + `eslint-config-next` | **9** / 16 | **Chưa lên 10**: `eslint-plugin-react`, `-import`, `-jsx-a11y` (đi kèm `eslint-config-next`) mới hỗ trợ tới ESLint 9 |
+| Format                | Prettier + `prettier-plugin-tailwindcss`    | 3          | Tự sắp xếp class Tailwind                                                                                            |
+| Gọi API               | `openapi-typescript` + `openapi-fetch`      | 7 / 0.x    | Type sinh từ OpenAPI của backend                                                                                     |
+| Server state (client) | TanStack Query                              | 5          | Chủ yếu dùng ở `admin`                                                                                               |
+| Form + validate       | React Hook Form + Zod                       | 7 / 4      | Schema Zod dùng chung cho form và env                                                                                |
+| Unit/component test   | Vitest + Testing Library + MSW              | 5 / 16 / 3 | Thay cho Jest ghi trong đặc tả mục 14.1                                                                              |
+| E2E test              | Playwright                                  | 1.x        | Luồng chính: tìm sách, giỏ, đặt hàng, đăng nhập admin                                                                |
 
 - Khi nâng major của một thư viện: kiểm tra peer dependency trước (ví dụ TypeScript 7 và `typescript-eslint`),
   nêu rõ lý do và cập nhật bảng trên.
@@ -134,17 +134,17 @@ Một thay đổi chỉ được báo là xong khi:
 
 ### Đặt tên
 
-| Thành phần | Quy tắc | Ví dụ |
-| --- | --- | --- |
-| Component | PascalCase, file cùng tên | `BookCard` trong `BookCard.tsx` |
-| Hook | `use` + PascalCase | `useCart`, `useBookFilters` |
-| Biến, hàm, tham số | camelCase | `orderId`, `formatPrice` |
-| Type, interface | PascalCase, **không** tiền tố `I` | `BookSummary`, `CartItem` |
-| Props của component | `<Component>Props` | `BookCardProps` |
-| Hằng số module | UPPER_SNAKE_CASE | `MAX_CART_QUANTITY` |
-| File không phải component | kebab-case | `format-price.ts`, `api-error.ts` |
-| Thư mục route | kebab-case, theo URL tiếng Việt không dấu | `app/sach/[slug]/page.tsx` |
-| Schema Zod | camelCase + `Schema` | `checkoutFormSchema` |
+| Thành phần                | Quy tắc                                   | Ví dụ                             |
+| ------------------------- | ----------------------------------------- | --------------------------------- |
+| Component                 | PascalCase, file cùng tên                 | `BookCard` trong `BookCard.tsx`   |
+| Hook                      | `use` + PascalCase                        | `useCart`, `useBookFilters`       |
+| Biến, hàm, tham số        | camelCase                                 | `orderId`, `formatPrice`          |
+| Type, interface           | PascalCase, **không** tiền tố `I`         | `BookSummary`, `CartItem`         |
+| Props của component       | `<Component>Props`                        | `BookCardProps`                   |
+| Hằng số module            | UPPER_SNAKE_CASE                          | `MAX_CART_QUANTITY`               |
+| File không phải component | kebab-case                                | `format-price.ts`, `api-error.ts` |
+| Thư mục route             | kebab-case, theo URL tiếng Việt không dấu | `app/sach/[slug]/page.tsx`        |
+| Schema Zod                | camelCase + `Schema`                      | `checkoutFormSchema`              |
 
 ### Thiết kế React / Next.js
 
@@ -280,8 +280,12 @@ Một thay đổi chỉ được báo là xong khi:
 # <Tên tính năng>
 
 ## Mục đích
+
 ## Luồng xử lý (màn hình, route, app storefront/admin)
+
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
+
 ## Cấu hình cần thiết (biến môi trường)
+
 ## Hạn chế / việc còn lại
 ```
