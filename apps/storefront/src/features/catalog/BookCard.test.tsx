@@ -58,4 +58,11 @@ describe("BookCard", () => {
     expect(dialog).toHaveTextContent("Tạm hết hàng");
     expect(dialog).toHaveTextContent(book.updatedToText ?? "");
   });
+
+  it("uses the cover image from the API instead of the drawn cover", () => {
+    const coverImageUrl = "https://res.cloudinary.com/demo/image/upload/bia.jpg";
+    render(<BookCard book={{ ...book, coverImageUrl }} />);
+    const covers = screen.getAllByRole("img", { name: `Bìa sách ${book.title}` });
+    expect(covers[0]).toHaveAttribute("src", coverImageUrl);
+  });
 });
