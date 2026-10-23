@@ -6,12 +6,17 @@ Oct 23, 2026 · @Software DGP
 
 Mọi API nằm dưới tiền tố `/api/v1`, trả JSON (camelCase), lỗi theo một format duy nhất (Problem Details, mục Quy ước chung). Tài liệu này khớp code backend tại commit trên `main` ngày 23/10/2026; nguồn chuẩn để tra nhanh là OpenAPI.
 
-| Môi trường           | Base URL                 | Ghi chú                                            |
-| -------------------- | ------------------------ | -------------------------------------------------- |
-| Local (HTTP)         | `http://localhost:5279`  | `dotnet run --project src/SachLuat.Api`            |
-| Local (HTTPS)        | `https://localhost:7265` | profile `https`, nên dùng khi test cookie `Secure` |
-| Staging / Production | Chưa có                  | Chưa deploy                                        |
+| Môi trường      | Base URL                                   | Ghi chú                                            |
+| --------------- | ------------------------------------------ | -------------------------------------------------- |
+| Local (HTTP)    | `http://localhost:5279`                    | `dotnet run --project src/SachLuat.Api`            |
+| Local (HTTPS)   | `https://localhost:7265`                   | profile `https`, nên dùng khi test cookie `Secure` |
+| Deploy (Render) | `https://sachphapluatvietnam.onrender.com` | Biến `API_BASE_URL` của FE, xem ghi chú dưới       |
+| Production      | Chưa có                                    | Chưa deploy                                        |
 
+- **Bản deploy trên Render** (kiểm tra 23/10/2026): request đầu sau một lúc không dùng mất khoảng 20 giây (instance ngủ
+  rồi khởi động lại). `/health/live` trả 200, `/health/ready` trả 503 trong khi API catalog vẫn trả 200 với dữ liệu
+  rỗng. Không có `/openapi/v1.json` (chỉ bật ở Development), nên sinh type từ OpenAPI của backend chạy local.
+  Response không có header CORS.
 - **OpenAPI JSON**: `/openapi/v1.json` · **API reference (Scalar)**: `/scalar` — chỉ bật ở Development.
 - **Health**: `GET /health/live` (tiến trình sống), `GET /health/ready` (CSDL + Redis sẵn sàng). Không có tiền tố `/api/v1`.
 - **Cookie**: backend dùng 2 cookie HttpOnly (refresh token, giỏ khách). Mọi request từ trình duyệt phải gửi kèm cookie: `fetch(url, { credentials: 'include' })` hoặc axios `withCredentials: true`.
