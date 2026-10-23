@@ -4,64 +4,93 @@
 
 - **Dự án**: Website thương mại điện tử bán trực tiếp (D2C) sách pháp luật do Sách Luật Việt Nam
   tự biên soạn và in (mã `SLVN-WEB`). Đặc tả đầy đủ: `docs/project_overview.md`.
-- **Backend**: ASP.NET Core **.NET 10 (LTS)**, C#, kiến trúc **modular monolith**
-- **Kiểu API**: Controllers, tiền tố `api/v1` (`ApiRoutes.V1`), lỗi trả `ProblemDetails` + `code`
-- **CSDL / ORM**: PostgreSQL 16 + EF Core (Npgsql), mỗi module một schema và một `DbContext`,
-  tên bảng/cột `snake_case`
-- **Test**: xUnit v3 (Microsoft.Testing.Platform) + NSubstitute + AwesomeAssertions
-  (fork Apache-2.0 của FluentAssertions; FluentAssertions 8+ là license thương mại)
-- **Frontend**: Next.js (React, TypeScript) + Tailwind CSS, repo riêng (quy tắc FE ở mục 8)
-- Hướng dẫn cài đặt, quy tắc module, thêm module mới: `docs/setup.md`
+- **Repo này**: **Frontend**, gồm 2 app trong một monorepo:
+  - `storefront`: trang khách hàng, **SSR/SSG để làm SEO** (NFR-30..32), mobile-first.
+  - `admin`: trang quản trị (Admin CMS), chỉ dành cho nhân viên, bắt buộc đăng nhập.
+- **Backend**: repo riêng, ASP.NET Core .NET 10. FE chỉ giao tiếp qua HTTP API (mục 6).
+
+### Công nghệ và phiên bản
+
+Chọn bản **LTS / ổn định mới nhất**, kiểm tra ngày **23/10/2026**. Ghim **major** trong `package.json`,
+bản patch cụ thể do `pnpm-lock.yaml` quyết định.
+
+| Hạng mục | Lựa chọn | Major | Ghi chú |
+| --- | --- | --- | --- |
+| Runtime | Node.js | **24 LTS** | Ghim trong `.nvmrc` và `engines`. Node 26 lên LTS cuối 10/2026, sẽ nâng sau |
+| Package manager | pnpm (workspace) | 12 | Ghim qua field `packageManager` |
+| Framework | Next.js (App Router) | **16** | 16.x là **Active LTS** theo support policy của Next.js |
+| UI library | React | 19 | Theo bản Next.js hỗ trợ |
+| Ngôn ngữ | TypeScript | **6.0** | **Chưa lên 7.0**: `typescript-eslint` 8.x mới hỗ trợ `<6.1` |
+| CSS | Tailwind CSS | 4 | Cấu hình kiểu CSS-first (`@theme` trong file CSS) |
+| Lint | ESLint (flat config) + `eslint-config-next` | 10 / 16 | Có sẵn rule React Hooks, jsx-a11y |
+| Format | Prettier + `prettier-plugin-tailwindcss` | 3 | Tự sắp xếp class Tailwind |
+| Gọi API | `openapi-typescript` + `openapi-fetch` | 7 / 0.x | Type sinh từ OpenAPI của backend |
+| Server state (client) | TanStack Query | 5 | Chủ yếu dùng ở `admin` |
+| Form + validate | React Hook Form + Zod | 7 / 4 | Schema Zod dùng chung cho form và env |
+| Unit/component test | Vitest + Testing Library + MSW | 5 / 16 / 3 | Thay cho Jest ghi trong đặc tả mục 14.1 |
+| E2E test | Playwright | 1.x | Luồng chính: tìm sách, giỏ, đặt hàng, đăng nhập admin |
+
+- Khi nâng major của một thư viện: kiểm tra peer dependency trước (ví dụ TypeScript 7 và `typescript-eslint`),
+  nêu rõ lý do và cập nhật bảng trên.
 
 ### Cấu trúc thư mục
 
 ```
-src/
-  SachLuat.Api/                 # Host: Program.cs, middleware, xử lý lỗi, đăng ký module
-  SachLuat.SharedKernel/        # IModule, BusinessException, ErrorCodes, ApiRoutes
-  Modules/
-    <Ten>/SachLuat.Modules.<Ten>/
-      <Ten>Module.cs            # Đăng ký DI, DbContext của module
-      Domain/                   # Entity, value object
-      Application/              # Use case, DTO, validator
-      Infrastructure/Persistence/ # DbContext, cấu hình entity, Migrations/
-      Controllers/
-tests/
-  SachLuat.UnitTests/
-  SachLuat.IntegrationTests/
+apps/
+  storefront/                 # Next.js, cổng 3000
+    src/
+      app/                    # App Router: route, layout, metadata, sitemap.ts, robots.ts
+      features/<ten>/         # Theo tính năng: components/, hooks/, api.ts, schemas.ts
+      components/             # Component dùng chung trong app
+      lib/                    # env.ts, helper riêng của app
+    e2e/                      # Playwright
+  admin/                      # Next.js, cổng 3001, cấu trúc giống storefront
+packages/
+  api-client/                 # Client openapi-fetch, type sinh tự động (src/generated/), xử lý ProblemDetails
+  ui/                         # Component giao diện dùng chung, theme Tailwind (màu, font)
+  utils/                      # Hàm thuần: định dạng tiền VNĐ, ngày giờ, slug, ...
+  config/                     # tsconfig, eslint, prettier dùng chung
 docs/
   setup.md
-  features/                     # Mỗi tính năng một file .md (mục 7)
+  features/                   # Mỗi tính năng một file .md (mục 9)
 ```
 
-- Trong module, mọi thứ để `internal` trừ `<Ten>Module` và controller. Module không reference
-  trực tiếp module khác; cần giao tiếp thì tạo project `SachLuat.Modules.<Ten>.Contracts`.
+- Tên package nội bộ: `@slvn/<ten>` (ví dụ `@slvn/api-client`, `@slvn/ui`).
+- `apps/*` được import `packages/*`; **không** import chéo giữa `storefront` và `admin`.
+  Code cần dùng chung thì chuyển vào `packages/`.
+- Trong một app, `features/<a>` không import nội bộ của `features/<b>`; dùng chung thì đưa lên
+  `components/` hoặc `packages/`.
 
 ### Lệnh thường dùng
 
+> Các script dưới đây là quy ước, sẽ khai báo trong `package.json` khi dựng repo. Nếu script chưa tồn tại thì
+> báo lại, không tự đoán lệnh khác.
+
 ```bash
-dotnet tool restore
-docker compose up -d              # PostgreSQL local (cần file .env, xem .env.example)
-dotnet build SachLuat.slnx
-dotnet run --project src/SachLuat.Api
-dotnet test --solution SachLuat.slnx
-dotnet format SachLuat.slnx                     # format theo .editorconfig
-dotnet format SachLuat.slnx --verify-no-changes # kiểm tra format (dùng trước khi báo xong)
-dotnet ef migrations add <TenMigration> \
-  --project src/Modules/<Ten>/SachLuat.Modules.<Ten> \
-  --startup-project src/SachLuat.Api \
-  --context <Ten>DbContext \
-  --output-dir Infrastructure/Persistence/Migrations
+nvm use                                 # Node 24 theo .nvmrc
+pnpm install
+pnpm dev                                # chạy tất cả app
+pnpm --filter storefront dev            # chỉ chạy storefront
+pnpm --filter admin dev
+pnpm api:generate                       # sinh type từ OpenAPI của backend vào packages/api-client
+pnpm lint
+pnpm typecheck
+pnpm test                               # Vitest
+pnpm test:e2e                           # Playwright
+pnpm format                             # Prettier ghi đè
+pnpm format:check
+pnpm build
 ```
 
 ### Định nghĩa "xong việc"
 
 Một thay đổi chỉ được báo là xong khi:
 
-1. `dotnet build` không lỗi, không thêm warning mới.
-2. `dotnet test` pass toàn bộ.
-3. `dotnet format --verify-no-changes` sạch.
-4. Đã viết test cho logic mới và cập nhật `docs/` nếu là tính năng (mục 7).
+1. `pnpm typecheck` và `pnpm lint` không lỗi, không thêm warning mới.
+2. `pnpm test` pass toàn bộ; luồng chính bị ảnh hưởng thì chạy thêm `pnpm test:e2e`.
+3. `pnpm format:check` sạch.
+4. `pnpm build` thành công với app bị ảnh hưởng.
+5. Đã viết test cho logic mới và cập nhật `docs/` nếu là tính năng (mục 9).
 
 ---
 
@@ -75,67 +104,99 @@ Một thay đổi chỉ được báo là xong khi:
 
 ## 2. Xử lý thông tin và ra quyết định
 
-- **Không bịa**: không tự tạo class, method, package NuGet hay đường link
-  không tồn tại. Không biết thì nói "Em không biết / Em chưa kiểm tra được".
+- **Không bịa**: không tự tạo component, hook, API endpoint, package npm, option cấu hình
+  hay đường link không tồn tại. Không biết thì nói "Em không biết / Em chưa kiểm tra được".
+  Endpoint và kiểu dữ liệu backend lấy từ OpenAPI / `docs/project_overview.md`, không tự đặt.
 - **Khi thiếu thông tin**, phân theo mức ảnh hưởng:
-  - **Ảnh hưởng lớn hoặc khó quay lại** (kiến trúc, schema CSDL, xóa/ghi đè
-    nhiều file, đổi contract API): dừng lại, hỏi dạng trắc nghiệm A/B/C,
+  - **Ảnh hưởng lớn hoặc khó quay lại** (kiến trúc, cấu trúc route/URL đã public, cơ chế xác thực,
+    xóa/ghi đè nhiều file, đổi cách gọi API): dừng lại, hỏi dạng trắc nghiệm A/B/C,
     mỗi lựa chọn kèm ưu/nhược điểm và đề xuất của Em.
   - **Việc nhỏ, dễ sửa lại**: chọn phương án hợp lý nhất, **ghi rõ giả định**
     trong câu trả lời rồi làm tiếp.
-- **Trước khi thực hiện** thay đổi kiến trúc, xóa/ghi đè nhiều file, hoặc chạy
-  lệnh tác động CSDL: trình bày kế hoạch ngắn và chờ Anh đồng ý.
-- **Debug**: đọc kỹ error log, tìm nguyên nhân gốc rễ trước, rồi mới sửa.
-  Nêu nguyên nhân trong 1–3 câu trước khi đưa ra cách sửa.
+- **Trước khi thực hiện** thay đổi kiến trúc, xóa/ghi đè nhiều file, nâng major dependency:
+  trình bày kế hoạch ngắn và chờ Anh đồng ý.
+- **Debug**: đọc kỹ error log (terminal, console trình duyệt, Network), tìm nguyên nhân gốc rễ
+  trước, rồi mới sửa. Nêu nguyên nhân trong 1–3 câu trước khi đưa ra cách sửa.
 - Với việc nhiều bước: liệt kê các bước logic dạng gạch đầu dòng trước khi code.
 
-## 3. Quy chuẩn code C# / ASP.NET Core
+## 3. Quy chuẩn code TypeScript / React
 
 ### Định dạng
 
-- Tuân theo `.editorconfig` của repo; chạy `dotnet format` sau khi sửa.
-- Dòng tối đa **120 ký tự**; quá dài thì ngắt dòng theo tham số hoặc chuỗi
-  method (fluent).
-- Bật `<Nullable>enable</Nullable>`; không dùng `!` (null-forgiving) để lấp
-  cảnh báo nếu chưa chắc giá trị khác null.
-- Dùng file-scoped namespace (`namespace X.Y;`).
+- Tuân theo Prettier và ESLint của repo; chạy `pnpm format` sau khi sửa.
+- Dòng tối đa **120 ký tự**.
+- `tsconfig` bật `strict` và `noUncheckedIndexedAccess`.
+- **Không** dùng `any`; dữ liệu chưa rõ kiểu dùng `unknown` rồi thu hẹp (narrow) hoặc parse bằng Zod.
+- **Không** dùng `!` (non-null assertion) hay `as` để lấp lỗi type nếu chưa chắc giá trị đúng.
+- **Không** dùng `// @ts-ignore`; bắt buộc thì dùng `// @ts-expect-error` kèm lý do.
+- Dùng ES module, `import type` cho import chỉ có type. Không dùng `export default`, trừ file
+  Next.js bắt buộc (`page.tsx`, `layout.tsx`, `error.tsx`, ...).
 
 ### Đặt tên
 
 | Thành phần | Quy tắc | Ví dụ |
 | --- | --- | --- |
-| Class, record, struct, enum | PascalCase | `OrderService` |
-| Interface | `I` + PascalCase | `IOrderRepository` |
-| Method, property, event | PascalCase | `GetByIdAsync`, `TotalAmount` |
-| Biến cục bộ, tham số | camelCase | `orderId` |
-| Private field | `_camelCase` | `_dbContext` |
-| Hằng số (`const`, `static readonly`) | PascalCase | `MaxPageSize` |
-| Method bất đồng bộ | Hậu tố `Async` | `CreateOrderAsync` |
-| DTO | Hậu tố rõ nghĩa | `CreateOrderRequest`, `OrderResponse` |
+| Component | PascalCase, file cùng tên | `BookCard` trong `BookCard.tsx` |
+| Hook | `use` + PascalCase | `useCart`, `useBookFilters` |
+| Biến, hàm, tham số | camelCase | `orderId`, `formatPrice` |
+| Type, interface | PascalCase, **không** tiền tố `I` | `BookSummary`, `CartItem` |
+| Props của component | `<Component>Props` | `BookCardProps` |
+| Hằng số module | UPPER_SNAKE_CASE | `MAX_CART_QUANTITY` |
+| File không phải component | kebab-case | `format-price.ts`, `api-error.ts` |
+| Thư mục route | kebab-case, theo URL tiếng Việt không dấu | `app/sach/[slug]/page.tsx` |
+| Schema Zod | camelCase + `Schema` | `checkoutFormSchema` |
 
-### Thiết kế
+### Thiết kế React / Next.js
 
-- Dùng **Dependency Injection** qua constructor; không `new` service thủ công,
-  không dùng service locator.
-- Controller/endpoint mỏng: chỉ nhận request, gọi service, trả response.
-  Logic nghiệp vụ nằm ở tầng Application/Domain.
-- Không trả entity EF Core ra ngoài API; luôn map sang DTO.
-- Validate input bằng <FluentValidation | DataAnnotations>; trả lỗi theo
-  chuẩn `ProblemDetails`.
-- **Async xuyên suốt**: dùng `async/await` cho I/O; **không** dùng `.Result`,
-  `.Wait()`, `async void` (trừ event handler). Truyền `CancellationToken`
-  xuống các tầng dưới.
-- Đường dẫn file: dùng `Path.Combine` cùng `IWebHostEnvironment.ContentRootPath`
-  hoặc `AppContext.BaseDirectory`; **không** dùng đường dẫn tuyệt đối
-  (`C:\...`).
+- **Server Component là mặc định.** Chỉ thêm `"use client"` khi cần state, effect, event handler
+  hoặc API trình duyệt; đặt ở component lá, nhỏ nhất có thể.
+- Code chỉ chạy phía server (gọi API có cookie, đọc biến môi trường bí mật) import `server-only`.
+- **Storefront**: lấy dữ liệu trong Server Component qua `@slvn/api-client`, dùng cơ chế cache/revalidate
+  của Next.js. Trang sách/danh mục phải có nội dung trong HTML trả về (không render trống rồi mới fetch).
+- **Admin**: dữ liệu phía client dùng TanStack Query; mutation xong thì invalidate query liên quan.
+- **Không** gọi `fetch` tới backend rải rác trong component; mọi lời gọi đi qua `@slvn/api-client`.
+- **Form**: React Hook Form + Zod. Lỗi validation từ backend (`errors` trong ProblemDetails) map về
+  đúng field của form.
+- Component chỉ lo hiển thị; logic nghiệp vụ phía client (tính tạm tính, lọc, chuẩn hóa dữ liệu) để
+  trong hàm thuần ở `features/<ten>/` hoặc `packages/utils` để dễ test.
+- Không sao chép state từ props/server vào `useState` khi không cần; tránh `useEffect` để tính dữ liệu
+  suy ra được trực tiếp khi render.
+- Mỗi route có `loading.tsx` / `error.tsx` / `not-found.tsx` khi phù hợp.
+- **Styling**: chỉ dùng Tailwind class; không dùng inline `style` trừ giá trị động. Màu, font, khoảng cách
+  lấy từ theme ở `packages/ui` (đặc tả mục 8.3), không hardcode mã màu.
+- **Ảnh**: dùng `next/image`, có `alt` mô tả, khai báo kích thước để tránh CLS. Ảnh bìa tỷ lệ 3:4.
+
+### Quy tắc nghiệp vụ hiển thị
+
+- **Tiền**: backend trả số nguyên VNĐ. Định dạng bằng hàm chung trong `packages/utils`
+  (`Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })`). **Không** tính giá cuối
+  phía client để gửi lên; giá, khuyến mãi, phí ship luôn lấy từ backend.
+- **Ngày giờ**: hiển thị theo múi giờ `Asia/Ho_Chi_Minh`.
+- **Đặt hàng / thanh toán**: gửi header `Idempotency-Key` (đặc tả mục 11.1); chặn bấm gửi nhiều lần.
+- Chuỗi hiển thị là tiếng Việt, nhưng gom vào một chỗ theo tính năng để sau này có thể làm i18n (NFR-60).
+
+### SEO và hiệu năng (storefront)
+
+- URL theo NFR-30: `/sach/<slug>`, `/danh-muc/<slug>`. Không đổi URL đã public khi chưa có redirect 301.
+- Mỗi trang có `generateMetadata` (title, description, canonical, Open Graph).
+- Trang sách có JSON-LD schema.org `Book` / `Product` / `Offer` / `BreadcrumbList` (NFR-31).
+- Có `sitemap.ts`, `robots.ts` sinh tự động.
+- Mục tiêu Core Web Vitals trên mobile 4G: **LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1** (NFR-01, 02).
+  Hạn chế `"use client"` ở cấp cao và thư viện nặng phía client.
+
+### Khả năng truy cập (NFR-42, WCAG 2.1 AA)
+
+- Dùng thẻ HTML đúng nghĩa (`button`, `a`, `nav`, `main`, `label`); không gắn `onClick` lên `div`.
+- Điều hướng được bằng bàn phím, có focus hiển thị rõ; cỡ chữ nội dung tối thiểu 16px.
+- Không tắt rule `jsx-a11y` nếu không có lý do ghi rõ.
 
 ### Comment
 
-- Comment giải thích **tại sao** (thuật toán, edge case, quyết định đặc biệt)
+- Comment giải thích **tại sao** (edge case, workaround của thư viện, quyết định đặc biệt)
   được phép để trong code, ngắn gọn.
-- Dùng XML doc (`///`) cho public API của thư viện dùng chung.
+- Dùng JSDoc (`/** */`) cho hàm/component export từ `packages/*`.
 - Mô tả **tính năng** (mục đích, cách dùng, luồng) không để trong code,
-  mà viết vào `docs/` (mục 7).
+  mà viết vào `docs/` (mục 9).
 
 ### Khi trình bày code trong chat
 
@@ -145,80 +206,82 @@ Một thay đổi chỉ được báo là xong khi:
 
 ## 4. Logging và xử lý lỗi
 
-- Dùng `ILogger<T>` qua DI; **không** dùng `Console.WriteLine` để log.
-- Dùng structured logging với template, không nối chuỗi:
-  `_logger.LogInformation("Created order {OrderId}", order.Id);`
-- Chọn đúng mức: `Debug` (chi tiết khi dev), `Information` (sự kiện nghiệp vụ),
-  `Warning` (bất thường nhưng chạy tiếp được), `Error` (lỗi cần xử lý).
-- **Không log** password, token, số thẻ, dữ liệu cá nhân nhạy cảm.
-- Bắt exception cụ thể (`DbUpdateConcurrencyException`, `HttpRequestException`,
-  `ValidationException`, ...). Không nuốt lỗi bằng `catch { }` rỗng.
-- Chỉ bắt `Exception` chung ở **tầng biên**: global exception handler
-  (`IExceptionHandler` / middleware), background worker. Ở đó phải log kèm
-  exception và trả `ProblemDetails`, không lộ stack trace ra client.
+- **Không commit** `console.log`; ESLint chặn `no-console` (cho phép `console.error` / `console.warn`
+  ở tầng biên). Lỗi production gửi qua công cụ giám sát (Sentry, khi đã chốt).
+- **Không log** password, token, OTP, số điện thoại, địa chỉ, dữ liệu cá nhân của khách.
+- Lỗi từ backend luôn chuẩn hóa ở `@slvn/api-client` thành một kiểu lỗi chung (có `status`, `code`,
+  `title`, `errors`, `traceId`). UI rẽ nhánh theo **`code`**, không theo chuỗi `title`.
+- Hiển thị cho người dùng: dùng `title` tiếng Việt của backend, hoặc thông báo map theo `code`.
+  **Không** hiện stack trace hay chi tiết kỹ thuật; lỗi 500 hiện thông báo chung kèm `traceId` để tra cứu.
+- Bắt lỗi cụ thể; không nuốt lỗi bằng `catch {}` rỗng. Chỉ bắt lỗi chung ở **tầng biên**
+  (`error.tsx`, `global-error.tsx`, error boundary, `onError` của TanStack Query).
 
 ## 5. Cấu hình, bảo mật và package
 
-- **Không hardcode** connection string, API key, password, token trong code
-  hay `appsettings.json` được commit.
-  - Local: dùng `dotnet user-secrets`.
-  - Server: dùng biến môi trường hoặc secret manager.
-  - Đọc cấu hình qua Options pattern (`IOptions<T>`), không đọc trực tiếp
-    chuỗi key rải rác.
-- Khi thêm key cấu hình mới: cập nhật `appsettings.Example.json` (giá trị giả)
-  để người khác biết cần cấu hình gì.
-- Thêm package bằng `dotnet add package <Ten>`; nêu rõ package mới và lý do.
-  Ưu tiên package chính thức, đang được bảo trì.
-- Truy vấn CSDL qua EF Core hoặc tham số hóa; **không** nối chuỗi SQL từ input.
+- **Không hardcode** URL backend, API key, token trong code. Dùng biến môi trường:
+  - Local: `.env.local` (không commit). Khi thêm biến mới, cập nhật `.env.example` (giá trị giả).
+  - Server: biến môi trường của nền tảng deploy / secret manager.
+  - Đọc biến môi trường qua `lib/env.ts` (parse bằng Zod), không đọc `process.env` rải rác.
+- Tiền tố `NEXT_PUBLIC_` sẽ lộ ra trình duyệt: **chỉ** dùng cho giá trị công khai, không bao giờ cho secret.
+- **Xác thực**: theo đặc tả mục 11, access/refresh token nằm trong **cookie HttpOnly** do backend đặt.
+  **Không** lưu token vào `localStorage` / `sessionStorage`. Chi tiết luồng đăng nhập chờ chốt với backend.
+- **Không** dùng `dangerouslySetInnerHTML`, trừ JSON-LD (dữ liệu tự sinh qua `JSON.stringify`) hoặc nội dung
+  bài viết đã được sanitize. Không ghép URL/HTML từ input người dùng.
+- Script theo dõi (GA4, Pixel) chỉ chạy sau khi khách đồng ý cookie (đặc tả mục 13.3).
+- Thêm package bằng `pnpm add <ten> --filter <app|package>`; nêu rõ package mới và lý do.
+  Ưu tiên package chính thức, đang được bảo trì, kiểm tra license và dung lượng bundle.
+  Luôn commit `pnpm-lock.yaml` cùng thay đổi.
 
-## 6. CSDL, Git và vùng không được tự ý sửa
+## 6. Làm việc với backend API
 
-### EF Core migration
+- Tiền tố `api/v1` (khách hàng) và `api/v1/admin` (quản trị); phân trang `?page=&limit=`, trả `meta`.
+- Lỗi theo **ProblemDetails (RFC 9457)** kèm `code` và `traceId`; danh sách mã lỗi ở đặc tả mục 16.2.
+- Type của request/response **sinh tự động** từ OpenAPI của backend (`pnpm api:generate`,
+  ở local là `/openapi/v1.json` của API). Không tự viết tay type trùng với type sinh ra.
+- Backend chưa có endpoint cần dùng: **không** tự bịa endpoint. Mock bằng MSW trong test/dev, ghi rõ
+  trong `docs/features/<ten>.md` mục "Hạn chế / việc còn lại", và báo Anh để thống nhất với backend.
 
-- Tạo migration mới cho mọi thay đổi schema; đặt tên rõ nghĩa
-  (`AddOrderStatusColumn`).
-- **Không sửa** migration đã được apply/merge; muốn đổi thì tạo migration mới.
-- **Không tự chạy** `dotnet ef database update` lên môi trường khác local.
+## 7. Test
+
+- **Vitest + Testing Library**: test hàm thuần (giá, định dạng, map lỗi) và component có logic.
+  Test theo hành vi người dùng (`getByRole`, `userEvent`), không test chi tiết cài đặt.
+- **MSW** để giả lập API; không gọi backend thật trong unit test.
+- **Playwright** cho luồng chính; selector ưu tiên role/label, tránh selector CSS dễ vỡ.
+- Mục tiêu bao phủ ≥ 70% phần nghiệp vụ (NFR-51).
+- File test đặt cạnh file nguồn: `format-price.test.ts`, `BookCard.test.tsx`.
+
+## 8. Git và vùng không được tự ý sửa
 
 ### Git
 
 - **Không tự `commit` hoặc `push`** khi Anh chưa yêu cầu.
 - Commit message theo Conventional Commits: `feat:`, `fix:`, `refactor:`,
-  `docs:`, `test:`, `chore:`.
+  `docs:`, `test:`, `chore:`; có scope theo app/package khi cần (`feat(storefront): ...`).
 - Không `force push`, không sửa lịch sử nhánh `main`.
 
 ### Không tự ý sửa
 
-- File secret và cấu hình môi trường thật (`appsettings.Production.json`,
-  `.env`).
-- Migration đã apply, thư mục `bin/`, `obj/`, file sinh tự động.
-- Pipeline CI/CD, file `.csproj` của project khác ngoài phạm vi việc đang làm
-  (trừ khi cần thêm package và đã nêu rõ).
+- File secret và cấu hình môi trường thật (`.env`, `.env.local`, `.env.production`).
+- File sinh tự động: `packages/api-client/src/generated/`, `next-env.d.ts`; thư mục `.next/`,
+  `node_modules/`, `coverage/`, `playwright-report/`. Muốn đổi type API thì chạy lại `pnpm api:generate`.
+- `pnpm-lock.yaml` chỉ thay đổi qua lệnh `pnpm`, không sửa tay.
+- Pipeline CI/CD, cấu hình dùng chung trong `packages/config` ngoài phạm vi việc đang làm
+  (trừ khi cần và đã nêu rõ).
 
-## 7. Tài liệu (docs)
+## 9. Tài liệu (docs)
 
-- **Khi nào viết**: mỗi tính năng mới, hoặc thay đổi làm khác hành vi/API của
+- **Khi nào viết**: mỗi tính năng mới, hoặc thay đổi làm khác hành vi/màn hình/URL của
   tính năng cũ. Bug fix nhỏ không cần file riêng.
 - **Vị trí và tên file**: `docs/features/<ten-tinh-nang>.md` (kebab-case,
-  ví dụ `docs/features/order-checkout.md`). Sửa tính năng cũ thì cập nhật file
-  có sẵn, không tạo file mới.
+  ví dụ `docs/features/checkout.md`). Sửa tính năng cũ thì cập nhật file có sẵn, không tạo file mới.
 - **Template**:
 
 ```markdown
 # <Tên tính năng>
 
 ## Mục đích
-## Luồng xử lý
-## API (method, route, request, response, mã lỗi)
-## Cấu hình cần thiết
-## Thay đổi CSDL (migration liên quan)
+## Luồng xử lý (màn hình, route, app storefront/admin)
+## API backend sử dụng (method, route, mã lỗi được xử lý)
+## Cấu hình cần thiết (biến môi trường)
 ## Hạn chế / việc còn lại
 ```
-
-## 8. Frontend
-
-- Stack: Next.js (React, TypeScript) + Tailwind CSS; Storefront render SSR (SEO), Admin là
-  Next.js hoặc React SPA. Nằm ở repo riêng, không nằm trong repo backend này.
-- Đặt tên: camelCase cho biến và hàm, PascalCase cho component.
-- Gọi API qua `api/v1`, đọc lỗi từ field `code` của `ProblemDetails`.
-- > Bổ sung lệnh chạy/test/lint khi đã dựng repo FE.
