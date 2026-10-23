@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Container } from "@slvn/ui";
+
 export default function NotFound() {
   return (
     <main id="noi-dung">
-      <Container className="py-24 text-center">
-        <p className="text-accent text-sm">404</p>
-        <h1 className="font-editorial text-primary mt-4 text-4xl">Không tìm thấy trang</h1>
-        <Link href="/sach" className="text-primary mt-6 inline-block underline">
-          Về tủ sách pháp luật
+      <Container className="flex min-h-112 flex-col items-center justify-center gap-5 py-20 text-center">
+        <span className="font-editorial text-gold text-7xl italic">404</span>
+        <h1 className="font-editorial text-4xl font-bold">Không tìm thấy trang</h1>
+        <p className="text-mist max-w-md">Trang bạn tìm có thể đã đổi địa chỉ hoặc không còn tồn tại.</p>
+        <Link href="/sach" className="btn-sweep bg-gold text-ink flex h-12 items-center gap-2.5 px-7 font-semibold">
+          Về tủ sách pháp luật <ArrowRight size={17} />
         </Link>
       </Container>
     </main>

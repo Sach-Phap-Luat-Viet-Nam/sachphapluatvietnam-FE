@@ -1,105 +1,123 @@
 "use client";
 
 import { useRef } from "react";
-import { ArrowUpRight, X } from "lucide-react";
-import { Button } from "@slvn/ui";
+import { Check, X } from "lucide-react";
+import { cn } from "@slvn/ui";
 import { formatDiscount, formatPrice } from "@slvn/utils";
-import { availabilityLabel, bookTypeLabel } from "./catalog";
+import { availability, bookTypeLabel } from "./catalog";
+import type { AvailabilityTone } from "./catalog";
 import type { BookSummary } from "./schemas";
 import { BookCover } from "./BookCover";
+
+const TONE_CLASSES: Record<AvailabilityTone, string> = {
+  ok: "text-ok",
+  upcoming: "text-upcoming",
+  muted: "text-mist",
+};
 
 export interface BookCardProps {
   book: BookSummary;
 }
 
-function BookPrice({ book, large = false }: BookCardProps & { large?: boolean }) {
-  if (book.salePrice === null) {
-    return <span className="text-muted text-sm">Chưa có giá bán</span>;
-  }
+function BookPrice({ book }: BookCardProps) {
+  if (book.salePrice === null) return null;
   return (
-    <>
-      <span className={large ? "text-accent text-lg font-bold" : "text-accent font-bold"}>
-        {formatPrice(book.salePrice)}
-      </span>
+    <span className="flex flex-wrap items-baseline gap-x-2">
+      <span className="text-lg font-semibold">{formatPrice(book.salePrice)}</span>
       {book.listPrice !== null && book.listPrice > book.salePrice && (
-        <span className="text-muted text-xs line-through">{formatPrice(book.listPrice)}</span>
+        <span className="text-mist text-sm line-through">{formatPrice(book.listPrice)}</span>
       )}
-    </>
+    </span>
   );
 }
 
 export function BookCard({ book }: BookCardProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const discount = formatDiscount(book.discountPercent);
-  const meta = [book.editionName, book.publishYear].filter((value) => value !== null && value !== "");
+  const status = availability(book);
+  const isUpcoming = status.tone === "upcoming";
+  const badge = discount ? `Giảm ${discount.slice(1)}` : isUpcoming ? status.label : null;
+  const dimmed = !book.inStock && !isUpcoming;
+  const edition = [book.editionName, book.publishYear].filter((value) => value !== null && value !== "").join(" · ");
+  const open = () => dialog.current?.showModal();
+
   return (
-    <article className="group min-w-0">
+    <article className="shelf-card motion-reveal flex min-w-0 flex-col">
       <button
         type="button"
-        onClick={() => dialog.current?.showModal()}
+        onClick={open}
         aria-label={`Xem nhanh ${book.title}`}
-        className="bg-paper relative flex w-full items-center justify-center rounded-lg px-7 py-7"
+        className="border-gold/50 relative flex h-56 items-end justify-center border-b shadow-[0_14px_18px_-16px_rgb(0_0_0/0.9)] sm:h-76"
       >
-        {discount && (
-          <span className="bg-background text-accent absolute top-3 left-3 z-10 rounded px-2 py-1 text-xs font-semibold">
-            {discount}
+        <span className={cn("shelf-book block", dimmed && "opacity-55")}>
+          <BookCover book={book} />
+        </span>
+        <span className="quick-tag bg-gold text-ink absolute bottom-4 px-3.5 py-2 text-sm font-semibold">
+          Xem nhanh
+        </span>
+        {badge && (
+          <span
+            className={cn(
+              "absolute top-3 left-0 px-2.5 py-1 text-xs font-medium",
+              discount ? "bg-burgundy text-ivory" : "bg-gold text-ink",
+            )}
+          >
+            {badge}
           </span>
         )}
-        <BookCover book={book} />
       </button>
-      <p className="text-muted mt-4 mb-2 text-xs font-medium tracking-wide">{bookTypeLabel(book.bookType)}</p>
-      <h3>
-        <button
-          type="button"
-          className="text-primary hover:text-accent min-h-12 text-left text-base leading-6 font-semibold"
-          onClick={() => dialog.current?.showModal()}
-        >
+      <p className="text-gold mt-4 text-[11px] tracking-[0.24em] uppercase">{bookTypeLabel(book.bookType)}</p>
+      <h3 className="font-editorial mt-1 text-lg leading-snug font-bold sm:text-[22px]">
+        <button type="button" onClick={open} className="hover:text-gold text-left transition-colors">
           {book.title}
         </button>
       </h3>
-      {meta.length > 0 && <p className="text-muted mt-2 text-xs">{meta.join(" · ")}</p>}
-      <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      {edition && <p className="text-mist mt-1 text-sm">{edition}</p>}
+      {book.updatedToText && (
+        <p className="text-sand mt-2 flex gap-2 text-sm">
+          <Check size={15} strokeWidth={2} className="text-gold mt-1 shrink-0" />
+          {book.updatedToText}
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
         <BookPrice book={book} />
-        <button
-          type="button"
-          aria-label={`Thông tin ${book.title}`}
-          onClick={() => dialog.current?.showModal()}
-          className="border-border text-primary hover:bg-primary hover:text-primary-foreground ml-auto rounded-full border p-1.5 transition-colors"
-        >
-          <ArrowUpRight size={16} />
-        </button>
+        {status.tone !== "ok" && <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
       </div>
+
       <dialog
         ref={dialog}
         aria-labelledby={`book-${book.id}`}
-        className="bg-background text-foreground backdrop:bg-primary/50 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-auto rounded-xl p-6 shadow-xl"
+        className="bg-panel text-ivory border-gold/30 backdrop:bg-ink/80 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-auto border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
       >
-        <div className="mb-5 flex items-center justify-between">
-          <span className="text-muted text-xs font-semibold tracking-widest">THÔNG TIN SÁCH</span>
+        <div className="mb-6 flex items-center justify-between">
+          <span className="text-gold text-xs tracking-[0.3em]">XEM NHANH</span>
           <button
             type="button"
             aria-label="Đóng thông tin sách"
             onClick={() => dialog.current?.close()}
-            className="hover:bg-surface rounded p-2"
+            className="hover:text-gold -m-2 p-2"
           >
-            <X size={20} />
+            <X size={22} />
           </button>
         </div>
-        <div className="grid gap-7 sm:grid-cols-[150px_1fr]">
-          <BookCover book={book} />
+        <div className="grid gap-8 sm:grid-cols-[156px_1fr]">
+          <BookCover book={book} size="dialog" className="mx-auto" />
           <div>
-            <h2 id={`book-${book.id}`} className="font-editorial text-primary text-2xl font-bold">
+            <p className="text-gold text-[11px] tracking-[0.24em] uppercase">{bookTypeLabel(book.bookType)}</p>
+            <h2 id={`book-${book.id}`} className="font-editorial mt-2 text-3xl leading-tight font-bold">
               {book.title}
             </h2>
-            {meta.length > 0 && <p className="text-muted mt-2 text-sm">{meta.join(" · ")}</p>}
-            {book.updatedToText && <p className="text-muted mt-3 text-sm">{book.updatedToText}</p>}
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <BookPrice book={book} large />
+            {edition && <p className="text-mist mt-2 text-sm">{edition}</p>}
+            {book.updatedToText && (
+              <p className="text-sand mt-4 flex gap-2 text-sm">
+                <Check size={15} strokeWidth={2} className="text-gold mt-1 shrink-0" />
+                {book.updatedToText}
+              </p>
+            )}
+            <div className="border-gold/25 mt-6 flex flex-wrap items-end justify-between gap-3 border-t pt-5">
+              <BookPrice book={book} />
+              <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>
             </div>
-            <p className="text-primary mt-3 text-sm font-medium">{availabilityLabel(book)}</p>
-            <Button className="mt-5" onClick={() => dialog.current?.close()}>
-              Tiếp tục xem sách
-            </Button>
           </div>
         </div>
       </dialog>

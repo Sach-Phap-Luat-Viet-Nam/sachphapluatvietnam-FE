@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Eye, EyeOff, Info, LockKeyhole } from "lucide-react";
-import { Button } from "@slvn/ui";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { cn } from "@slvn/ui";
 import { loginSchema } from "./schemas";
 import type { LoginValues } from "./schemas";
+
+// Chữ hoa bằng CSS để trình đọc màn hình vẫn đọc nhãn như từ thường.
+const LABEL = "text-gold text-[11px] tracking-[0.26em] uppercase";
+const INPUT =
+  "bg-ink-deep text-ivory h-13 w-full border px-4 text-base transition-colors focus:border-gold aria-invalid:border-danger";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,79 +26,88 @@ export function LoginForm() {
     defaultValues: { email: "", password: "", rememberMe: false },
   });
   return (
-    <form onSubmit={handleSubmit(() => setSubmitted(true))} noValidate className="mt-8 space-y-6">
-      <div>
-        <label htmlFor="email" className="text-primary mb-2 block text-sm font-semibold">
-          Địa chỉ email <span className="text-accent">*</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="username"
-          placeholder="ban@example.com"
-          {...register("email")}
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          className="border-border bg-background focus:border-primary h-12 w-full rounded-md border px-4 transition-colors"
-        />
-        {errors.email && (
-          <p id="email-error" role="alert" className="text-danger mt-2 text-sm">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
-      <div>
-        <label htmlFor="password" className="text-primary mb-2 block text-sm font-semibold">
-          Mật khẩu <span className="text-accent">*</span>
-        </label>
-        <div className="relative">
+    <div className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit(() => setSubmitted(true))} noValidate className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className={LABEL}>
+            Email
+          </label>
           <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            placeholder="Nhập mật khẩu của bạn"
-            {...register("password")}
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            className="border-border bg-background focus:border-primary h-12 w-full rounded-md border pr-12 pl-4"
+            id="email"
+            type="email"
+            autoComplete="username"
+            placeholder="ban@example.com"
+            {...register("email")}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className={cn(INPUT, "border-border")}
           />
-          <button
-            type="button"
-            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-            aria-pressed={showPassword}
-            onClick={() => setShowPassword(!showPassword)}
-            className="text-muted absolute top-1 right-1 rounded p-3"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+          {errors.email && (
+            <p id="email-error" role="alert" className="text-danger text-sm">
+              {errors.email.message}
+            </p>
+          )}
         </div>
-        {errors.password && (
-          <p id="password-error" role="alert" className="text-danger mt-2 text-sm">
-            {errors.password.message}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="password" className={LABEL}>
+            MẬT KHẨU
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="Nhập mật khẩu"
+              {...register("password")}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
+              className={cn(INPUT, "border-border pr-14")}
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-mist hover:text-gold absolute top-1 right-1 flex size-11 items-center justify-center"
+            >
+              {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+            </button>
+          </div>
+          {errors.password && (
+            <p id="password-error" role="alert" className="text-danger text-sm">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+        <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
+          <input type="checkbox" {...register("rememberMe")} className="accent-gold size-4.5" />
+          Giữ đăng nhập 30 ngày
+        </label>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="btn-sweep bg-gold text-ink flex min-h-13.5 items-center justify-center gap-2.5 text-base font-semibold disabled:opacity-60"
+        >
+          {isSubmitting ? "Đang kiểm tra…" : "Đăng nhập"}
+          <ArrowRight size={18} />
+        </button>
+        {submitted && (
+          <p role="status" className="border-gold/40 text-sand border px-4 py-3 text-sm leading-6">
+            Thông tin đã hợp lệ. Chức năng đăng nhập sẽ hoạt động sau khi kết nối backend.
           </p>
         )}
+      </form>
+      <div className="text-dim flex items-center gap-3.5 text-[13px]">
+        <span className="bg-ivory/18 h-px flex-1" />
+        hoặc
+        <span className="bg-ivory/18 h-px flex-1" />
       </div>
-      <label className="text-muted flex w-fit items-center gap-2.5 text-sm">
-        <input type="checkbox" {...register("rememberMe")} className="accent-primary size-4 rounded" />
-        Ghi nhớ đăng nhập
-      </label>
-      <Button type="submit" disabled={isSubmitting} size="lg" className="w-full justify-between">
-        {isSubmitting ? "Đang kiểm tra…" : "Đăng nhập"}
-        <ArrowRight size={19} />
-      </Button>
-      {submitted && (
-        <p role="status" className="border-border bg-surface text-primary rounded-md border p-4 text-sm leading-6">
-          Thông tin đã hợp lệ. Đây là bản xem trước giao diện; chức năng đăng nhập sẽ hoạt động sau khi kết nối backend.
-        </p>
-      )}
-      <div className="text-muted flex items-center justify-center gap-2 text-xs">
-        <LockKeyhole size={14} />
-        Bảo vệ thông tin tài khoản của bạn
-      </div>
-      <div className="bg-paper text-muted flex gap-2.5 rounded-md p-3 text-xs leading-5">
-        <Info size={16} className="mt-0.5 shrink-0" />
-        <p>Bản xem trước chưa kết nối đăng nhập. Vui lòng dùng thông tin thử nghiệm.</p>
-      </div>
-    </form>
+      <Link
+        href="/sach"
+        className="border-ivory/30 hover:border-gold flex min-h-12.5 items-center justify-center border text-center text-[15px] transition-colors"
+      >
+        Tiếp tục mua sách không cần đăng nhập
+      </Link>
+    </div>
   );
 }

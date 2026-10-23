@@ -1,116 +1,132 @@
 import Link from "next/link";
-import { ArrowRight, SlidersHorizontal } from "lucide-react";
-import { Button, cn } from "@slvn/ui";
-import type { CatalogParams, FlatCategory } from "./catalog";
-import { BOOK_TYPE_LABELS, COVER_TYPE_LABELS, param } from "./catalog";
-
-/** Thụt lề danh mục con theo độ sâu; sâu hơn 3 cấp giữ mức cuối. */
-const CATEGORY_INDENT = ["", "pl-5", "pl-10", "pl-14"];
+import { cn } from "@slvn/ui";
+import type { CatalogParams } from "./catalog";
+import {
+  BOOK_TYPE_LABELS,
+  COVER_TYPE_LABELS,
+  PRICE_RANGES,
+  isPriceRangeActive,
+  param,
+  priceRangeHref,
+} from "./catalog";
 
 export interface CatalogFiltersProps {
   params: CatalogParams;
-  categories: readonly FlatCategory[];
+  /** Tiền tố id để dùng được hai bản (sidebar desktop và bảng trượt mobile) trên cùng trang. */
+  idPrefix: string;
 }
 
-export function CatalogFilters({ params, categories }: CatalogFiltersProps) {
+const LEGEND = "text-gold pb-3 text-[11px] tracking-[0.26em]";
+const FIELD = "border-border bg-ink-deep text-ivory h-11 w-full border px-3 text-sm";
+
+/** Bộ lọc dạng form GET: chạy được cả khi chưa tải JavaScript. */
+export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
+  // Giá trị lạ trên URL bị bỏ khi gọi API (toBooksQuery) nên ở đây coi như "Tất cả".
+  const type = Object.hasOwn(BOOK_TYPE_LABELS, param(params, "type")) ? param(params, "type") : "";
+  const cover = Object.hasOwn(COVER_TYPE_LABELS, param(params, "cover")) ? param(params, "cover") : "";
   return (
-    <details open className="border-border bg-background rounded-lg border p-5 lg:border-0 lg:p-0">
-      <summary className="text-primary mb-5 flex list-none items-center justify-between font-semibold">
-        Bộ lọc sách <SlidersHorizontal size={17} />
-      </summary>
-      <form action="/sach" className="space-y-6">
-        <input type="hidden" name="q" value={param(params, "q")} />
-        <input type="hidden" name="sort" value={param(params, "sort")} />
-        <fieldset className="border-border border-t pt-5">
-          <legend className="text-primary pt-5 text-sm font-semibold">Danh mục</legend>
-          <div className="mt-3 space-y-3">
-            {[{ slug: "", name: "Tất cả danh mục", depth: 0 }, ...categories].map((category) => (
-              <label
-                key={category.slug}
+    <form action="/sach" className="flex flex-col gap-7">
+      {["q", "category", "sort"].map((key) =>
+        param(params, key) ? <input key={key} type="hidden" name={key} value={param(params, key)} /> : null,
+      )}
+
+      <fieldset className="flex flex-col">
+        <legend className={LEGEND}>LOẠI SÁCH</legend>
+        {[["", "Tất cả loại sách"], ...Object.entries(BOOK_TYPE_LABELS)].map(([value, label]) => (
+          <label
+            key={value}
+            className="has-checked:text-gold flex min-h-10 items-center gap-3 text-[15px]"
+          >
+            <input
+              type="radio"
+              name="type"
+              value={value}
+              defaultChecked={type === value}
+              className="accent-gold size-4.5"
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset className="border-gold/20 flex flex-col gap-3 border-t pt-6">
+        <legend className={cn(LEGEND, "pt-6")}>KHOẢNG GIÁ</legend>
+        <div className="flex flex-col gap-2">
+          {PRICE_RANGES.map((range) => {
+            const active = isPriceRangeActive(params, range);
+            return (
+              <Link
+                key={range.label}
+                href={priceRangeHref(params, range)}
+                aria-current={active ? "true" : undefined}
                 className={cn(
-                  "text-muted flex items-center gap-3 text-sm",
-                  CATEGORY_INDENT[Math.min(category.depth, CATEGORY_INDENT.length - 1)],
+                  "flex min-h-10 items-center border px-3.5 text-sm transition-colors",
+                  active ? "border-gold bg-gold/12 text-gold" : "border-border hover:border-gold",
                 )}
               >
-                <input
-                  type="radio"
-                  name="category"
-                  value={category.slug}
-                  defaultChecked={param(params, "category") === category.slug}
-                  className="accent-primary size-4"
-                />
-                {category.name}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="border-border border-t pt-4">
-          <legend className="text-primary pt-4 text-sm font-semibold">Khoảng giá</legend>
-          <div className="mt-3 flex items-center gap-2">
-            <label className="min-w-0 flex-1">
-              <span className="sr-only">Giá từ</span>
+                {range.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="min-w-0 flex-1">
+            <span className="sr-only">Giá từ</span>
+            <input
+              id={`${idPrefix}-min-price`}
+              name="minPrice"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Từ"
+              defaultValue={param(params, "minPrice")}
+              className={FIELD}
+            />
+          </label>
+          <span aria-hidden="true" className="text-mist">
+            –
+          </span>
+          <label className="min-w-0 flex-1">
+            <span className="sr-only">Giá đến</span>
+            <input
+              id={`${idPrefix}-max-price`}
+              name="maxPrice"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Đến"
+              defaultValue={param(params, "maxPrice")}
+              className={FIELD}
+            />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset className="border-gold/20 border-t pt-6">
+        <legend className={cn(LEGEND, "pt-6")}>LOẠI BÌA</legend>
+        <div className="border-border grid grid-cols-3 border">
+          {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label], index) => (
+            <label
+              key={value}
+              className={cn(
+                "has-checked:bg-gold has-checked:text-ink has-focus-visible:outline-gold flex min-h-11 items-center justify-center text-sm has-checked:font-semibold has-focus-visible:outline-2",
+                index > 0 && "border-border border-l",
+              )}
+            >
               <input
-                name="minPrice"
-                type="number"
-                min="0"
-                placeholder="Từ ₫"
-                defaultValue={param(params, "minPrice")}
-                className="border-border h-10 w-full rounded border px-2 text-sm"
+                type="radio"
+                name="cover"
+                value={value}
+                defaultChecked={cover === value}
+                className="sr-only"
               />
+              {label}
             </label>
-            <span className="text-muted">–</span>
-            <label className="min-w-0 flex-1">
-              <span className="sr-only">Giá đến</span>
-              <input
-                name="maxPrice"
-                type="number"
-                min="0"
-                placeholder="Đến ₫"
-                defaultValue={param(params, "maxPrice")}
-                className="border-border h-10 w-full rounded border px-2 text-sm"
-              />
-            </label>
-          </div>
-        </fieldset>
-        <label className="border-border text-primary block border-t pt-5 text-sm font-semibold">
-          Loại sách
-          <select
-            name="type"
-            defaultValue={param(params, "type")}
-            className="border-border bg-background mt-3 h-11 w-full rounded border px-2 font-normal"
-          >
-            <option value="">Tất cả loại sách</option>
-            {Object.entries(BOOK_TYPE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <fieldset>
-          <legend className="text-primary text-sm font-semibold">Loại bìa</legend>
-          <div className="mt-3 flex flex-wrap gap-3">
-            {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label]) => (
-              <label className="text-muted flex items-center gap-2 text-sm" key={value}>
-                <input
-                  type="radio"
-                  name="cover"
-                  value={value}
-                  defaultChecked={param(params, "cover") === value}
-                  className="accent-primary size-4"
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <Button type="submit" className="w-full">
-          Áp dụng bộ lọc <ArrowRight size={16} />
-        </Button>
-        <Link href="/sach" className="text-muted block text-center text-sm underline underline-offset-4">
-          Xóa bộ lọc
-        </Link>
-      </form>
-    </details>
+          ))}
+        </div>
+      </fieldset>
+
+      <button type="submit" className="btn-sweep bg-gold text-ink min-h-12 text-[15px] font-semibold">
+        Áp dụng bộ lọc
+      </button>
+    </form>
   );
 }

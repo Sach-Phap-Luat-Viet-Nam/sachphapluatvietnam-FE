@@ -1,4 +1,5 @@
 import type { paths } from "@slvn/api-client";
+import { formatPrice } from "@slvn/utils";
 import type { BookSummary, CategoryNode } from "./schemas";
 
 export type CatalogParams = Record<string, string | string[] | undefined>;
@@ -18,7 +19,7 @@ export const BOOK_TYPE_LABELS = {
 } as const;
 export const COVER_TYPE_LABELS = { paperback: "Bìa mềm", hardcover: "Bìa cứng" } as const;
 export const SORT_LABELS = {
-  newest: "Mới nhất",
+  newest: "Mới phát hành",
   price_asc: "Giá: thấp đến cao",
   price_desc: "Giá: cao đến thấp",
 } as const;
@@ -109,10 +110,124 @@ export function flattenCategories(nodes: readonly CategoryNode[], depth = 0): Fl
   ]);
 }
 
+export type AvailabilityTone = "ok" | "upcoming" | "muted";
+
+export interface Availability {
+  label: string;
+  tone: AvailabilityTone;
+}
+
 /** Trạng thái bán hiển thị trên thẻ sách (docs/api_reference.md, mục Catalog). */
-export function availabilityLabel(book: Pick<BookSummary, "editionStatus" | "salePrice" | "inStock">): string {
-  if (book.editionStatus === "upcoming") return "Sắp phát hành";
-  if (book.editionStatus === "discontinued") return "Ngừng bán";
-  if (book.salePrice === null) return "Chưa có giá bán";
-  return book.inStock ? "Còn hàng" : "Tạm hết hàng";
+export function availability(book: Pick<BookSummary, "editionStatus" | "salePrice" | "inStock">): Availability {
+  if (book.editionStatus === "upcoming") return { label: "Sắp phát hành", tone: "upcoming" };
+  if (book.editionStatus === "discontinued") return { label: "Ngừng bán", tone: "muted" };
+  if (book.salePrice === null) return { label: "Chưa có giá bán", tone: "muted" };
+  return book.inStock ? { label: "Còn hàng", tone: "ok" } : { label: "Tạm hết hàng", tone: "muted" };
+}
+
+export interface PriceRange {
+  label: string;
+  min?: number;
+  max?: number;
+}
+
+/** Mức giá chọn nhanh; mốc 300.000đ trùng ngưỡng miễn phí vận chuyển (BR-14). */
+export const PRICE_RANGES: readonly PriceRange[] = [
+  { label: "Dưới 150.000đ", max: 150000 },
+  { label: "150.000 – 300.000đ", min: 150000, max: 300000 },
+  { label: "Từ 300.000đ", min: 300000 },
+];
+
+function queryNumber(value: number | string | undefined): number | undefined {
+  return typeof value === "number" ? value : undefined;
+}
+
+export function priceRangeHref(params: CatalogParams, range: PriceRange): string {
+  return catalogHref(params, {
+    minPrice: range.min === undefined ? "" : String(range.min),
+    maxPrice: range.max === undefined ? "" : String(range.max),
+    page: "",
+  });
+}
+
+export function isPriceRangeActive(params: CatalogParams, range: PriceRange): boolean {
+  const query = toBooksQuery(params);
+  return queryNumber(query.MinPrice) === range.min && queryNumber(query.MaxPrice) === range.max;
+}
+
+function priceLabel(min: number | undefined, max: number | undefined): string | undefined {
+  if (min !== undefined && max !== undefined) return `${formatPrice(min)} – ${formatPrice(max)}`;
+  if (min !== undefined) return `Từ ${formatPrice(min)}`;
+  if (max !== undefined) return `Đến ${formatPrice(max)}`;
+  return undefined;
+}
+
+export interface ActiveFilter {
+  key: string;
+  label: string;
+  /** Link bỏ riêng bộ lọc này, giữ các bộ lọc khác. */
+  removeHref: string;
+}
+
+/** Các bộ lọc đang áp dụng (đã chuẩn hóa như khi gọi API), dùng cho dòng "Đang lọc". */
+export function activeFilters(params: CatalogParams, categories: readonly FlatCategory[]): ActiveFilter[] {
+  const query = toBooksQuery(params);
+  const remove = (...keys: string[]) =>
+    catalogHref(params, Object.fromEntries([...keys.map((key) => [key, ""]), ["page", ""]]));
+  const filters: ActiveFilter[] = [];
+
+  if (query.Category) {
+    const name = categories.find((category) => category.slug === query.Category)?.name ?? query.Category;
+    filters.push({ key: "category", label: name, removeHref: remove("category") });
+  }
+  if (query.Type && hasKey(BOOK_TYPE_LABELS, query.Type)) {
+    filters.push({ key: "type", label: BOOK_TYPE_LABELS[query.Type], removeHref: remove("type") });
+  }
+  if (query.Cover && hasKey(COVER_TYPE_LABELS, query.Cover)) {
+    filters.push({ key: "cover", label: COVER_TYPE_LABELS[query.Cover], removeHref: remove("cover") });
+  }
+  const price = priceLabel(queryNumber(query.MinPrice), queryNumber(query.MaxPrice));
+  if (price) filters.push({ key: "price", label: price, removeHref: remove("minPrice", "maxPrice") });
+  if (query.Q) filters.push({ key: "q", label: `“${query.Q}”`, removeHref: remove("q") });
+  return filters;
+}
+
+export interface SubcategoryGroup {
+  parent: { slug: string; name: string };
+  items: { slug: string; name: string; active: boolean }[];
+}
+
+/**
+ * Danh mục con cần hiện dưới thanh danh mục: con của danh mục gốc đang chọn, hoặc các danh mục cùng cấp khi đang
+ * chọn một danh mục con. `null` khi không có danh mục con nào.
+ */
+export function subcategoryGroup(tree: readonly CategoryNode[], activeSlug: string): SubcategoryGroup | null {
+  if (!activeSlug) return null;
+  const search = (nodes: readonly CategoryNode[], parent: CategoryNode | null): SubcategoryGroup | null => {
+    for (const node of nodes) {
+      if (node.slug === activeSlug) {
+        const owner = node.children.length ? node : parent;
+        if (!owner?.children.length) return null;
+        return {
+          parent: { slug: owner.slug, name: owner.name },
+          items: owner.children.map((child) => ({
+            slug: child.slug,
+            name: child.name,
+            active: child.slug === activeSlug,
+          })),
+        };
+      }
+      const found = search(node.children, node);
+      if (found) return found;
+    }
+    return null;
+  };
+  return search(tree, null);
+}
+
+/** Slug danh mục gốc chứa `slug` (chính nó nếu là gốc), để tô sáng trên thanh danh mục. */
+export function rootCategorySlug(tree: readonly CategoryNode[], slug: string): string | undefined {
+  const contains = (node: CategoryNode): boolean =>
+    node.slug === slug || node.children.some((child) => contains(child));
+  return tree.find((root) => contains(root))?.slug;
 }

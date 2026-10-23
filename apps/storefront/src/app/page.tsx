@@ -1,4 +1,168 @@
-import { redirect } from "next/navigation";
-export default function HomePage() {
-  redirect("/sach");
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Container } from "@slvn/ui";
+import { formatPrice } from "@slvn/utils";
+import { CategoryStrip } from "@/components/CategoryStrip";
+import { TrustBand } from "@/components/TrustBand";
+import { BookCard } from "@/features/catalog/BookCard";
+import { getBooks, getCategoryTree } from "@/features/catalog/api";
+import type { BookSummary, CategoryNode } from "@/features/catalog/schemas";
+import { Book3D } from "@/features/home/Book3D";
+import { DustMotes } from "@/features/home/DustMotes";
+import { HeroSpotlight } from "@/features/home/HeroSpotlight";
+import { LawTicker } from "@/features/home/LawTicker";
+import { tickerItems } from "@/features/home/home";
+
+const NEW_BOOKS_LIMIT = 4;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Sách Luật Việt Nam — Đọc đúng luật, bản mới nhất",
+    description: "Bộ luật, văn bản hợp nhất, chú giải và giáo trình ghi rõ văn bản được cập nhật đến đâu.",
+    locale: "vi_VN",
+    type: "website",
+  },
+};
+
+/**
+ * Trang chủ được dựng tĩnh và làm mới sau mỗi 60 giây; backend lỗi lúc dựng thì vẫn hiện hero, các phần dữ liệu ẩn
+ * đi và được thử lại ở lần làm mới sau.
+ */
+async function loadHomeData(): Promise<{ books: BookSummary[]; categories: CategoryNode[] }> {
+  try {
+    const [page, categories] = await Promise.all([
+      getBooks({ Page: 1, Limit: NEW_BOOKS_LIMIT, Sort: "newest" }),
+      getCategoryTree(),
+    ]);
+    return { books: page.items, categories };
+  } catch (error) {
+    console.error("Không tải được dữ liệu trang chủ", error);
+    return { books: [], categories: [] };
+  }
+}
+
+export default async function HomePage() {
+  const { books, categories } = await loadHomeData();
+  const featured = books[0];
+
+  return (
+    <main id="noi-dung">
+      <HeroSpotlight className="relative overflow-hidden">
+        <div aria-hidden="true" className="hero-lamp pointer-events-none absolute inset-0" />
+        <DustMotes />
+        <Container className="relative flex flex-wrap items-center gap-x-10 gap-y-6 pt-14 pb-16 sm:pt-20 sm:pb-24">
+          <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-7">
+            <p className="motion-rise text-gold flex items-center gap-3.5 text-[11px] tracking-[0.3em] [animation-delay:200ms] sm:text-xs">
+              <span className="motion-rule bg-gold h-px w-11 [animation-delay:300ms]" />
+              TỦ SÁCH PHÁP LUẬT · BIÊN SOẠN VÀ IN TRỰC TIẾP
+            </p>
+            <h1 className="font-editorial text-[52px] leading-[1.02] font-extrabold tracking-tight sm:text-7xl xl:text-[92px]">
+              <span className="motion-line">
+                <span className="[animation-delay:350ms]">Đọc đúng luật.</span>
+              </span>
+              <span className="motion-line">
+                <span className="text-gold font-medium italic [animation-delay:550ms]">Bản mới nhất.</span>
+              </span>
+            </h1>
+            <p className="motion-rise text-sand max-w-lg text-lg leading-8 font-light [animation-delay:900ms]">
+              Bộ luật, văn bản hợp nhất, chú giải và giáo trình — mỗi cuốn ghi rõ văn bản được cập nhật đến đâu, kèm
+              ISBN và số quyết định xuất bản.
+            </p>
+            <div className="motion-rise flex flex-wrap items-center gap-6 [animation-delay:1100ms]">
+              <Link
+                href="/sach"
+                className="btn-sweep bg-gold text-ink flex h-14 items-center gap-3 px-8 text-base font-semibold"
+              >
+                Khám phá tủ sách
+                <ArrowRight size={18} />
+              </Link>
+              <Link href="/sach?sort=newest" className="link-underline py-1.5 text-[15px]">
+                Sách mới phát hành
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative flex h-120 min-w-0 flex-[1_1_420px] items-center justify-center perspective-[1500px] sm:h-150">
+            <span
+              aria-hidden="true"
+              className="book-fan-left bg-cover-wine absolute top-24 left-[6%] hidden h-85 w-60 border-l-12 border-black/30 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.85)] sm:block"
+            />
+            <span
+              aria-hidden="true"
+              className="book-fan-right bg-cover-green absolute top-36 right-[4%] hidden h-77.5 w-55 border-l-12 border-black/30 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.85)] sm:block"
+            />
+            <span
+              aria-hidden="true"
+              className="book-floor bg-radial-[closest-side] absolute bottom-16 h-10 w-80 rounded-full from-black/85 to-transparent"
+            />
+            <Book3D title={featured?.title ?? "Tủ sách pháp luật"} coverImageUrl={featured?.coverImageUrl ?? null} />
+            {featured && (
+              <>
+                <span className="stamp-in bg-burgundy text-ivory outline-burgundy absolute top-10 right-[12%] flex size-24 flex-col items-center justify-center rounded-full border border-dashed border-ivory/55 text-center shadow-[0_16px_30px_-12px_rgb(0_0_0/0.7)] outline-6 sm:top-14 sm:size-29">
+                  <span className="text-[9px] tracking-[0.22em] sm:text-[10px]">ẤN BẢN</span>
+                  <span className="font-editorial text-2xl leading-none font-bold italic sm:text-[26px]">mới</span>
+                </span>
+                <div className="motion-rise border-gold/35 bg-ink/90 absolute bottom-0 flex w-[min(350px,100%)] items-end justify-between gap-3 border px-5 py-4 [animation-delay:2100ms]">
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="font-editorial truncate text-lg font-bold">{featured.title}</span>
+                    {featured.updatedToText && (
+                      <span className="text-sand line-clamp-2 text-[13px]">{featured.updatedToText}</span>
+                    )}
+                  </span>
+                  {featured.salePrice !== null && (
+                    <span className="text-gold font-semibold whitespace-nowrap">
+                      {formatPrice(featured.salePrice)}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </Container>
+      </HeroSpotlight>
+
+      <LawTicker items={tickerItems(books)} />
+
+      <CategoryStrip
+        className="border-t-0"
+        items={categories.map((category) => ({
+          key: category.slug,
+          label: category.name,
+          href: `/sach?category=${encodeURIComponent(category.slug)}`,
+        }))}
+      />
+
+      <Container className="py-20 sm:py-24">
+        <section aria-labelledby="new-books" className="flex flex-col gap-11">
+          <div className="motion-reveal flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="text-gold mb-2.5 text-xs tracking-[0.3em]">VỪA LÊN KỆ</p>
+              <h2 id="new-books" className="font-editorial text-4xl leading-tight font-bold sm:text-[52px]">
+                Mới phát hành
+              </h2>
+            </div>
+            <Link href="/sach" className="link-underline flex items-center gap-2.5 py-1.5 text-[15px]">
+              Xem toàn bộ tủ sách
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+          {books.length ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-8 lg:grid-cols-4">
+              {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-mist border-gold/25 border-y py-10 text-center">
+              Tủ sách đang được cập nhật. Sách mới sẽ sớm lên kệ.
+            </p>
+          )}
+        </section>
+      </Container>
+
+      <TrustBand />
+    </main>
+  );
 }
