@@ -6,3 +6,11 @@ export const loginSchema = z.object({
   rememberMe: z.boolean(),
 });
 export type LoginValues = z.infer<typeof loginSchema>;
+
+export const twoFactorSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Mã xác thực gồm đúng 6 chữ số."),
+});
+export type TwoFactorValues = z.infer<typeof twoFactorSchema>;

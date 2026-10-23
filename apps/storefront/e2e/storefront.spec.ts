@@ -35,7 +35,27 @@ test("searches books and opens a quick view when results exist", async ({ page }
   expect(await page.evaluate(noHorizontalScroll)).toBe(true);
 });
 
-test("navigates to login and validates fields", async ({ page }, testInfo) => {
+// Giả lập backend để không phụ thuộc tài khoản thật và giới hạn 10 request/phút của `/auth/*`.
+test("navigates to login, validates fields and signs in", async ({ page }, testInfo) => {
+  let attempts = 0;
+  await page.route("**/api/v1/auth/login", (route) => {
+    attempts += 1;
+    return attempts === 1
+      ? route.fulfill({ status: 401, json: { title: "Invalid", status: 401, code: "INVALID_CREDENTIALS" } })
+      : route.fulfill({
+          json: {
+            requiresTwoFactor: false,
+            twoFactorToken: null,
+            session: {
+              accessToken: "e2e-token",
+              tokenType: "Bearer",
+              expiresIn: 900,
+              user: { id: 1, email: "demo@example.com", fullName: "Khách Demo", roles: ["customer"] },
+            },
+          },
+        });
+  });
+
   await page.goto("/sach");
   await page.getByRole("link", { name: "Đăng nhập" }).first().click();
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
@@ -43,7 +63,12 @@ test("navigates to login and validates fields", async ({ page }, testInfo) => {
   await page.getByLabel("Email").fill("demo@example.com");
   await page.getByLabel("Mật khẩu", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("sau khi kết nối backend");
+  await expect(page.getByText("Email hoặc mật khẩu không đúng.")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("login.png"), fullPage: true });
   expect(await page.evaluate(noHorizontalScroll)).toBe(true);
+
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
+  await expect(page.getByText("Khách Demo")).toBeVisible();
 });

@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { Search, UserRound } from "lucide-react";
+import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
+import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
 
 export function Header() {
@@ -35,10 +35,7 @@ export function Header() {
           </button>
         </form>
         <nav aria-label="Tài khoản">
-          <Link href="/dang-nhap" className="link-underline flex min-h-11 items-center gap-2 text-[15px]">
-            <UserRound size={20} strokeWidth={1.6} />
-            <span>Đăng nhập</span>
-          </Link>
+          <AccountNav />
         </nav>
       </Container>
     </header>

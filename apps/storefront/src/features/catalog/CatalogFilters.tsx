@@ -16,7 +16,10 @@ export interface CatalogFiltersProps {
   idPrefix: string;
 }
 
-const LEGEND = "text-gold pb-3 text-[11px] tracking-[0.26em]";
+// Chữ hoa bằng CSS để trình đọc màn hình đọc tiêu đề như từ thường.
+const LEGEND = "text-gold pb-3 text-[11px] tracking-[0.26em] uppercase";
+// Đường kẻ đặt ở thẻ bọc: <legend> luôn nằm đè lên viền trên của <fieldset>.
+const DIVIDER = "border-gold/20 border-t pt-6";
 const FIELD = "border-border bg-ink-deep text-ivory h-11 w-full border px-3 text-sm";
 
 /** Bộ lọc dạng form GET: chạy được cả khi chưa tải JavaScript. */
@@ -31,7 +34,7 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
       )}
 
       <fieldset className="flex flex-col">
-        <legend className={LEGEND}>LOẠI SÁCH</legend>
+        <legend className={LEGEND}>Loại sách</legend>
         {[["", "Tất cả loại sách"], ...Object.entries(BOOK_TYPE_LABELS)].map(([value, label]) => (
           <label key={value} className="has-checked:text-gold flex min-h-10 items-center gap-3 text-[15px]">
             <input
@@ -46,74 +49,78 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
         ))}
       </fieldset>
 
-      <fieldset className="border-gold/20 flex flex-col gap-3 border-t pt-6">
-        <legend className={cn(LEGEND, "pt-6")}>KHOẢNG GIÁ</legend>
-        <div className="flex flex-col gap-2">
-          {PRICE_RANGES.map((range) => {
-            const active = isPriceRangeActive(params, range);
-            return (
-              <Link
-                key={range.label}
-                href={priceRangeHref(params, range)}
-                aria-current={active ? "true" : undefined}
+      <div className={DIVIDER}>
+        <fieldset className="flex flex-col gap-3">
+          <legend className={LEGEND}>Khoảng giá</legend>
+          <div className="flex flex-col gap-2">
+            {PRICE_RANGES.map((range) => {
+              const active = isPriceRangeActive(params, range);
+              return (
+                <Link
+                  key={range.label}
+                  href={priceRangeHref(params, range)}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "flex min-h-10 items-center border px-3.5 text-sm transition-colors",
+                    active ? "border-gold bg-gold/12 text-gold" : "border-border hover:border-gold",
+                  )}
+                >
+                  {range.label}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="min-w-0 flex-1">
+              <span className="sr-only">Giá từ</span>
+              <input
+                id={`${idPrefix}-min-price`}
+                name="minPrice"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Từ"
+                defaultValue={param(params, "minPrice")}
+                className={FIELD}
+              />
+            </label>
+            <span aria-hidden="true" className="text-mist">
+              –
+            </span>
+            <label className="min-w-0 flex-1">
+              <span className="sr-only">Giá đến</span>
+              <input
+                id={`${idPrefix}-max-price`}
+                name="maxPrice"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Đến"
+                defaultValue={param(params, "maxPrice")}
+                className={FIELD}
+              />
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div className={DIVIDER}>
+        <fieldset>
+          <legend className={LEGEND}>Loại bìa</legend>
+          <div className="border-border grid grid-cols-3 border">
+            {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label], index) => (
+              <label
+                key={value}
                 className={cn(
-                  "flex min-h-10 items-center border px-3.5 text-sm transition-colors",
-                  active ? "border-gold bg-gold/12 text-gold" : "border-border hover:border-gold",
+                  "has-checked:bg-gold has-checked:text-ink has-focus-visible:outline-gold flex min-h-11 items-center justify-center text-sm has-checked:font-semibold has-focus-visible:outline-2",
+                  index > 0 && "border-border border-l",
                 )}
               >
-                {range.label}
-              </Link>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="min-w-0 flex-1">
-            <span className="sr-only">Giá từ</span>
-            <input
-              id={`${idPrefix}-min-price`}
-              name="minPrice"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Từ"
-              defaultValue={param(params, "minPrice")}
-              className={FIELD}
-            />
-          </label>
-          <span aria-hidden="true" className="text-mist">
-            –
-          </span>
-          <label className="min-w-0 flex-1">
-            <span className="sr-only">Giá đến</span>
-            <input
-              id={`${idPrefix}-max-price`}
-              name="maxPrice"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Đến"
-              defaultValue={param(params, "maxPrice")}
-              className={FIELD}
-            />
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset className="border-gold/20 border-t pt-6">
-        <legend className={cn(LEGEND, "pt-6")}>LOẠI BÌA</legend>
-        <div className="border-border grid grid-cols-3 border">
-          {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label], index) => (
-            <label
-              key={value}
-              className={cn(
-                "has-checked:bg-gold has-checked:text-ink has-focus-visible:outline-gold flex min-h-11 items-center justify-center text-sm has-checked:font-semibold has-focus-visible:outline-2",
-                index > 0 && "border-border border-l",
-              )}
-            >
-              <input type="radio" name="cover" value={value} defaultChecked={cover === value} className="sr-only" />
-              {label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+                <input type="radio" name="cover" value={value} defaultChecked={cover === value} className="sr-only" />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
 
       <button type="submit" className="btn-sweep bg-gold text-ink min-h-12 text-[15px] font-semibold">
         Áp dụng bộ lọc

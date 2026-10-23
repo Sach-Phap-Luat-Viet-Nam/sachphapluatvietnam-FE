@@ -54,25 +54,25 @@ Response `200 OK`:
 - Token mang vai trò của tài khoản đích và `amr=mfa`. Nếu đích là nhân viên thì gọi được API Admin theo quyền của nhân viên đó, kể cả khi họ chưa bật 2FA.
 - Lỗi trả về dạng `ProblemDetails`. FE đọc field `code`.
 
-| HTTP | `code` | Khi nào | FE nên làm gì |
-| --- | --- | --- | --- |
-| 401 | `UNAUTHORIZED` | Thiếu token hoặc token admin đã hết hạn | Gọi `/auth/refresh` của admin rồi thử lại |
-| 403 | `FORBIDDEN` | Không phải Super Admin, hoặc chưa đăng nhập qua 2FA | Ẩn nút đăng nhập hộ với người không phải Super Admin |
-| 404 | `USER_NOT_FOUND` | Không có tài khoản với `id` này | Báo "Không tìm thấy người dùng" |
-| 422 | `CANNOT_IMPERSONATE` | Đích là chính mình hoặc là Super Admin khác | Ẩn nút với các dòng này, hiển `detail` nếu vẫn gặp |
+| HTTP | `code`               | Khi nào                                             | FE nên làm gì                                        |
+| ---- | -------------------- | --------------------------------------------------- | ---------------------------------------------------- |
+| 401  | `UNAUTHORIZED`       | Thiếu token hoặc token admin đã hết hạn             | Gọi `/auth/refresh` của admin rồi thử lại            |
+| 403  | `FORBIDDEN`          | Không phải Super Admin, hoặc chưa đăng nhập qua 2FA | Ẩn nút đăng nhập hộ với người không phải Super Admin |
+| 404  | `USER_NOT_FOUND`     | Không có tài khoản với `id` này                     | Báo "Không tìm thấy người dùng"                      |
+| 422  | `CANNOT_IMPERSONATE` | Đích là chính mình hoặc là Super Admin khác         | Ẩn nút với các dòng này, hiển `detail` nếu vẫn gặp   |
 
 ## Cờ `loginVia`
 
 Cờ này có ở hai nơi với cùng giá trị: field `loginVia` trong mọi `AuthResponse`, và claim `login_via` trong access token. FE nên đọc từ `AuthResponse`. Chỉ cần decode JWT khi không còn giữ response, ví dụ sau khi chuyển sang tab khác.
 
-| Nguồn | `loginVia` | `impersonatorId` |
-| --- | --- | --- |
-| `POST /auth/register` | `portal` | `null` |
-| `POST /auth/login` (`session`) | `portal` | `null` |
-| `POST /auth/login/2fa` | `portal` | `null` |
-| `POST /auth/refresh` | `portal` | `null` |
-| `POST /auth/2fa/enable` | `portal` | `null` |
-| `POST /admin/users/{id}/impersonate` | `admin` | id của Super Admin |
+| Nguồn                                | `loginVia` | `impersonatorId`   |
+| ------------------------------------ | ---------- | ------------------ |
+| `POST /auth/register`                | `portal`   | `null`             |
+| `POST /auth/login` (`session`)       | `portal`   | `null`             |
+| `POST /auth/login/2fa`               | `portal`   | `null`             |
+| `POST /auth/refresh`                 | `portal`   | `null`             |
+| `POST /auth/2fa/enable`              | `portal`   | `null`             |
+| `POST /admin/users/{id}/impersonate` | `admin`    | id của Super Admin |
 
 Claim trong JWT của một phiên vào hộ:
 
