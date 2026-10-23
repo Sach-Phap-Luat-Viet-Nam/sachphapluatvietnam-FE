@@ -1,9 +1,56 @@
 @import "tailwindcss";
 @import "@slvn/ui/theme.css";
 
+/*
+ * Storefront dùng tông "Thư viện đêm" (thiết kế trên Claude Design, hướng A): nền mực navy, chữ ngà, nhấn vàng và
+ * đỏ đô. Ghi đè token của @slvn/ui chỉ trong app này; admin vẫn dùng theme sáng mặc định.
+ * Mọi cặp chữ/nền dưới đây đạt tương phản WCAG AA trên nền `ink`.
+ */
+@theme {
+  --color-ink: #0d1524;
+  --color-ink-deep: #0a111e;
+  --color-panel: #111c30;
+  --color-ivory: #f3ede1;
+  --color-sand: #cfc8b9;
+  --color-mist: #b9b3a6;
+  --color-dim: #8f897d;
+  --color-gold: #cba65e;
+  --color-gold-hover: #d9bb7f;
+  --color-gold-pale: #e9cf96;
+  --color-burgundy: #a3342d;
+  --color-upcoming: #e0b26a;
+  --color-ok: #7cc79a;
+
+  --color-cover-navy: #172a4d;
+  --color-cover-wine: #4a1e22;
+  --color-cover-green: #1f3b33;
+  --color-cover-umber: #3b3324;
+  --color-cover-plum: #2a2140;
+  --color-cover-spine: #0f1e3a;
+  --color-cover-foil: #d8bc80;
+  --color-page-edge: #ede4d0;
+  --color-page-line: #d9cdb3;
+
+  --color-background: #0d1524;
+  --color-foreground: #f3ede1;
+  --color-surface: #111c30;
+  --color-muted: #b9b3a6;
+  --color-border: rgb(243 237 225 / 0.22);
+  --color-primary: #cba65e;
+  --color-primary-hover: #d9bb7f;
+  --color-primary-foreground: #0d1524;
+  --color-accent: #a3342d;
+  --color-accent-hover: #8e2b25;
+  --color-accent-foreground: #f3ede1;
+  --color-danger: #f19a8f;
+
+  /* `--font-playfair` do next/font đặt ở thẻ <html> (layout.tsx). */
+  --font-editorial: var(--font-playfair, "Playfair Display"), "Times New Roman", serif;
+}
+
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans text-base antialiased;
+    @apply bg-ink text-ivory font-sans text-base antialiased;
   }
   button,
   select,
@@ -15,9 +62,335 @@
   input,
   select,
   summary {
-    @apply focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-4;
+    @apply focus-visible:outline-gold focus-visible:outline-2 focus-visible:outline-offset-4;
+  }
+  input::placeholder {
+    @apply text-dim;
   }
   ::selection {
-    @apply bg-primary text-primary-foreground;
+    @apply bg-gold text-ink;
+  }
+}
+
+/*
+ * Chuyển động. Chỉ animate `transform`/`opacity` (không gây CLS); tất cả tắt khi người dùng bật giảm chuyển động.
+ */
+@layer components {
+  .motion-drop {
+    animation: drop-in 0.9s var(--ease-out-soft) both;
+  }
+  .motion-rise {
+    animation: rise-in 1s var(--ease-out-soft) both;
+  }
+  .motion-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+  .motion-line > span {
+    display: block;
+    animation: line-up 1.1s cubic-bezier(0.2, 0.75, 0.05, 1) both;
+  }
+  .motion-rule {
+    transform-origin: left center;
+    animation: draw-rule 1.1s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+
+  /* Cuộn tới đâu hiện tới đó; trình duyệt chưa hỗ trợ scroll timeline thì hiện ngay (thời lượng 0). */
+  .motion-reveal {
+    animation: rise-in both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 28%;
+  }
+
+  /* Hero: ánh đèn và độ nghiêng sách đọc biến CSS do HeroSpotlight đặt theo vị trí chuột. */
+  .hero-lamp {
+    background: radial-gradient(
+      640px circle at var(--lamp-x, 72%) var(--lamp-y, 42%),
+      rgb(214 178 104 / 0.22),
+      rgb(214 178 104 / 0.06) 45%,
+      transparent 70%
+    );
+    animation: lamp-glow 7s ease-in-out infinite;
+  }
+  .book-stage {
+    transform-style: preserve-3d;
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .book-3d {
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateY(28deg) rotateX(4deg);
+    animation:
+      book-open 1.6s cubic-bezier(0.16, 0.8, 0.2, 1) 0.35s both,
+      book-float 6s ease-in-out 2s infinite;
+  }
+  .book-floor {
+    animation: floor-breathe 6s ease-in-out 2s infinite;
+  }
+  .book-fan-left {
+    transform: rotate(-11deg);
+    animation: fan-left 1.4s var(--ease-out-soft) 0.9s both;
+  }
+  .book-fan-right {
+    transform: rotate(9deg);
+    animation: fan-right 1.4s var(--ease-out-soft) 1s both;
+  }
+  .stamp-in {
+    transform: rotate(-14deg);
+    animation: stamp 0.7s cubic-bezier(0.3, 0.6, 0.2, 1.2) 1.9s both;
+  }
+  .foil-text {
+    background: linear-gradient(
+      110deg,
+      var(--color-gold) 38%,
+      #fff1cc 50%,
+      var(--color-gold) 62%
+    );
+    background-size: 260% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: foil 5s ease-in-out 2.4s infinite;
+  }
+  .dust-mote {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--color-gold-pale);
+    box-shadow: 0 0 8px 2px rgb(233 207 150 / 0.55);
+    animation: mote linear infinite;
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 48s linear infinite;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+
+  /* Nút vàng: lớp ngà quét ngang khi hover, mũi tên trượt theo. */
+  .btn-sweep {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-sweep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-ivory);
+    transform: translateX(-101%);
+    transition: transform 0.5s cubic-bezier(0.6, 0, 0.2, 1);
+  }
+  .btn-sweep:hover::before {
+    transform: none;
+  }
+  .btn-sweep svg {
+    transition: transform 0.4s var(--ease-out-soft);
+  }
+  .btn-sweep:hover svg {
+    transform: translateX(6px);
+  }
+
+  .link-underline {
+    background: linear-gradient(var(--color-gold), var(--color-gold)) no-repeat 0 100% / 0 1px;
+    transition:
+      background-size 0.45s cubic-bezier(0.6, 0, 0.2, 1),
+      color 0.3s;
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+  }
+
+  .category-link {
+    position: relative;
+    transition: color 0.3s;
+  }
+  .category-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 1.75rem;
+    bottom: -1px;
+    height: 2px;
+    background: var(--color-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1);
+  }
+  .category-link:hover::after,
+  .category-link[aria-current="page"]::after {
+    transform: scaleX(1);
+  }
+  .category-link .category-number {
+    display: inline-block;
+    transition: transform 0.45s var(--ease-out-soft);
+  }
+  .category-link:hover .category-number {
+    transform: translateY(-4px) rotate(-6deg);
+  }
+
+  /* Thẻ sách: hover thì sách rút lên khỏi kệ và hiện nhãn "Xem nhanh". */
+  .shelf-book {
+    transition:
+      transform 0.6s cubic-bezier(0.2, 0.75, 0.15, 1),
+      box-shadow 0.6s;
+  }
+  .shelf-card:hover .shelf-book,
+  .shelf-card:focus-within .shelf-book {
+    transform: translateY(-22px) rotate(-2.5deg);
+    box-shadow:
+      24px 30px 40px -18px rgb(0 0 0 / 0.95),
+      0 0 0 1px rgb(203 166 94 / 0.5),
+      0 0 40px -6px rgb(203 166 94 / 0.35);
+  }
+  .shelf-card .quick-tag {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.4s,
+      transform 0.4s var(--ease-out-soft);
+  }
+  .shelf-card:hover .quick-tag,
+  .shelf-card:focus-within .quick-tag {
+    opacity: 1;
+    transform: none;
+  }
+
+  .chip-remove svg {
+    transition: transform 0.35s var(--ease-out-soft);
+  }
+  .chip-remove:hover svg {
+    transform: rotate(90deg);
+  }
+
+  .sheet[open] {
+    animation: sheet-up 0.45s var(--ease-out-soft);
+  }
+  .sheet::backdrop {
+    background: rgb(5 9 16 / 0.7);
+  }
+}
+
+:root {
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(36px);
+  }
+}
+@keyframes line-up {
+  from {
+    transform: translateY(110%);
+  }
+}
+@keyframes draw-rule {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes book-open {
+  from {
+    opacity: 0;
+    transform: rotateY(95deg) rotateX(8deg) translateZ(-200px);
+  }
+}
+@keyframes book-float {
+  50% {
+    translate: 0 -14px;
+  }
+}
+@keyframes floor-breathe {
+  50% {
+    transform: scale(0.86);
+    opacity: 0.6;
+  }
+}
+@keyframes fan-left {
+  from {
+    opacity: 0;
+    transform: rotate(0) translateX(60px);
+  }
+}
+@keyframes fan-right {
+  from {
+    opacity: 0;
+    transform: rotate(0) translateX(-60px);
+  }
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(2.4);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-14deg) scale(0.9);
+  }
+  75% {
+    transform: rotate(-14deg) scale(1.05);
+  }
+}
+@keyframes foil {
+  0% {
+    background-position: 160% 0;
+  }
+  55%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+@keyframes mote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(46px, -460px);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes lamp-glow {
+  50% {
+    opacity: 0.75;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .dust-mote {
+    display: none;
   }
 }
