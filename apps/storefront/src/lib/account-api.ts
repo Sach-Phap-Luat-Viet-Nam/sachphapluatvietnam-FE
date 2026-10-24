@@ -39,7 +39,10 @@ export type InvoiceInfo = z.infer<typeof invoiceInfoSchema>;
 /** `UpsertInvoiceInfoRequest`. */
 export type InvoiceInfoBody = Omit<InvoiceInfo, "updatedAt">;
 
-/** `MeResponse` của `GET/PATCH /me`: hồ sơ kèm địa chỉ mặc định và thông tin hóa đơn (`null` khi chưa có). */
+/**
+ * `MeResponse` của `GET/PATCH /me`: hồ sơ kèm địa chỉ mặc định và thông tin hóa đơn (`null` khi chưa có). Backend bản cũ
+ * chưa trả hai field này (chỉ có các field của `UserResponse`) nên thiếu thì coi như `null`.
+ */
 export const profileSchema = z.object({
   id: z.number(),
   email: z.string(),
@@ -47,8 +50,8 @@ export const profileSchema = z.object({
   phoneNumber: z.string().nullable(),
   birthDate: z.string().nullable(),
   occupation: z.string().nullable(),
-  defaultAddress: addressSchema.nullable(),
-  invoiceInfo: invoiceInfoSchema.nullable(),
+  defaultAddress: addressSchema.nullable().default(null),
+  invoiceInfo: invoiceInfoSchema.nullable().default(null),
 });
 export type Profile = z.infer<typeof profileSchema>;
 
