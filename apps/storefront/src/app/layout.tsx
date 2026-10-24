@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PromoPopup } from "@/features/popup/PromoPopup";
 import "./globals.css";
 
 const sans = Be_Vietnam_Pro({
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Header />
         {children}
         <Footer />
+        <PromoPopup />
       </body>
     </html>
   );
