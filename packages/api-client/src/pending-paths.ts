@@ -61,8 +61,8 @@ export interface PendingPaths {
   "/api/v1/admin/uploads/popup-signature": UploadSignaturePath;
   "/api/v1/admin/uploads/cover-signature": UploadSignaturePath;
   /**
-   * Sổ địa chỉ của khách: **FE đề xuất, backend chưa làm** (đặc tả ở docs/features/address-book.md). Danh sách
-   * `AddressResponse[]` và thêm địa chỉ (`UpsertAddressRequest`).
+   * Sổ địa chỉ của khách (backend `MeController`, docs/features/auth.md của backend): danh sách `AddressResponse[]`
+   * (mặc định đứng đầu) và thêm địa chỉ (`UpsertAddressRequest`) → 201 cả sổ địa chỉ.
    */
   "/api/v1/me/addresses": PathItem<
     NoParameters,
@@ -71,12 +71,25 @@ export interface PendingPaths {
       post: OperationWithBody<NoParameters, { 201: UnknownJson }>;
     }
   >;
-  /** Sửa (thay toàn bộ, `isDefault: true` để đặt mặc định) và xóa một địa chỉ. */
+  /** Sửa một địa chỉ → cả sổ địa chỉ; xóa → 204. */
   "/api/v1/me/addresses/{id}": PathItem<
     NoParameters,
     {
       put: OperationWithBody<IdParameters, { 200: UnknownJson }>;
       delete: Operation<IdParameters, { 204: NoContent }>;
+    }
+  >;
+  /** Đặt làm địa chỉ mặc định → cả sổ địa chỉ. */
+  "/api/v1/me/addresses/{id}/default": PathItem<
+    NoParameters,
+    { post: Operation<IdParameters, { 200: UnknownJson }> }
+  >;
+  /** Lưu (`UpsertInvoiceInfoRequest` → `InvoiceInfoResponse`) hoặc xóa (204) thông tin xuất hóa đơn. */
+  "/api/v1/me/invoice-info": PathItem<
+    NoParameters,
+    {
+      put: OperationWithBody<NoParameters, { 200: UnknownJson }>;
+      delete: Operation<NoParameters, { 204: NoContent }>;
     }
   >;
 }
