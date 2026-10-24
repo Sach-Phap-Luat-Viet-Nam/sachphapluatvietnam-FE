@@ -1,6 +1,5 @@
-import { useEffect, useSyncExternalStore } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getServerSessionState, getSessionState, restoreSession, subscribeSession } from "@slvn/auth";
+import { sessionOwner, useSession } from "@/lib/use-session";
 import { addCartItem, fetchCart, removeCartItem, setCartItemQuantity } from "./api";
 import { EMPTY_CART } from "./schemas";
 import type { Cart } from "./schemas";
@@ -10,13 +9,9 @@ import type { Cart } from "./schemas";
  * gửi cả Bearer và cookie `sl_cart`, backend gộp giỏ khách vào giỏ tài khoản.
  */
 function useCartKey() {
-  const session = useSyncExternalStore(subscribeSession, getSessionState, getServerSessionState);
-  useEffect(() => {
-    restoreSession();
-  }, []);
-  const owner = session.status === "authenticated" ? `user-${session.user.id}` : session.status;
+  const session = useSession();
   // Chờ biết phiên rồi mới tải để không gọi giỏ khách rồi lại gọi giỏ tài khoản ngay sau đó.
-  return { key: ["cart", owner] as const, ready: session.status !== "unknown" };
+  return { key: ["cart", sessionOwner(session)] as const, ready: session.status !== "unknown" };
 }
 
 /** Giỏ hiện tại. Server không đọc được cookie giỏ của khách nên giỏ chỉ tải ở trình duyệt. */

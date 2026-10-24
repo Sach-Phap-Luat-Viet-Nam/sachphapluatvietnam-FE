@@ -1,7 +1,7 @@
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
-import { cartSchema, orderSchema, shippingQuoteSchema } from "./schemas";
-import type { Cart, Order, ShippingQuote } from "./schemas";
+import { cartSchema, orderPageSchema, orderSchema, shippingQuoteSchema } from "./schemas";
+import type { Cart, Order, OrderPage, ShippingQuote } from "./schemas";
 import type { CreateOrderBody } from "./order-forms";
 
 // Gọi từ trình duyệt qua proxy `/api/v1` để gửi kèm cookie giỏ khách `sl_cart`. `browserApi` gắn Bearer khi đã
@@ -53,6 +53,30 @@ export async function placeOrder(order: CreateOrderBody, idempotencyKey: string)
         note: order.note,
       },
     }),
+  );
+  return orderSchema.parse(data);
+}
+
+/** Số đơn mỗi trang ở "Đơn của tôi". */
+export const MY_ORDERS_PAGE_SIZE = 10;
+
+/** Đơn của thành viên đang đăng nhập, mới nhất trước. */
+export async function fetchMyOrders(page: number): Promise<OrderPage> {
+  const data = await unwrap(
+    browserApi().GET("/api/v1/orders", { params: { query: { Page: page, Limit: MY_ORDERS_PAGE_SIZE } } }),
+  );
+  return orderPageSchema.parse(data);
+}
+
+/** Chi tiết một đơn của mình; đơn của người khác backend trả 404. */
+export async function fetchMyOrder(code: string): Promise<Order> {
+  return orderSchema.parse(await unwrap(browserApi().GET("/api/v1/orders/{code}", { params: { path: { code } } })));
+}
+
+/** Khách tự hủy đơn khi `canCancel` (BR-12: trước khi đóng gói). */
+export async function cancelOrder(code: string, reason: string | null): Promise<Order> {
+  const data = await unwrap(
+    browserApi().POST("/api/v1/orders/{code}/cancel", { params: { path: { code } }, body: { reason } }),
   );
   return orderSchema.parse(data);
 }

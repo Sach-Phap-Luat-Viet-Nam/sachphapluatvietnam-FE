@@ -9,6 +9,7 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   CART_FULL: "Giỏ đã có 50 loại sách, mức tối đa của một giỏ. Bạn vui lòng đặt bớt trước khi thêm sách mới.",
   CART_EMPTY: "Giỏ sách đang trống, bạn vui lòng chọn sách trước khi đặt hàng.",
   PAYMENT_METHOD_NOT_SUPPORTED: "Phương thức thanh toán này chưa được hỗ trợ, bạn vui lòng chọn phương thức khác.",
+  ORDER_NOT_CANCELLABLE: "Đơn đã thanh toán hoặc đã đóng gói nên không tự hủy được. Bạn vui lòng liên hệ CSKH.",
   TOO_MANY_REQUESTS: "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.",
 };
 

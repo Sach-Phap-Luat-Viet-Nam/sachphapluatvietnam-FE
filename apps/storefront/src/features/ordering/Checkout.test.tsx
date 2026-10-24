@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { clearSession, startSession } from "@slvn/auth";
 import { Checkout } from "./Checkout";
 
 const ORIGIN = window.location.origin;
@@ -97,7 +98,10 @@ async function fillRecipient(user: ReturnType<typeof userEvent.setup>) {
 }
 
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  clearSession();
+});
 afterAll(() => server.close());
 
 describe("Checkout", () => {
@@ -154,6 +158,34 @@ describe("Checkout", () => {
       invoiceInfo: null,
       note: "Giao giờ hành chính",
     });
+  });
+
+  it("links members to the order in their account after placing it", async () => {
+    server.use(
+      ...baseHandlers(),
+      http.post(`${ORIGIN}/api/v1/orders`, () => HttpResponse.json(order(), { status: 201 })),
+    );
+    startSession({
+      accessToken: "token-1",
+      expiresIn: 900,
+      user: {
+        id: 12,
+        email: "a@example.com",
+        fullName: "Nguyễn Văn A",
+        roles: ["customer"],
+        requiresTwoFactorSetup: false,
+      },
+    });
+    const user = userEvent.setup();
+    renderCheckout();
+
+    await fillRecipient(user);
+    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+
+    expect(await screen.findByRole("link", { name: "Xem đơn của tôi" })).toHaveAttribute(
+      "href",
+      "/don-hang/SLVN2610230001",
+    );
   });
 
   it("maps backend validation errors to the matching fields", async () => {

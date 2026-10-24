@@ -1,15 +1,16 @@
-# Chi tiết sách, giỏ hàng, đặt hàng và tra cứu đơn trên storefront
+# Chi tiết sách, giỏ hàng, đặt hàng và đơn hàng trên storefront
 
 ## Mục đích
 
 Luồng mua sách của khách trên storefront (FR-21, FR-22, FR-30–FR-33, FR-36, FR-37, FR-40, US-02, BR-03, BR-14): xem
-chi tiết sách, thêm vào giỏ, sửa giỏ, đặt hàng COD (chuyển khoản khi đã cấu hình tài khoản nhận tiền), tra cứu đơn.
+chi tiết sách, thêm vào giỏ, sửa giỏ, đặt hàng COD (chuyển khoản khi đã cấu hình tài khoản nhận tiền), tra cứu đơn, xem và hủy đơn của thành viên (FR-41,
+BR-12).
 Dùng được cho cả khách vãng lai và thành viên. Đặc tả backend ở `docs/features/cart.md`, `docs/features/ordering.md`
 và `docs/api_reference.md`; file này chỉ mô tả phần FE.
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
-App **storefront**. Code ở `features/catalog` (trang chi tiết) và `features/ordering` (giỏ, đặt hàng, tra cứu).
+App **storefront**. Code ở `features/catalog` (trang chi tiết) và `features/ordering` (giỏ, đặt hàng, đơn hàng).
 
 | Route                    | Render                         | Nội dung                                                     |
 | ------------------------ | ------------------------------ | ------------------------------------------------------------ |
@@ -17,8 +18,10 @@ App **storefront**. Code ở `features/catalog` (trang chi tiết) và `features
 | `/gio-hang`              | Tĩnh, giỏ tải ở trình duyệt    | Sửa số lượng, xóa dòng, tổng dự kiến, nút Đặt hàng           |
 | `/thanh-toan`            | Tĩnh, giỏ tải ở trình duyệt    | Form giao hàng + tóm tắt giỏ; đặt xong hiện màn cảm ơn       |
 | `/don-hang/tra-cuu?ma=…` | Server, động (điền sẵn `?ma=`) | Tra cứu đơn bằng mã đơn + số điện thoại                      |
+| `/don-hang?page=…`       | Khung server, đơn tải ở client | Đơn của tôi (cần đăng nhập), 10 đơn/trang                    |
+| `/don-hang/<mã>`         | Khung server, đơn tải ở client | Chi tiết đơn của tôi, hủy đơn                                |
 
-Giỏ hàng, thanh toán và tra cứu đặt `noindex`; trang chi tiết sách được index.
+Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi tiết sách được index.
 
 ### Trang chi tiết `/sach/<slug>`
 
@@ -39,7 +42,7 @@ Giỏ hàng, thanh toán và tra cứu đặt `noindex`; trang chi tiết sách 
   của mô tả.
 - **SEO**: `generateMetadata` (title, description, canonical, Open Graph `book` + ảnh bìa), JSON-LD
   `Book`+`Product`/`Offer` (mỗi SKU một offer, `InStock`/`OutOfStock`/`Discontinued`) và `BreadcrumbList` (NFR-31),
-  `<` được thoát thành `<`.
+  ký tự `<` được đổi thành mã thoát Unicode (`serializeJsonLd`) để dữ liệu không đóng được thẻ `<script>`.
 
 ### Giỏ hàng
 
@@ -67,7 +70,8 @@ Giỏ hàng, thanh toán và tra cứu đặt `noindex`; trang chi tiết sách 
 - Lỗi do giỏ đã đổi (`CART_EMPTY`, `SKU_NOT_AVAILABLE`, `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`): hiện thông báo + link
   "Xem lại giỏ hàng", tải lại giỏ. Giỏ có dòng lỗi thì vẫn giữ form (không mất thông tin đã nhập) nhưng khóa nút.
 - **Thành công**: làm trống giỏ trong cache (backend đã xóa giỏ), hiện màn cảm ơn ngay tại trang (`OrderPlaced`): mã đơn,
-  nhắc lưu mã + số điện thoại, link tra cứu, chi tiết đơn. Đơn **không** lưu vào storage của trình duyệt vì có dữ liệu cá
+  chi tiết đơn; khách vãng lai được nhắc lưu mã + số điện thoại và link tra cứu, thành viên có link "Xem đơn của tôi"
+  (`/don-hang/<mã>`). Đơn **không** lưu vào storage của trình duyệt vì có dữ liệu cá
   nhân; tải lại trang thì mất màn cảm ơn, khách tra cứu bằng mã đơn.
 - **Chuyển khoản**: chỉ hiện khi `BANK_ACCOUNT` trong `features/ordering/payment.ts` khác `null`. Khi đó màn cảm ơn hiện
   ngân hàng, số tài khoản, chủ tài khoản, số tiền, nội dung = mã đơn và đồng hồ đếm ngược tới `paymentExpiresAt`
@@ -80,21 +84,44 @@ Giỏ hàng, thanh toán và tra cứu đặt `noindex`; trang chi tiết sách 
 - `NOT_FOUND` → "Không tìm thấy đơn hàng…"; `TOO_MANY_REQUESTS` (10 lần/phút/IP) → "thao tác quá nhanh".
 - Đơn còn hủy được (`canCancel`): hướng dẫn liên hệ CSKH (khách vãng lai chưa tự hủy được qua API).
 
+### Đơn của tôi `/don-hang`, `/don-hang/<mã>`
+
+- Chỉ cho thành viên: API cần Bearer (access token nằm trong bộ nhớ trình duyệt) nên trang server chỉ dựng khung, dữ
+  liệu tải ở client bằng TanStack Query (`features/ordering/useOrders.ts`, key `["orders", <người dùng>, …]`). Phiên
+  dùng chung hook `useSession` (`src/lib/use-session.ts`) với giỏ hàng.
+- Chưa đăng nhập (`SignInRequired`): mời đăng nhập với `?next=` quay lại đúng trang, hoặc tra cứu bằng mã đơn (đơn đặt
+  khi chưa đăng nhập không nằm trong tài khoản). Refresh token hết hạn thì phiên chuyển `anonymous` và cũng hiện màn này.
+- Header: thành viên có link **"Đơn của tôi"** cạnh tên và Đăng xuất. Trên mobile tài khoản chỉ hiện icon (chữ vẫn có
+  cho trình đọc màn hình) để logo, giỏ, tài khoản nằm một hàng.
+- **Danh sách**: mã đơn, ngày đặt, nhãn trạng thái (màu theo nhóm chờ / đang xử lý / đã giao / đã đóng), tổng tiền,
+  số cuốn, phương thức thanh toán; mỗi dòng là link sang chi tiết. Phân trang `?page=` (Trang trước/sau), giữ dữ liệu trang
+  cũ trong lúc tải trang mới. Chưa có đơn → nhắc đơn vãng lai tra cứu bằng mã.
+- **Chi tiết**: như màn tra cứu (`OrderDetails`), thêm hướng dẫn chuyển khoản + đếm ngược khi đơn chuyển khoản chưa
+  thanh toán (`BankTransferInfo`, dùng chung với màn cảm ơn). `404` (đơn của tài khoản khác, mã sai) → "Không tìm thấy
+  đơn hàng". Mã đơn trên URL được viết hoa; `%` lỗi không làm hỏng trang.
+- **Hủy đơn** khi `canCancel` (BR-12): nút "Hủy đơn hàng" mở dialog có ô lý do (không bắt buộc, ≤ 1000 ký tự, rỗng gửi
+  `null`). Thành công: thay đơn bằng response, tải lại danh sách, hiện "Đã hủy đơn hàng.", đưa focus về khung đơn.
+  `ORDER_NOT_CANCELLABLE` (đơn vừa được đóng gói/thanh toán) → thông báo trong dialog và tải lại đơn. Đơn không hủy được
+  thì hiện hướng dẫn liên hệ CSKH.
+
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
 Trang chi tiết gọi từ server qua `serverApi` (cache 60 giây). Các API còn lại gọi từ trình duyệt qua proxy `/api/v1`
 bằng `browserApi()` của `@slvn/auth` (gửi cookie `sl_cart`, gắn Bearer khi đã đăng nhập).
 
-| Method | Route                        | Dùng cho                 | Mã lỗi xử lý riêng                                                   |
-| ------ | ---------------------------- | ------------------------ | -------------------------------------------------------------------- |
-| GET    | `/api/v1/books/{slug}`       | Trang chi tiết           | 404 → trang không tìm thấy                                           |
-| GET    | `/api/v1/cart`               | Header, giỏ, thanh toán  | —                                                                    |
-| POST   | `/api/v1/cart/items`         | Thêm vào giỏ (cộng thêm) | `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `CART_FULL` |
-| PATCH  | `/api/v1/cart/items/{skuId}` | Đổi số lượng             | như trên                                                             |
-| DELETE | `/api/v1/cart/items/{skuId}` | Xóa dòng                 | —                                                                    |
-| POST   | `/api/v1/shipping/quote`     | Phí ship dự kiến         | lỗi → ẩn dòng phí                                                    |
-| POST   | `/api/v1/orders`             | Đặt hàng                 | `VALIDATION_ERROR` theo field, `IDEMPOTENCY_KEY_REUSED`, lỗi giỏ     |
-| POST   | `/api/v1/orders/lookup`      | Tra cứu đơn              | `NOT_FOUND`, `TOO_MANY_REQUESTS`                                     |
+| Method | Route                          | Dùng cho                 | Mã lỗi xử lý riêng                                                   |
+| ------ | ------------------------------ | ------------------------ | -------------------------------------------------------------------- |
+| GET    | `/api/v1/books/{slug}`         | Trang chi tiết           | 404 → trang không tìm thấy                                           |
+| GET    | `/api/v1/cart`                 | Header, giỏ, thanh toán  | —                                                                    |
+| POST   | `/api/v1/cart/items`           | Thêm vào giỏ (cộng thêm) | `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `CART_FULL` |
+| PATCH  | `/api/v1/cart/items/{skuId}`   | Đổi số lượng             | như trên                                                             |
+| DELETE | `/api/v1/cart/items/{skuId}`   | Xóa dòng                 | —                                                                    |
+| POST   | `/api/v1/shipping/quote`       | Phí ship dự kiến         | lỗi → ẩn dòng phí                                                    |
+| POST   | `/api/v1/orders`               | Đặt hàng                 | `VALIDATION_ERROR` theo field, `IDEMPOTENCY_KEY_REUSED`, lỗi giỏ     |
+| POST   | `/api/v1/orders/lookup`        | Tra cứu đơn              | `NOT_FOUND`, `TOO_MANY_REQUESTS`                                     |
+| GET    | `/api/v1/orders`               | Đơn của tôi (Bearer)     | 401 → refresh một lần, hết phiên thì mời đăng nhập                   |
+| GET    | `/api/v1/orders/{code}`        | Chi tiết đơn (Bearer)    | `NOT_FOUND`                                                          |
+| POST   | `/api/v1/orders/{code}/cancel` | Hủy đơn (Bearer)         | `ORDER_NOT_CANCELLABLE`                                              |
 
 - Response parse bằng Zod (`features/catalog/schemas.ts`, `features/ordering/schemas.ts`) vì OpenAPI sinh enum thành
   `number`, số thành `number | string`.
@@ -118,8 +145,9 @@ Thêm package `sanitize-html` (+ `@types/sanitize-html`) cho storefront, chỉ d
 - Slug không tồn tại trả HTTP **200** kèm `noindex` (không phải 404), vì `loading.tsx` đã bắt đầu stream trước khi
   `notFound()` chạy (hành vi của Next.js 16). Muốn 404 thật thì kiểm tra slug trong Proxy hoặc bỏ `loading.tsx`.
 - JSON-LD dùng URL tương đối vì chưa có domain chính thức (chưa cấu hình `metadataBase`).
-- Chưa có trang "Đơn của tôi" cho thành viên (`GET /orders`, `GET /orders/{code}`, `POST /orders/{code}/cancel`), chưa
-  có màn quản lý đơn ở Admin.
+- Chưa có màn quản lý đơn ở Admin. Khách vãng lai chưa tự hủy được đơn (backend chỉ cho hủy với Bearer).
+- Chưa thử được "Đơn của tôi" với backend thật (cần tài khoản khách và backend có Redis/CSDL sẵn sàng); test dùng MSW và
+  Playwright giả lập API.
 - Tỉnh/thành, phường/xã là ô nhập tự do (chưa có danh mục địa giới 2 cấp); chưa có sổ địa chỉ, chưa tự điền thông tin
   của thành viên đã đăng nhập.
 - Chưa có mã giảm giá (backend chưa có `/cart/apply-coupon`), pre-order, cổng thanh toán online.
@@ -131,4 +159,6 @@ Thêm package `sanitize-html` (+ `@types/sanitize-html`) cho storefront, chỉ d
 Unit test: chọn ấn bản, trạng thái bán, thông tin xuất bản, JSON-LD, lọc mô tả HTML, dòng lỗi giỏ, chặn đặt hàng, phí
 ship, thông báo lỗi, đếm ngược, schema form đặt hàng/tra cứu. Component test (MSW): thêm vào giỏ (chọn bìa, xác nhận ấn
 bản cũ, lỗi), giỏ hàng (sửa, xóa, cảnh báo), đặt hàng (validate, `Idempotency-Key`, lỗi theo field, hóa đơn, thử lại
-key, hết hàng, chuyển khoản), tra cứu đơn.
+key, hết hàng, chuyển khoản, link đơn cho thành viên), tra cứu đơn, đơn của tôi (danh sách, phân trang, chưa đăng
+nhập), chi tiết đơn (hủy có/không lý do, không hủy được, 404, chuyển khoản). Playwright: luồng mua COD và luồng thành
+viên mở đơn rồi hủy (API giả lập), desktop + mobile.

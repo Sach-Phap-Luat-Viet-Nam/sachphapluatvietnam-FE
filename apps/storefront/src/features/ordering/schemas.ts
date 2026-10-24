@@ -93,3 +93,23 @@ export const orderSchema = z.object({
   history: z.array(orderStatusLogSchema),
 });
 export type Order = z.infer<typeof orderSchema>;
+
+/** Một dòng trong danh sách "Đơn của tôi" (`OrderSummaryResponse`); `itemCount` là tổng số cuốn. */
+export const orderSummarySchema = z.object({
+  orderCode: z.string(),
+  status: z.string(),
+  paymentMethod: z.string(),
+  paymentStatus: z.string(),
+  customerName: z.string(),
+  phone: z.string(),
+  itemCount: z.number(),
+  total: z.number(),
+  createdAt: z.string(),
+});
+export type OrderSummary = z.infer<typeof orderSummarySchema>;
+
+export const orderPageSchema = z.object({
+  items: z.array(orderSummarySchema),
+  meta: z.object({ page: z.number(), limit: z.number(), total: z.number() }),
+});
+export type OrderPage = z.infer<typeof orderPageSchema>;

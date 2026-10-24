@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, CircleCheck } from "lucide-react";
 import { cn } from "@slvn/ui";
-import { formatPrice } from "@slvn/utils";
 import { SUBMIT } from "@/components/form-styles";
+import { useSession } from "@/lib/use-session";
+import { BankTransferInfo, isAwaitingTransfer } from "./BankTransferInfo";
 import { OrderDetails } from "./OrderDetails";
-import { PaymentCountdown } from "./PaymentCountdown";
 import type { BankAccount } from "./payment";
 import type { Order } from "./schemas";
 
@@ -19,13 +19,15 @@ export interface OrderPlacedProps {
 /** Màn cảm ơn sau khi tạo đơn: mã đơn, hướng dẫn chuyển khoản (nếu có) và chi tiết đơn. */
 export function OrderPlaced({ order, bankAccount }: OrderPlacedProps) {
   const heading = useRef<HTMLHeadingElement>(null);
+  // Đơn đặt khi đã đăng nhập gắn với tài khoản: xem lại ở "Đơn của tôi"; khách vãng lai tra cứu bằng mã + SĐT.
+  const member = useSession().status === "authenticated";
 
   useEffect(() => {
     // Form vừa biến mất: đưa focus (và cuộn) tới tiêu đề để trình đọc màn hình đọc ngay kết quả.
     heading.current?.focus();
   }, []);
 
-  const waitingTransfer = order.paymentMethod === "bank_transfer" && order.paymentStatus === "unpaid";
+  const code = encodeURIComponent(order.orderCode);
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="order-placed-title" className="border-gold/30 bg-panel border px-6 py-9 sm:px-10">
@@ -45,26 +47,13 @@ export function OrderPlaced({ order, bankAccount }: OrderPlacedProps) {
           <strong className="text-gold-pale font-editorial text-2xl tracking-wide">{order.orderCode}</strong>
         </p>
         <p className="text-mist mt-3 max-w-2xl leading-7">
-          Bạn lưu lại mã đơn và số điện thoại đặt hàng ({order.phone}) để tra cứu tình trạng đơn bất cứ lúc nào.
+          {member
+            ? "Đơn đã được lưu trong tài khoản, bạn theo dõi tình trạng đơn ở mục Đơn của tôi."
+            : `Bạn lưu lại mã đơn và số điện thoại đặt hàng (${order.phone}) để tra cứu tình trạng đơn bất cứ lúc nào.`}
         </p>
 
-        {waitingTransfer && bankAccount && (
-          <div className="border-upcoming/50 mt-7 flex flex-col gap-3 border px-5 py-5">
-            <h3 className="font-editorial text-xl font-bold">Chuyển khoản để hoàn tất đơn</h3>
-            <dl className="grid gap-x-6 gap-y-2 text-[15px] sm:grid-cols-[auto_1fr]">
-              <dt className="text-sand">Ngân hàng</dt>
-              <dd>{bankAccount.bankName}</dd>
-              <dt className="text-sand">Số tài khoản</dt>
-              <dd className="font-semibold tracking-wide">{bankAccount.accountNumber}</dd>
-              <dt className="text-sand">Chủ tài khoản</dt>
-              <dd>{bankAccount.accountName}</dd>
-              <dt className="text-sand">Số tiền</dt>
-              <dd className="text-gold-pale font-semibold">{formatPrice(order.total)}</dd>
-              <dt className="text-sand">Nội dung</dt>
-              <dd className="font-semibold tracking-wide">{order.orderCode}</dd>
-            </dl>
-            {order.paymentExpiresAt && <PaymentCountdown expiresAt={order.paymentExpiresAt} />}
-          </div>
+        {isAwaitingTransfer(order) && bankAccount && (
+          <BankTransferInfo order={order} bankAccount={bankAccount} className="mt-7" />
         )}
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -72,10 +61,10 @@ export function OrderPlaced({ order, bankAccount }: OrderPlacedProps) {
             Tiếp tục mua sách <ArrowRight size={18} />
           </Link>
           <Link
-            href={`/don-hang/tra-cuu?ma=${encodeURIComponent(order.orderCode)}`}
+            href={member ? `/don-hang/${code}` : `/don-hang/tra-cuu?ma=${code}`}
             className="border-ivory/30 hover:border-gold flex min-h-13.5 items-center border px-7 transition-colors"
           >
-            Tra cứu đơn hàng
+            {member ? "Xem đơn của tôi" : "Tra cứu đơn hàng"}
           </Link>
         </div>
       </section>

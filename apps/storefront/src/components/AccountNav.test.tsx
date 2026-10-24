@@ -37,6 +37,7 @@ describe("AccountNav", () => {
     // Trong lúc kiểm tra phiên vẫn hiện link như HTML từ server.
     expect(screen.getByRole("link", { name: "Đăng nhập" })).toHaveAttribute("href", "/dang-nhap");
     expect(await screen.findByText("Nguyễn Văn A")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Đơn của tôi" })).toHaveAttribute("href", "/don-hang");
 
     await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
 
