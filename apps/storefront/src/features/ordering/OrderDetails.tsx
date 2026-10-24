@@ -55,15 +55,32 @@ export function OrderDetails({ order }: { order: Order }) {
               </div>
               <p className="text-sand text-right">
                 {item.quantity} × {formatPrice(item.unitPrice)}
+                {item.discountAmount > 0 && (
+                  <span className="text-ok block text-sm">−{formatPrice(item.discountAmount)}</span>
+                )}
                 <span className="text-ivory block font-semibold">{formatPrice(item.lineTotal)}</span>
               </p>
             </li>
           ))}
         </ul>
+        {order.appliedPromotions.length > 0 && (
+          <ul aria-label="Ưu đãi đã áp" className="text-ok mt-4 ml-auto flex max-w-sm flex-col gap-1 text-sm">
+            {order.appliedPromotions.map((promotion) => (
+              <li key={promotion.promotionId} className="flex justify-between gap-4">
+                <span>
+                  {promotion.name}
+                  {promotion.couponCode && ` (mã ${promotion.couponCode})`}
+                </span>
+                <span className="shrink-0">−{formatPrice(promotion.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <dl className="mt-4 ml-auto flex max-w-sm flex-col gap-2.5 text-[15px]">
           <Row term="Tạm tính">{formatPrice(order.subtotal)}</Row>
           {order.discount > 0 && <Row term="Giảm giá">−{formatPrice(order.discount)}</Row>}
           <Row term="Phí vận chuyển">{order.shippingFee ? formatPrice(order.shippingFee) : "Miễn phí"}</Row>
+          {order.shippingDiscount > 0 && <Row term="Giảm phí ship">−{formatPrice(order.shippingDiscount)}</Row>}
           <div className="border-gold/25 border-t pt-2.5">
             <Row term="Tổng thanh toán" strong>
               {formatPrice(order.total)}

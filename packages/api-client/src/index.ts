@@ -4,6 +4,7 @@ export { API_ERROR_CODES, ApiError, isApiError } from "./api-error";
 export type { ApiErrorCode } from "./api-error";
 export { createApiClient, unwrap } from "./client";
 export type { ApiClient, CreateApiClientOptions } from "./client";
+export type { CheckoutPreviewBody } from "./pending-paths";
 export { backendProxyTarget } from "./proxy";
 export type { BackendProxyOptions } from "./proxy";
 export type { components, paths } from "./generated/schema";

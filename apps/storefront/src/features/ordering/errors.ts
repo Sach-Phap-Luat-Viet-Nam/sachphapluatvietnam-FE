@@ -10,6 +10,13 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   CART_EMPTY: "Giỏ sách đang trống, bạn vui lòng chọn sách trước khi đặt hàng.",
   PAYMENT_METHOD_NOT_SUPPORTED: "Phương thức thanh toán này chưa được hỗ trợ, bạn vui lòng chọn phương thức khác.",
   ORDER_NOT_CANCELLABLE: "Đơn đã thanh toán hoặc đã đóng gói nên không tự hủy được. Bạn vui lòng liên hệ CSKH.",
+  COUPON_INVALID: "Mã giảm giá không hợp lệ.",
+  COUPON_NOT_APPLICABLE: "Mã giảm giá không áp dụng cho sách nào trong đơn của bạn.",
+  COUPON_LOGIN_REQUIRED: "Mã này dành cho thành viên, bạn vui lòng đăng nhập để dùng.",
+  PROMOTION_UNAVAILABLE: "Ưu đãi vừa kết thúc. Mình đã tính lại đơn, bạn xem số tiền mới rồi đặt lại nhé.",
+  CHECKOUT_TOTAL_CHANGED:
+    "Giá đơn hàng vừa thay đổi (khuyến mãi, giá sách hoặc phí vận chuyển). Bạn xem số tiền mới rồi bấm đặt hàng lần nữa.",
+  ADDRESS_NOT_SUPPORTED: "Chưa hỗ trợ giao đến địa chỉ này.",
   TOO_MANY_REQUESTS: "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.",
 };
 

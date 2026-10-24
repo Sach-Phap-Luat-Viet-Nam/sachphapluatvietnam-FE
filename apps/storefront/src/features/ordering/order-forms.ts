@@ -121,6 +121,10 @@ export interface CreateOrderBody {
   paymentMethod: PaymentMethod;
   invoiceInfo: { companyName: string; taxCode: string; address: string; email: string } | null;
   note: string | null;
+  /** Mã giảm giá khách đã áp (chỉ gửi khi preview xác nhận hợp lệ). */
+  couponCode?: string;
+  /** `preview.total` lúc khách bấm đặt: backend tính lại ra số khác thì trả 409 `CHECKOUT_TOTAL_CHANGED`. */
+  expectedTotal?: number;
 }
 
 /** Chuẩn hóa dữ liệu form (cắt khoảng trắng, chuỗi rỗng thành `null`) thành body tạo đơn. */

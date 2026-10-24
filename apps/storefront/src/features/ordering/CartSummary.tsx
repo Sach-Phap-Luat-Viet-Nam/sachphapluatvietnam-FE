@@ -86,7 +86,7 @@ export function CartSummary({ cart, listSubtotal = 0, action, updating = false }
           Bạn tiết kiệm {formatPrice(saved)} so với giá bìa.
         </p>
       )}
-      {quote.data && gap !== null && (
+      {quote.data && gap !== null && quote.data.freeShippingThreshold !== null && (
         <p className="text-mist text-sm leading-6">
           Mua thêm {formatPrice(gap)} để được miễn phí vận chuyển (đơn từ{" "}
           {formatPrice(quote.data.freeShippingThreshold)}).

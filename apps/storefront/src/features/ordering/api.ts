@@ -2,6 +2,9 @@ import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
 import { buyNowBookSchema } from "./buy-now";
 import type { BuyNowBook, BuyNowSelection } from "./buy-now";
+import { checkoutPreviewSchema } from "./checkout-preview";
+import type { CheckoutPreview } from "./checkout-preview";
+import type { CheckoutPreviewBody } from "@slvn/api-client";
 import { cartSchema, orderPageSchema, orderSchema, shippingQuoteSchema } from "./schemas";
 import type { Cart, Order, OrderPage, ShippingQuote } from "./schemas";
 import type { CreateOrderBody } from "./order-forms";
@@ -52,16 +55,9 @@ export async function placeOrder(order: CreateOrderBody, idempotencyKey: string)
   const data = await unwrap(
     browserApi().POST("/api/v1/orders", {
       headers: { "Idempotency-Key": idempotencyKey },
-      body: {
-        customerName: order.customerName,
-        phone: order.phone,
-        email: order.email,
-        shippingAddress: order.shippingAddress,
-        // @ts-expect-error OpenAPI sinh enum `PaymentMethod` thành number; backend nhận chuỗi snake_case (`cod`).
-        paymentMethod: order.paymentMethod,
-        invoiceInfo: order.invoiceInfo,
-        note: order.note,
-      },
+      // `as never`: OpenAPI sinh enum `PaymentMethod` thành number và chưa có `couponCode`/`expectedTotal`, trong khi
+      // backend nhận chuỗi snake_case (`cod`) kèm hai field này (docs/features/checkout-promotion-shipping.md).
+      body: order as never,
     }),
   );
   return orderSchema.parse(data);
@@ -118,4 +114,13 @@ export async function cancelOrder(code: string, reason: string | null): Promise<
 /** Tra cứu đơn bằng mã đơn + số điện thoại đặt hàng (khách vãng lai), giới hạn 10 request/phút/IP. */
 export async function lookupOrder(orderCode: string, phone: string): Promise<Order> {
   return orderSchema.parse(await unwrap(browserApi().POST("/api/v1/orders/lookup", { body: { orderCode, phone } })));
+}
+
+/**
+ * Xem trước tiền thanh toán (giảm giá, phí ship, tổng): backend là nơi duy nhất tính tiền. Route chưa có trong OpenAPI
+ * nên khai báo tạm ở `@slvn/api-client` (`pending-paths.ts`).
+ */
+export async function previewCheckout(request: CheckoutPreviewBody): Promise<CheckoutPreview> {
+  const data = await unwrap(browserApi().POST("/api/v1/checkout/preview", { body: request }));
+  return checkoutPreviewSchema.parse(data);
 }

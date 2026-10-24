@@ -8,6 +8,16 @@ type UnknownJson = { headers: { [name: string]: unknown }; content: { "applicati
 type NoContent = { headers: { [name: string]: unknown }; content?: never };
 type OtherMethods = { options?: never; head?: never; patch?: never; trace?: never };
 
+/** `CheckoutPreviewRequest` (docs/features/checkout-promotion-shipping.md, mục 3.1). */
+export interface CheckoutPreviewBody {
+  source: "cart" | "buy_now";
+  skuId?: number;
+  quantity?: number;
+  province?: string;
+  couponCode?: string;
+  phone?: string;
+}
+
 /** `BuyNowOrderRequest` (docs/features/storefront-buy-now.md); `paymentMethod` là chuỗi snake_case như backend nhận. */
 export interface BuyNowOrderBody {
   skuId: number;
@@ -19,7 +29,32 @@ export interface BuyNowOrderBody {
   paymentMethod: string;
   invoiceInfo: { companyName: string; taxCode: string; address: string; email: string } | null;
   note: string | null;
+  couponCode?: string;
+  expectedTotal?: number;
 }
+
+type Json = Record<string, unknown>;
+type Created = { 201: UnknownJson };
+type Ok = { 200: UnknownJson };
+type Query = { page?: number; limit?: number; q?: string };
+type IdParams = Omit<NoParameters, "path"> & { path: { id: number } };
+
+/** Route `/admin/...` mới (khuyến mãi, vận chuyển) của docs/features/checkout-promotion-shipping.md, body để `Json`: Zod/form kiểm tra. */
+type Collection<Body extends Json = Json> = {
+  parameters: NoParameters;
+  get: { parameters: Omit<NoParameters, "query"> & { query?: Query }; requestBody?: never; responses: Ok };
+  put?: never;
+  post: { parameters: NoParameters; requestBody: JsonBody<Body>; responses: Created };
+  delete?: never;
+} & OtherMethods;
+
+type Item<Body extends Json = Json> = {
+  parameters: NoParameters;
+  get: { parameters: IdParams; requestBody?: never; responses: Ok };
+  put: { parameters: IdParams; requestBody: JsonBody<Body>; responses: Ok };
+  post?: never;
+  delete: { parameters: IdParams; requestBody?: never; responses: { 204: NoContent } };
+} & OtherMethods;
 
 /** Route chờ sinh type từ OpenAPI, gộp vào `paths` của client. */
 export interface PendingPaths {
@@ -54,5 +89,60 @@ export interface PendingPaths {
     };
     post?: never;
     delete: { parameters: NoParameters; requestBody?: never; responses: { 204: NoContent } };
+  } & OtherMethods;
+  /** Xem trước tiền thanh toán: BE là nơi duy nhất tính tiền (giảm giá, phí ship). */
+  "/api/v1/checkout/preview": {
+    parameters: NoParameters;
+    get?: never;
+    put?: never;
+    post: { parameters: NoParameters; requestBody: JsonBody<CheckoutPreviewBody>; responses: Ok };
+    delete?: never;
+  } & OtherMethods;
+  /** Khuyến mãi đang chạy, công khai, không chứa mã giảm giá. */
+  "/api/v1/promotions/active": {
+    parameters: NoParameters;
+    get: { parameters: NoParameters; requestBody?: never; responses: Ok };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
+  "/api/v1/admin/promotions": Collection;
+  "/api/v1/admin/promotions/{id}": Item;
+  "/api/v1/admin/promotions/{id}/stats": {
+    parameters: NoParameters;
+    get: { parameters: IdParams; requestBody?: never; responses: Ok };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
+  "/api/v1/admin/promotions/{id}/coupons": {
+    parameters: NoParameters;
+    get: { parameters: IdParams; requestBody?: never; responses: Ok };
+    put?: never;
+    post: { parameters: IdParams; requestBody: JsonBody<Json>; responses: Created };
+    delete?: never;
+  } & OtherMethods;
+  "/api/v1/admin/promotions/{id}/coupons/generate": {
+    parameters: NoParameters;
+    get?: never;
+    put?: never;
+    post: { parameters: IdParams; requestBody: JsonBody<Json>; responses: Ok };
+    delete?: never;
+  } & OtherMethods;
+  "/api/v1/admin/coupons/{id}": {
+    parameters: NoParameters;
+    get?: never;
+    put: { parameters: IdParams; requestBody: JsonBody<Json>; responses: Ok };
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
+  "/api/v1/admin/shipping/zones": Collection;
+  "/api/v1/admin/shipping/zones/{id}": Omit<Item, "get"> & { get?: never };
+  "/api/v1/admin/shipping/settings": {
+    parameters: NoParameters;
+    get: { parameters: NoParameters; requestBody?: never; responses: Ok };
+    put: { parameters: NoParameters; requestBody: JsonBody<Json>; responses: Ok };
+    post?: never;
+    delete?: never;
   } & OtherMethods;
 }

@@ -41,6 +41,7 @@ export function listSubtotal(lines: readonly Pick<CartItem, "listPrice" | "quant
 
 /** Số tiền còn thiếu để được miễn phí vận chuyển (BR-14), `null` khi đã được miễn phí. */
 export function freeShippingGap(subtotal: number, quote: Pick<ShippingQuote, "freeShippingThreshold">): number | null {
+  if (quote.freeShippingThreshold === null) return null;
   const gap = quote.freeShippingThreshold - subtotal;
   return gap > 0 ? gap : null;
 }

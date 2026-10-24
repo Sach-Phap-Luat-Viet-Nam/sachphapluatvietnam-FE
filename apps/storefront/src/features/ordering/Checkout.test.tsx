@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -77,13 +77,50 @@ function problem(status: number, code: string, errors?: Record<string, string[]>
   return HttpResponse.json({ title: code, status, code, traceId: "00-trace", errors }, { status });
 }
 
+/** Response `POST /checkout/preview`: 2 cuốn × 150.000, mặc định không giảm giá và miễn phí ship. */
+function preview(overrides: Record<string, unknown> = {}) {
+  return {
+    items: [
+      {
+        skuId: 100,
+        skuCode: "SLVN-BLDS-2026-BM",
+        bookTitle: "Bộ luật Dân sự 2026",
+        editionName: "Tái bản lần 3",
+        coverType: "paperback",
+        unitPrice: 150000,
+        quantity: 2,
+        lineTotal: 300000,
+        discountAmount: 0,
+      },
+    ],
+    subtotal: 300000,
+    discount: 0,
+    shippingFee: 0,
+    shippingDiscount: 0,
+    total: 300000,
+    appliedPromotions: [],
+    couponApplied: null,
+    freeShippingThreshold: 300000,
+    amountToFreeShipping: 0,
+    eta: null,
+    zoneName: null,
+    ...overrides,
+  };
+}
+
+function previewHandler(response: () => Response | Promise<Response> = () => HttpResponse.json(preview())) {
+  return http.post(`${ORIGIN}/api/v1/checkout/preview`, response);
+}
+
 function baseHandlers() {
-  return [
-    http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
-    http.post(`${ORIGIN}/api/v1/shipping/quote`, () =>
-      HttpResponse.json({ shippingFee: 0, freeShippingThreshold: 300000 }),
-    ),
-  ];
+  return [http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)), previewHandler()];
+}
+
+/** Nút đặt hàng khóa trong lúc số tiền đang được tính lại (debounce + preview), nên chờ nó mở rồi mới bấm. */
+async function submit(user: ReturnType<typeof userEvent.setup>) {
+  const button = await screen.findByRole("button", { name: "Đặt hàng" });
+  await waitFor(() => expect(button).toBeEnabled());
+  await user.click(button);
 }
 
 function renderCheckout(ui: ReactElement = <Checkout bankAccount={null} />) {
@@ -119,7 +156,7 @@ describe("Checkout", () => {
     const user = userEvent.setup();
     renderCheckout();
 
-    await user.click(await screen.findByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
     expect(await screen.findByText("Vui lòng nhập họ tên người nhận.")).toBeVisible();
     expect(screen.getByText("Số điện thoại gồm 10 số, bắt đầu bằng 0 (hoặc +84).")).toBeVisible();
     expect(screen.getByLabelText("Phường/Xã")).toHaveAttribute("aria-invalid", "true");
@@ -142,7 +179,7 @@ describe("Checkout", () => {
 
     await fillRecipient(user);
     await user.type(screen.getByLabelText("Ghi chú cho đơn hàng (không bắt buộc)"), "Giao giờ hành chính");
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).toHaveFocus();
     expect(screen.getByText("SLVN2610230001")).toBeVisible();
@@ -159,6 +196,7 @@ describe("Checkout", () => {
       paymentMethod: "cod",
       invoiceInfo: null,
       note: "Giao giờ hành chính",
+      expectedTotal: 300000,
     });
   });
 
@@ -185,7 +223,7 @@ describe("Checkout", () => {
     renderCheckout();
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("link", { name: "Xem đơn của tôi" })).toHaveAttribute(
       "href",
@@ -256,7 +294,7 @@ describe("Checkout", () => {
     await user.type(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
     await user.type(screen.getByLabelText("Số nhà, tên đường"), "3 Bạch Đằng");
     await user.click(screen.getByLabelText("Lưu địa chỉ này vào sổ địa chỉ"));
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByText("Đã lưu địa chỉ vào sổ địa chỉ.")).toBeVisible();
     expect(orderBody).toMatchObject({
@@ -278,7 +316,7 @@ describe("Checkout", () => {
     renderCheckout();
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByText("Phường/xã không hợp lệ")).toBeVisible();
     expect(screen.getByLabelText("Phường/Xã")).toHaveAttribute("aria-invalid", "true");
@@ -298,14 +336,14 @@ describe("Checkout", () => {
 
     await fillRecipient(user);
     await user.click(screen.getByLabelText("Xuất hóa đơn công ty"));
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
     expect(await screen.findByText("Vui lòng nhập tên công ty.")).toBeVisible();
 
     await user.type(screen.getByLabelText("Tên công ty"), "Công ty Luật A");
     await user.type(screen.getByLabelText("Mã số thuế"), "0101234567-001");
     await user.type(screen.getByLabelText("Email nhận hóa đơn"), "ketoan@luat-a.vn");
     await user.type(screen.getByLabelText("Địa chỉ công ty"), "Hà Nội");
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).toBeVisible();
     expect(body).toMatchObject({
@@ -331,7 +369,7 @@ describe("Checkout", () => {
     renderCheckout();
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).toBeVisible();
     expect(keys).toHaveLength(2);
@@ -347,7 +385,7 @@ describe("Checkout", () => {
     renderCheckout();
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("không còn đủ số lượng");
     expect(screen.getByRole("link", { name: "Xem lại giỏ hàng" })).toHaveAttribute("href", "/gio-hang");
@@ -374,7 +412,7 @@ describe("Checkout", () => {
 
     await fillRecipient(user);
     await user.click(screen.getByRole("radio", { name: /Chuyển khoản ngân hàng/ }));
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("heading", { name: "Chuyển khoản để hoàn tất đơn" })).toBeVisible();
     expect(screen.getByText("0123456789")).toBeVisible();
@@ -410,8 +448,8 @@ function buyNowHandlers(...books: (typeof BOOK)[]) {
     http.get(`${ORIGIN}/api/v1/books/bo-luat-dan-su-2026`, () =>
       HttpResponse.json(books[Math.min(calls++, books.length - 1)] ?? BOOK),
     ),
-    http.post(`${ORIGIN}/api/v1/shipping/quote`, () =>
-      HttpResponse.json({ shippingFee: 30000, freeShippingThreshold: 500000 }),
+    previewHandler(() =>
+      HttpResponse.json(preview({ shippingFee: 30000, total: 330000, freeShippingThreshold: 500000 })),
     ),
   ];
 }
@@ -445,7 +483,7 @@ describe("Checkout (Mua ngay)", () => {
     );
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     expect(await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).toBeVisible();
     expect(key).toMatch(/^[0-9a-f-]{36}$/);
@@ -459,6 +497,7 @@ describe("Checkout (Mua ngay)", () => {
       paymentMethod: "cod",
       invoiceInfo: null,
       note: null,
+      expectedTotal: 330000,
     });
     expect(cartTouched).toBe(false);
   });
@@ -479,7 +518,7 @@ describe("Checkout (Mua ngay)", () => {
     renderCheckout(<Checkout bankAccount={null} buyNow={BUY_NOW} />);
 
     await fillRecipient(user);
-    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+    await submit(user);
 
     const alert = await screen.findByText(/quay lại trang sách để chọn lại số lượng/);
     expect(within(alert).getByRole("link", { name: "Quay lại trang sách" })).toHaveAttribute(
@@ -504,5 +543,150 @@ describe("Checkout (Mua ngay)", () => {
       "href",
       "/sach/bo-luat-dan-su-2026",
     );
+  });
+});
+
+describe("Checkout (khuyến mãi và phí vận chuyển)", () => {
+  const coupon10 = preview({
+    discount: 30000,
+    total: 270000,
+    couponApplied: true,
+    appliedPromotions: [
+      { promotionId: 7, name: "Giảm 10% đơn đầu", kind: "order_discount", couponCode: "GIAM10", amount: 30000 },
+    ],
+  });
+
+  it("applies a coupon, shows the discount from the backend and sends the code with the expected total", async () => {
+    let body: Record<string, unknown> = {};
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      previewHandler(async () => HttpResponse.json(preview())),
+      http.post(`${ORIGIN}/api/v1/orders`, async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(order(), { status: 201 });
+      }),
+    );
+    server.use(
+      http.post(`${ORIGIN}/api/v1/checkout/preview`, async ({ request }) => {
+        const sent = (await request.json()) as { couponCode?: string };
+        return HttpResponse.json(sent.couponCode === "GIAM10" ? coupon10 : preview());
+      }),
+    );
+    const user = userEvent.setup();
+    renderCheckout();
+
+    await user.type(await screen.findByLabelText("Mã giảm giá"), "giam10");
+    await user.click(screen.getByRole("button", { name: "Áp dụng" }));
+
+    expect(await screen.findByText("Mã GIAM10")).toBeVisible();
+    const offers = await screen.findByRole("list", { name: "Ưu đãi đã áp" });
+    expect(within(offers).getByText("Giảm 10% đơn đầu")).toBeVisible();
+    expect(await screen.findByText("270.000 ₫")).toBeVisible();
+
+    await fillRecipient(user);
+    await submit(user);
+    await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" });
+    expect(body).toMatchObject({ couponCode: "GIAM10", expectedTotal: 270000 });
+  });
+
+  it("shows the backend message under the coupon input and keeps no code when it is rejected", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      http.post(`${ORIGIN}/api/v1/checkout/preview`, async ({ request }) => {
+        const sent = (await request.json()) as { couponCode?: string };
+        return sent.couponCode
+          ? HttpResponse.json(
+              {
+                status: 422,
+                code: "COUPON_MIN_ORDER",
+                title: "Đơn cần đạt tối thiểu 500.000 ₫ để dùng mã này.",
+                traceId: "t",
+              },
+              { status: 422 },
+            )
+          : HttpResponse.json(preview());
+      }),
+    );
+    const user = userEvent.setup();
+    renderCheckout();
+
+    await user.type(await screen.findByLabelText("Mã giảm giá"), "BIGSALE");
+    await user.click(screen.getByRole("button", { name: "Áp dụng" }));
+
+    expect(await screen.findByText("Đơn cần đạt tối thiểu 500.000 ₫ để dùng mã này.")).toBeVisible();
+    expect(screen.queryByText("Mã BIGSALE")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Mã giảm giá")).toBeVisible();
+  });
+
+  it("recalculates and asks the customer to confirm again when the total changed", async () => {
+    const keys: (string | null)[] = [];
+    const totals: unknown[] = [];
+    let total = 300000;
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      previewHandler(() => HttpResponse.json(preview({ total }))),
+      http.post(`${ORIGIN}/api/v1/orders`, async ({ request }) => {
+        keys.push(request.headers.get("Idempotency-Key"));
+        totals.push(((await request.json()) as { expectedTotal: number }).expectedTotal);
+        if (keys.length === 1) {
+          total = 330000; // Khuyến mãi hết đúng lúc khách bấm đặt.
+          return problem(409, "CHECKOUT_TOTAL_CHANGED");
+        }
+        return HttpResponse.json(order(), { status: 201 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderCheckout();
+
+    await fillRecipient(user);
+    await submit(user);
+
+    expect(await screen.findByText(/Giá đơn hàng vừa thay đổi/)).toBeVisible();
+    expect(await screen.findByText("330.000 ₫")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).not.toBeInTheDocument();
+
+    await submit(user);
+    await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" });
+    expect(totals).toEqual([300000, 330000]);
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
+  it("blocks ordering when the province is outside the delivery zones", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      http.post(`${ORIGIN}/api/v1/checkout/preview`, async ({ request }) => {
+        const sent = (await request.json()) as { province?: string };
+        return sent.province ? problem(422, "ADDRESS_NOT_SUPPORTED") : HttpResponse.json(preview());
+      }),
+    );
+    const user = userEvent.setup();
+    renderCheckout();
+
+    await user.type(await screen.findByLabelText("Tỉnh/Thành phố"), "Đảo Hoàng Sa");
+
+    expect((await screen.findAllByText("Chưa hỗ trợ giao đến địa chỉ này.")).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Đặt hàng" })).toBeDisabled();
+  });
+
+  it("shows shipping discount, free shipping hint and delivery estimate", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      previewHandler(() =>
+        HttpResponse.json(
+          preview({
+            shippingFee: 30000,
+            shippingDiscount: 30000,
+            total: 300000,
+            amountToFreeShipping: 50000,
+            eta: { minDays: 2, maxDays: 4 },
+          }),
+        ),
+      ),
+    );
+    renderCheckout();
+
+    expect(await screen.findByText("Miễn phí")).toBeVisible();
+    expect(screen.getByText("Mua thêm 50.000 ₫ để được miễn phí vận chuyển.")).toBeVisible();
+    expect(screen.getByText("Dự kiến giao 2–4 ngày.")).toBeVisible();
   });
 });

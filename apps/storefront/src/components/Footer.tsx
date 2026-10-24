@@ -24,6 +24,9 @@ export function Footer() {
           <Link href="/sach?sort=newest" className="link-underline w-fit">
             Mới phát hành
           </Link>
+          <Link href="/khuyen-mai" className="link-underline w-fit">
+            Khuyến mãi
+          </Link>
           <FooterLoginLink />
         </nav>
         <div className="text-sand flex flex-col gap-2.5 text-sm">

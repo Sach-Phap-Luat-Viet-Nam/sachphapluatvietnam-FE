@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
+import type { CheckoutPreviewBody } from "@slvn/api-client";
 import { fieldErrors } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { formatPrice } from "@slvn/utils";
+import { PROVINCES, formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { TextField } from "@/components/TextField";
@@ -17,13 +18,23 @@ import { coverTypeLabel } from "@/lib/labels";
 import { MAX_ADDRESSES } from "@/lib/account-api";
 import type { Address, AddressBody } from "@/lib/account-api";
 import { useAddresses, useProfile, useSaveAddress } from "@/lib/use-account";
-import { fetchBuyNowBook, placeBuyNowOrder, placeOrder } from "./api";
+import { fetchBuyNowBook, placeBuyNowOrder, placeOrder, previewCheckout } from "./api";
 import { buyNowLine } from "./buy-now";
 import type { BuyNowSelection } from "./buy-now";
 import { checkoutBlocker, listSubtotal } from "./cart";
 import { CartLineCover } from "./CartLineCover";
-import { CartSummary } from "./CartSummary";
-import { CHECKOUT_DEFAULTS, CHECKOUT_FIELDS, checkoutSchema, toCreateOrderBody } from "./order-forms";
+import { CheckoutSummary } from "./CheckoutSummary";
+import { CouponBox } from "./CouponBox";
+import type { CouponNotice } from "./CouponBox";
+import { previewKey, useCheckoutPreview } from "./useCheckoutPreview";
+import {
+  CHECKOUT_DEFAULTS,
+  CHECKOUT_FIELDS,
+  checkoutSchema,
+  isValidPhone,
+  normalizePhone,
+  toCreateOrderBody,
+} from "./order-forms";
 import type { CheckoutValues, CreateOrderBody, PaymentMethod } from "./order-forms";
 import { orderingErrorMessage } from "./errors";
 import { PAYMENT_METHOD_LABELS, label } from "./labels";
@@ -33,6 +44,7 @@ import { SavedAddressPicker } from "./SavedAddressPicker";
 import type { AddressChoice } from "./SavedAddressPicker";
 import type { BankAccount } from "./payment";
 import type { Order } from "./schemas";
+import type { ReactNode } from "react";
 import { useCart, useClearCartCache, useRefreshCart } from "./useCart";
 
 /** Lỗi do sách khách chọn đã đổi (hết hàng, ngừng bán, giỏ trống): tải lại dữ liệu và gợi ý quay lại để sửa. */
@@ -43,6 +55,22 @@ const BUY_NOW_MESSAGES: Record<string, string> = {
   SKU_NOT_AVAILABLE: "Sách này hiện không còn bán.",
   OUT_OF_STOCK: "Sách không còn đủ số lượng bạn chọn. Bạn vui lòng quay lại trang sách để chọn lại số lượng.",
 };
+
+/** Đơn đã đổi giá/khuyến mãi so với lúc khách xem: tính lại preview, đổi `Idempotency-Key`, để khách xác nhận lại. */
+const PRICE_CHANGED_CODES = new Set(["CHECKOUT_TOTAL_CHANGED", "PROMOTION_UNAVAILABLE", "COUPON_EXPIRED"]);
+
+/** Lỗi do mã giảm giá: hiện dưới ô nhập mã và bỏ mã. */
+function isCouponError(error: unknown): boolean {
+  return isApiError(error) && error.code.startsWith("COUPON_");
+}
+
+function couponNoticeOf(error: unknown): CouponNotice {
+  return {
+    tone: "error",
+    message: orderingErrorMessage(error),
+    loginRequired: isApiError(error) && error.code === "COUPON_LOGIN_REQUIRED",
+  };
+}
 
 const PAYMENT_HINTS: Record<PaymentMethod, string> = {
   cod: "Trả tiền mặt cho nhân viên giao hàng khi nhận sách.",
@@ -60,7 +88,20 @@ interface StaleSelectionRecovery {
   messages?: Record<string, string>;
 }
 
+/** Phần tóm tắt bên phải: nguồn tính preview (giỏ hoặc Mua ngay) và các dòng sách hiển thị. */
+interface SummaryConfig {
+  source: Pick<CheckoutPreviewBody, "source" | "skuId" | "quantity">;
+  /** Đổi khi nội dung giỏ đổi để preview tải lại. */
+  signature: string;
+  totalQuantity: number;
+  subtotal: number;
+  listSubtotal: number;
+  lines: ReactNode;
+  backLink: ReactNode;
+}
+
 interface CheckoutFormProps {
+  summary: SummaryConfig;
   methods: PaymentMethod[];
   /** Lý do chưa đặt được (ngừng bán, thiếu hàng): vẫn giữ form để khách không mất thông tin đã nhập. */
   blocker: string | null;
@@ -71,7 +112,7 @@ interface CheckoutFormProps {
   onPlaced: (order: Order, addressToSave: AddressBody | null) => void;
 }
 
-function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: CheckoutFormProps) {
+function CheckoutForm({ summary, methods, blocker, submitOrder, recovery, onPlaced }: CheckoutFormProps) {
   // Một key cho mỗi lần vào trang thanh toán; gửi lại (bấm nhiều lần, retry) thì backend trả đúng đơn đã tạo.
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [selectionChanged, setSelectionChanged] = useState(false);
@@ -88,6 +129,50 @@ function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: Che
     defaultValues: { ...CHECKOUT_DEFAULTS, paymentMethod: methods[0] ?? "cod" },
   });
   const wantsInvoice = useWatch({ control, name: "wantsInvoice" });
+
+  // Mã giảm giá không lưu trong giỏ: FE giữ mã đã được backend xác nhận và gửi kèm mỗi lần preview và khi đặt hàng.
+  const queryClient = useQueryClient();
+  const [coupon, setCoupon] = useState<string | null>(null);
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
+  const [couponNotice, setCouponNotice] = useState<CouponNotice | null>(null);
+  const province = useWatch({ control, name: "shippingAddress.province" });
+  const phone = useWatch({ control, name: "phone" });
+  const previewInput = {
+    ...summary.source,
+    signature: summary.signature,
+    province,
+    phone: isValidPhone(phone) ? normalizePhone(phone) : undefined,
+    couponCode: coupon ?? undefined,
+  };
+  const preview = useCheckoutPreview(previewInput);
+
+  // Mã đang áp bị backend từ chối ở lần tính lại (hết lượt, hết hạn…): bỏ mã và báo dưới ô nhập.
+  if (coupon && preview.isError && isCouponError(preview.error)) {
+    setCoupon(null);
+    setCouponNotice(couponNoticeOf(preview.error));
+  }
+  const addressUnsupported =
+    preview.isError && isApiError(preview.error) && preview.error.code === "ADDRESS_NOT_SUPPORTED";
+  const summaryFailed = preview.isError && !isCouponError(preview.error);
+  const orderBlocker = blocker ?? (addressUnsupported ? "Chưa hỗ trợ giao đến địa chỉ này." : null);
+
+  const applyCoupon = async (code: string) => {
+    setCheckingCoupon(true);
+    setCouponNotice(null);
+    try {
+      const result = await previewCheckout({ ...preview.debounced, couponCode: code });
+      queryClient.setQueryData(previewKey({ ...preview.debounced, couponCode: code }), result);
+      setCoupon(code);
+      if (result.couponApplied === false) {
+        setCouponNotice({ tone: "info", message: "Đã áp ưu đãi tốt nhất cho đơn của bạn." });
+      }
+    } catch (error) {
+      setCoupon(null);
+      setCouponNotice(couponNoticeOf(error));
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
 
   // Thành viên: điền sẵn từ hồ sơ và sổ địa chỉ (lib/use-account). Khách vãng lai hai query này không chạy.
   const { data: profile } = useProfile();
@@ -148,7 +233,12 @@ function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: Che
     savedAddresses !== undefined && selectedAddress === "other" && savedAddresses.length < MAX_ADDRESSES;
 
   const onSubmit = async (values: CheckoutValues) => {
-    const body = toCreateOrderBody(values);
+    const body = {
+      ...toCreateOrderBody(values),
+      ...(coupon ? { couponCode: coupon } : {}),
+      // Số khách đang thấy: backend tính lại ra số khác thì trả 409 thay vì lặng lẽ tính giá khác.
+      ...(preview.data ? { expectedTotal: preview.data.total } : {}),
+    };
     setSelectionChanged(false);
     try {
       let order: Order;
@@ -178,6 +268,15 @@ function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: Che
       if (invalidFields.length === 0) {
         setError("root.server", { message: orderingErrorMessage(error, recovery.messages) });
       }
+      if (isApiError(error) && (PRICE_CHANGED_CODES.has(error.code) || isCouponError(error))) {
+        // Đơn chưa được tạo: tính lại số mới, dùng key mới và để khách bấm xác nhận lần nữa.
+        setIdempotencyKey(crypto.randomUUID());
+        if (isCouponError(error)) {
+          setCoupon(null);
+          setCouponNotice(couponNoticeOf(error));
+        }
+        void preview.refetch();
+      }
       if (isApiError(error) && STALE_SELECTION_CODES.has(error.code)) {
         setSelectionChanged(true);
         recovery.reload();
@@ -187,183 +286,217 @@ function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: Che
 
   const invoice = errors.invoiceInfo;
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-10">
-      <fieldset className="flex flex-col gap-5">
-        <legend className={cn(SECTION_TITLE, "mb-5")}>Người nhận</legend>
-        <TextField
-          id="customerName"
-          label="Họ và tên"
-          autoComplete="name"
-          registration={register("customerName")}
-          error={errors.customerName?.message}
-        />
-        <div className="grid gap-5 sm:grid-cols-2">
+    <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-10">
+        <fieldset className="flex flex-col gap-5">
+          <legend className={cn(SECTION_TITLE, "mb-5")}>Người nhận</legend>
           <TextField
-            id="phone"
-            label="Số điện thoại"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="0901234567"
-            registration={register("phone")}
-            error={errors.phone?.message}
+            id="customerName"
+            label="Họ và tên"
+            autoComplete="name"
+            registration={register("customerName")}
+            error={errors.customerName?.message}
           />
-          <TextField
-            id="email"
-            label="Email (không bắt buộc)"
-            type="email"
-            autoComplete="email"
-            registration={register("email")}
-            error={errors.email?.message}
-          />
-        </div>
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-5">
-        <legend className={cn(SECTION_TITLE, "mb-5")}>Địa chỉ giao hàng</legend>
-        {savedAddresses && savedAddresses.length > 0 && (
-          <SavedAddressPicker addresses={savedAddresses} value={selectedAddress} onChange={chooseAddress} />
-        )}
-        <div className="grid gap-5 sm:grid-cols-2">
-          <TextField
-            id="province"
-            label="Tỉnh/Thành phố"
-            autoComplete="address-level1"
-            registration={register("shippingAddress.province")}
-            error={errors.shippingAddress?.province?.message}
-          />
-          <TextField
-            id="ward"
-            label="Phường/Xã"
-            autoComplete="address-level2"
-            registration={register("shippingAddress.ward")}
-            error={errors.shippingAddress?.ward?.message}
-          />
-        </div>
-        <TextField
-          id="streetAddress"
-          label="Số nhà, tên đường"
-          autoComplete="street-address"
-          registration={register("shippingAddress.streetAddress")}
-          error={errors.shippingAddress?.streetAddress?.message}
-        />
-        {canSaveAddress && (
-          <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
-            <input
-              type="checkbox"
-              checked={saveToBook}
-              onChange={(event) => setSaveToBook(event.target.checked)}
-              className="accent-gold size-4.5"
-            />
-            Lưu địa chỉ này vào sổ địa chỉ
-          </label>
-        )}
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-3">
-        <legend className={cn(SECTION_TITLE, "mb-5")}>Thanh toán</legend>
-        {methods.map((method) => (
-          <label
-            key={method}
-            className="border-border has-checked:border-gold has-checked:bg-gold/8 has-focus-visible:outline-gold flex cursor-pointer gap-4 border px-5 py-4 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-4"
-          >
-            <input type="radio" value={method} {...register("paymentMethod")} className="accent-gold mt-1 size-4.5" />
-            <span>
-              <span className="block font-medium">{label(PAYMENT_METHOD_LABELS, method)}</span>
-              <span className="text-mist mt-1 block text-sm">{PAYMENT_HINTS[method]}</span>
-            </span>
-          </label>
-        ))}
-        {errors.paymentMethod && (
-          <p role="alert" className="text-danger text-sm">
-            {errors.paymentMethod.message}
-          </p>
-        )}
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-5">
-        <legend className="sr-only">Hóa đơn</legend>
-        <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
-          <input type="checkbox" {...register("wantsInvoice")} className="accent-gold size-4.5" />
-          Xuất hóa đơn công ty
-        </label>
-        {wantsInvoice && (
-          <div className="border-gold/25 grid gap-5 border-l pl-5 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <TextField
-              id="invoiceCompanyName"
-              label="Tên công ty"
-              autoComplete="organization"
-              className="sm:col-span-2"
-              registration={register("invoiceInfo.companyName")}
-              error={invoice?.companyName?.message}
+              id="phone"
+              label="Số điện thoại"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="0901234567"
+              registration={register("phone")}
+              error={errors.phone?.message}
             />
             <TextField
-              id="invoiceTaxCode"
-              label="Mã số thuế"
-              inputMode="numeric"
-              placeholder="0101234567"
-              registration={register("invoiceInfo.taxCode")}
-              error={invoice?.taxCode?.message}
-            />
-            <TextField
-              id="invoiceEmail"
-              label="Email nhận hóa đơn"
+              id="email"
+              label="Email (không bắt buộc)"
               type="email"
-              registration={register("invoiceInfo.email")}
-              error={invoice?.email?.message}
-            />
-            <TextField
-              id="invoiceAddress"
-              label="Địa chỉ công ty"
-              className="sm:col-span-2"
-              registration={register("invoiceInfo.address")}
-              error={invoice?.address?.message}
+              autoComplete="email"
+              registration={register("email")}
+              error={errors.email?.message}
             />
           </div>
-        )}
-      </fieldset>
+        </fieldset>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="note" className={LABEL}>
-          Ghi chú cho đơn hàng (không bắt buộc)
-        </label>
-        <textarea
-          id="note"
-          rows={3}
-          placeholder="Ví dụ: giao giờ hành chính"
-          {...register("note")}
-          aria-invalid={Boolean(errors.note)}
-          aria-describedby={errors.note ? "note-error" : undefined}
-          className={cn(INPUT, "border-border h-auto py-3")}
+        <fieldset className="flex flex-col gap-5">
+          <legend className={cn(SECTION_TITLE, "mb-5")}>Địa chỉ giao hàng</legend>
+          {savedAddresses && savedAddresses.length > 0 && (
+            <SavedAddressPicker addresses={savedAddresses} value={selectedAddress} onChange={chooseAddress} />
+          )}
+          <div className="grid gap-5 sm:grid-cols-2">
+            <TextField
+              id="province"
+              label="Tỉnh/Thành phố"
+              autoComplete="address-level1"
+              list="province-options"
+              registration={register("shippingAddress.province")}
+              error={
+                errors.shippingAddress?.province?.message ??
+                (addressUnsupported ? "Chưa hỗ trợ giao đến địa chỉ này." : undefined)
+              }
+            />
+            <datalist id="province-options">
+              {PROVINCES.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+            <TextField
+              id="ward"
+              label="Phường/Xã"
+              autoComplete="address-level2"
+              registration={register("shippingAddress.ward")}
+              error={errors.shippingAddress?.ward?.message}
+            />
+          </div>
+          <TextField
+            id="streetAddress"
+            label="Số nhà, tên đường"
+            autoComplete="street-address"
+            registration={register("shippingAddress.streetAddress")}
+            error={errors.shippingAddress?.streetAddress?.message}
+          />
+          {canSaveAddress && (
+            <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
+              <input
+                type="checkbox"
+                checked={saveToBook}
+                onChange={(event) => setSaveToBook(event.target.checked)}
+                className="accent-gold size-4.5"
+              />
+              Lưu địa chỉ này vào sổ địa chỉ
+            </label>
+          )}
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-3">
+          <legend className={cn(SECTION_TITLE, "mb-5")}>Thanh toán</legend>
+          {methods.map((method) => (
+            <label
+              key={method}
+              className="border-border has-checked:border-gold has-checked:bg-gold/8 has-focus-visible:outline-gold flex cursor-pointer gap-4 border px-5 py-4 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-4"
+            >
+              <input type="radio" value={method} {...register("paymentMethod")} className="accent-gold mt-1 size-4.5" />
+              <span>
+                <span className="block font-medium">{label(PAYMENT_METHOD_LABELS, method)}</span>
+                <span className="text-mist mt-1 block text-sm">{PAYMENT_HINTS[method]}</span>
+              </span>
+            </label>
+          ))}
+          {errors.paymentMethod && (
+            <p role="alert" className="text-danger text-sm">
+              {errors.paymentMethod.message}
+            </p>
+          )}
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-5">
+          <legend className="sr-only">Hóa đơn</legend>
+          <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
+            <input type="checkbox" {...register("wantsInvoice")} className="accent-gold size-4.5" />
+            Xuất hóa đơn công ty
+          </label>
+          {wantsInvoice && (
+            <div className="border-gold/25 grid gap-5 border-l pl-5 sm:grid-cols-2">
+              <TextField
+                id="invoiceCompanyName"
+                label="Tên công ty"
+                autoComplete="organization"
+                className="sm:col-span-2"
+                registration={register("invoiceInfo.companyName")}
+                error={invoice?.companyName?.message}
+              />
+              <TextField
+                id="invoiceTaxCode"
+                label="Mã số thuế"
+                inputMode="numeric"
+                placeholder="0101234567"
+                registration={register("invoiceInfo.taxCode")}
+                error={invoice?.taxCode?.message}
+              />
+              <TextField
+                id="invoiceEmail"
+                label="Email nhận hóa đơn"
+                type="email"
+                registration={register("invoiceInfo.email")}
+                error={invoice?.email?.message}
+              />
+              <TextField
+                id="invoiceAddress"
+                label="Địa chỉ công ty"
+                className="sm:col-span-2"
+                registration={register("invoiceInfo.address")}
+                error={invoice?.address?.message}
+              />
+            </div>
+          )}
+        </fieldset>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="note" className={LABEL}>
+            Ghi chú cho đơn hàng (không bắt buộc)
+          </label>
+          <textarea
+            id="note"
+            rows={3}
+            placeholder="Ví dụ: giao giờ hành chính"
+            {...register("note")}
+            aria-invalid={Boolean(errors.note)}
+            aria-describedby={errors.note ? "note-error" : undefined}
+            className={cn(INPUT, "border-border h-auto py-3")}
+          />
+          {errors.note && (
+            <p id="note-error" role="alert" className="text-danger text-sm">
+              {errors.note.message}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {orderBlocker && <p className="text-upcoming text-sm leading-6">{orderBlocker}</p>}
+          <button type="submit" disabled={isSubmitting || orderBlocker !== null || preview.updating} className={SUBMIT}>
+            {isSubmitting ? "Đang đặt hàng…" : "Đặt hàng"}
+            <ArrowRight size={18} />
+          </button>
+          {errors.root?.server && (
+            <p role="alert" className={FORM_ERROR}>
+              {errors.root.server.message}
+              {selectionChanged && (
+                <>
+                  {" "}
+                  <Link href={recovery.href} className="link-underline text-gold font-medium">
+                    {recovery.label}
+                  </Link>
+                </>
+              )}
+            </p>
+          )}
+        </div>
+      </form>
+      <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+        <CheckoutSummary
+          fallback={{ subtotal: summary.subtotal, totalQuantity: summary.totalQuantity }}
+          listSubtotal={summary.listSubtotal}
+          preview={preview.data}
+          updating={preview.updating}
+          loadFailed={summaryFailed}
+          coupon={
+            <CouponBox
+              applied={coupon}
+              checking={checkingCoupon}
+              notice={couponNotice}
+              onApply={(code) => void applyCoupon(code)}
+              onRemove={() => {
+                setCoupon(null);
+                setCouponNotice(null);
+              }}
+            />
+          }
+          lines={summary.lines}
         />
-        {errors.note && (
-          <p id="note-error" role="alert" className="text-danger text-sm">
-            {errors.note.message}
-          </p>
-        )}
+        {summary.backLink}
       </div>
-
-      <div className="flex flex-col gap-4">
-        {blocker && <p className="text-upcoming text-sm leading-6">{blocker}</p>}
-        <button type="submit" disabled={isSubmitting || blocker !== null} className={SUBMIT}>
-          {isSubmitting ? "Đang đặt hàng…" : "Đặt hàng"}
-          <ArrowRight size={18} />
-        </button>
-        {errors.root?.server && (
-          <p role="alert" className={FORM_ERROR}>
-            {errors.root.server.message}
-            {selectionChanged && (
-              <>
-                {" "}
-                <Link href={recovery.href} className="link-underline text-gold font-medium">
-                  {recovery.label}
-                </Link>
-              </>
-            )}
-          </p>
-        )}
-      </div>
-    </form>
+    </div>
   );
 }
 
@@ -447,44 +580,45 @@ function CartCheckout({ methods, onPlaced }: CheckoutModeProps) {
   }
 
   return (
-    <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
-      <CheckoutForm
-        methods={methods}
-        blocker={checkoutBlocker(cart)}
-        submitOrder={placeOrder}
-        recovery={{ href: "/gio-hang", label: "Xem lại giỏ hàng", reload: refreshCart }}
-        onPlaced={(order, addressToSave) => {
-          clearCart();
-          onPlaced(order, addressToSave);
-        }}
-      />
-      <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-        <CartSummary
-          cart={cart}
-          listSubtotal={listSubtotal(cart.items)}
-          action={
-            <ul className="border-gold/20 divide-gold/10 flex flex-col divide-y border-t text-sm">
-              {cart.items.map((item) => (
-                <li key={item.skuId} className="flex flex-col gap-1.5 py-3.5 last:pb-0">
-                  <span className="text-ivory line-clamp-2 leading-6" title={item.bookTitle}>
-                    {item.bookTitle}
+    <CheckoutForm
+      methods={methods}
+      blocker={checkoutBlocker(cart)}
+      submitOrder={placeOrder}
+      recovery={{ href: "/gio-hang", label: "Xem lại giỏ hàng", reload: refreshCart }}
+      onPlaced={(order, addressToSave) => {
+        clearCart();
+        onPlaced(order, addressToSave);
+      }}
+      summary={{
+        source: { source: "cart" },
+        signature: cart.items.map((item) => `${item.skuId}x${item.quantity}`).join(","),
+        totalQuantity: cart.totalQuantity,
+        subtotal: cart.subtotal,
+        listSubtotal: listSubtotal(cart.items),
+        lines: (
+          <ul className="border-gold/20 divide-gold/10 flex flex-col divide-y border-t text-sm">
+            {cart.items.map((item) => (
+              <li key={item.skuId} className="flex flex-col gap-1.5 py-3.5 last:pb-0">
+                <span className="text-ivory line-clamp-2 leading-6" title={item.bookTitle}>
+                  {item.bookTitle}
+                </span>
+                <span className="flex items-baseline justify-between gap-4">
+                  <span className="text-mist">
+                    SL: {item.quantity} × {formatPrice(item.unitPrice)}
                   </span>
-                  <span className="flex items-baseline justify-between gap-4">
-                    <span className="text-mist">
-                      SL: {item.quantity} × {formatPrice(item.unitPrice)}
-                    </span>
-                    <span className="text-sand shrink-0 font-semibold">{formatPrice(item.lineTotal)}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          }
-        />
-        <Link href="/gio-hang" className="link-underline text-gold w-fit text-sm">
-          Sửa giỏ hàng
-        </Link>
-      </div>
-    </div>
+                  <span className="text-sand shrink-0 font-semibold">{formatPrice(item.lineTotal)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ),
+        backLink: (
+          <Link href="/gio-hang" className="link-underline text-gold w-fit text-sm">
+            Sửa giỏ hàng
+          </Link>
+        ),
+      }}
+    />
   );
 }
 
@@ -537,46 +671,47 @@ function BuyNowCheckout({ selection, methods, onPlaced }: CheckoutModeProps & { 
 
   const details = [line.editionName, coverTypeLabel(line.coverType)].filter(Boolean).join(" · ");
   return (
-    <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
-      <CheckoutForm
-        methods={methods}
-        blocker={line.blocker}
-        submitOrder={(order, idempotencyKey) => placeBuyNowOrder(selection, order, idempotencyKey)}
-        recovery={{
-          href: bookHref,
-          label: "Quay lại trang sách",
-          reload: () => void book.refetch(),
-          messages: BUY_NOW_MESSAGES,
-        }}
-        onPlaced={onPlaced}
-      />
-      <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-        <CartSummary
-          cart={{ subtotal: line.lineTotal, totalQuantity: line.quantity }}
-          listSubtotal={line.listPrice * line.quantity}
-          action={
-            <div className="border-gold/20 flex gap-4 border-t pt-4 text-sm">
-              <CartLineCover title={line.bookTitle} coverImageUrl={line.coverImageUrl} skuId={line.skuId} />
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <span className="text-ivory line-clamp-2 leading-6" title={line.bookTitle}>
-                  {line.bookTitle}
+    <CheckoutForm
+      methods={methods}
+      blocker={line.blocker}
+      submitOrder={(order, idempotencyKey) => placeBuyNowOrder(selection, order, idempotencyKey)}
+      recovery={{
+        href: bookHref,
+        label: "Quay lại trang sách",
+        reload: () => void book.refetch(),
+        messages: BUY_NOW_MESSAGES,
+      }}
+      onPlaced={onPlaced}
+      summary={{
+        source: { source: "buy_now", skuId: line.skuId, quantity: line.quantity },
+        signature: `${line.skuId}x${line.quantity}`,
+        totalQuantity: line.quantity,
+        subtotal: line.lineTotal,
+        listSubtotal: line.listPrice * line.quantity,
+        lines: (
+          <div className="border-gold/20 flex gap-4 border-t pt-4 text-sm">
+            <CartLineCover title={line.bookTitle} coverImageUrl={line.coverImageUrl} skuId={line.skuId} />
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <span className="text-ivory line-clamp-2 leading-6" title={line.bookTitle}>
+                {line.bookTitle}
+              </span>
+              {details && <span className="text-mist">{details}</span>}
+              <span className="flex items-baseline justify-between gap-4">
+                <span className="text-mist">
+                  SL: {line.quantity} × {formatPrice(line.unitPrice)}
                 </span>
-                {details && <span className="text-mist">{details}</span>}
-                <span className="flex items-baseline justify-between gap-4">
-                  <span className="text-mist">
-                    SL: {line.quantity} × {formatPrice(line.unitPrice)}
-                  </span>
-                  <span className="text-sand shrink-0 font-semibold">{formatPrice(line.lineTotal)}</span>
-                </span>
-              </div>
+                <span className="text-sand shrink-0 font-semibold">{formatPrice(line.lineTotal)}</span>
+              </span>
             </div>
-          }
-        />
-        <Link href={bookHref} className="link-underline text-gold w-fit text-sm">
-          Quay lại trang sách
-        </Link>
-      </div>
-    </div>
+          </div>
+        ),
+        backLink: (
+          <Link href={bookHref} className="link-underline text-gold w-fit text-sm">
+            Quay lại trang sách
+          </Link>
+        ),
+      }}
+    />
   );
 }
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appliedPromotionSchema } from "./checkout-preview";
 
 // OpenAPI sinh số thành `number | string` và enum thành `number`, lệch với JSON backend thật trả (số nguyên, enum
 // snake_case). Parse theo docs/api_reference.md, mục Giỏ hàng và Đặt hàng.
@@ -32,7 +33,8 @@ export const EMPTY_CART: Cart = { items: [], totalQuantity: 0, subtotal: 0 };
 
 export const shippingQuoteSchema = z.object({
   shippingFee: z.number(),
-  freeShippingThreshold: z.number(),
+  /** `null`: shop không có miễn ship theo ngưỡng. */
+  freeShippingThreshold: z.number().nullable(),
 });
 export type ShippingQuote = z.infer<typeof shippingQuoteSchema>;
 
@@ -59,6 +61,8 @@ export const orderItemSchema = z.object({
   unitPrice: z.number(),
   quantity: z.number(),
   lineTotal: z.number(),
+  /** Giảm giá khuyến mãi đã chia về dòng; đơn cũ không có thì 0. */
+  discountAmount: z.number().default(0),
 });
 export type OrderItem = z.infer<typeof orderItemSchema>;
 
@@ -83,7 +87,10 @@ export const orderSchema = z.object({
   subtotal: z.number(),
   discount: z.number(),
   shippingFee: z.number(),
+  /** Giảm phí ship từ khuyến mãi; khách thực trả `shippingFee - shippingDiscount`. */
+  shippingDiscount: z.number().default(0),
   total: z.number(),
+  appliedPromotions: z.array(appliedPromotionSchema).default([]),
   invoiceRequired: z.boolean(),
   invoiceInfo: invoiceInfoSchema.nullable(),
   note: z.string().nullable(),
