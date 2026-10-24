@@ -60,5 +60,5 @@ Không thêm biến mới. Dùng `API_BASE_URL` (và `PROXY_SECRET` trên Vercel
 - Chưa đồng bộ đăng xuất giữa các tab: tab khác vẫn hiện tên đến khi tải lại trang hoặc gặp 401.
 - Tài khoản nhân viên chưa bật 2FA (`requiresTwoFactorSetup`) vẫn đăng nhập được ở storefront; màn bật 2FA ở app
   admin (`/xac-thuc-hai-lop`).
-- Chưa có trang đăng ký, quên mật khẩu, hồ sơ; chưa có luồng đăng nhập hộ `/impersonate` (fast-login-super-admin.md).
+- Chưa có trang đăng ký, quên mật khẩu, hồ sơ; đăng nhập hộ xem `admin-users.md`.
 - Trang `/dang-nhap` chưa tự chuyển đi khi khách đã đăng nhập.

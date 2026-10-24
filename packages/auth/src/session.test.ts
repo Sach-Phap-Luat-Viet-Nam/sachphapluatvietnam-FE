@@ -36,6 +36,7 @@ beforeEach(async () => {
   // Phiên là state cấp module nên nạp lại module cho từng test.
   vi.resetModules();
   localStorage.clear();
+  sessionStorage.clear();
   session = await import("./session");
 });
 afterEach(() => server.resetHandlers());
@@ -144,5 +145,110 @@ describe("logout", () => {
 
     await expect(session.logout()).rejects.toMatchObject({ code: "INTERNAL_ERROR" });
     expect(session.getSessionState().status).toBe("authenticated");
+  });
+});
+
+describe("đăng nhập hộ", () => {
+  const IMPERSONATION_KEY = "slvn:impersonation";
+
+  function impersonationResponse(accessToken: string, expiresIn = 900) {
+    return { ...authResponse(accessToken), expiresIn, loginVia: "admin", impersonatorId: 1 };
+  }
+
+  afterEach(() => vi.useRealTimers());
+
+  it("lưu phiên theo tab, không ghi cờ đăng nhập dùng chung", () => {
+    session.startImpersonation(impersonationResponse("imp"), 1_000);
+
+    expect(session.getSessionState()).toMatchObject({
+      status: "authenticated",
+      user: { id: 12 },
+      impersonation: { impersonatorId: 1, expiresAt: 901_000 },
+    });
+    expect(session.isImpersonating()).toBe(true);
+    expect(sessionStorage.getItem(IMPERSONATION_KEY)).toContain("imp");
+    expect(localStorage.getItem(HINT_KEY)).toBeNull();
+  });
+
+  it("không nhận response tự đăng nhập", () => {
+    expect(() => session.startImpersonation(authResponse("t1"))).toThrow();
+    expect(session.getSessionState().status).toBe("unknown");
+  });
+
+  it("gặp 401 thì kết thúc phiên, không gọi refresh (cookie là của admin)", async () => {
+    const refresh = vi.fn(() => HttpResponse.json(authResponse("admin-own")));
+    server.use(
+      http.post(`${ORIGIN}/api/v1/auth/refresh`, refresh),
+      http.get(`${ORIGIN}/api/v1/me`, ({ request }) =>
+        request.headers.get("Authorization") === "Bearer imp" ? problem(401, "UNAUTHORIZED") : HttpResponse.json({}),
+      ),
+    );
+    session.startImpersonation(impersonationResponse("imp"));
+
+    const { response } = await session.browserApi().GET("/api/v1/me");
+
+    expect(response.status).toBe(401);
+    expect(refresh).not.toHaveBeenCalled();
+    expect(session.getSessionState()).toEqual({ status: "anonymous", impersonationEnded: "expired" });
+    expect(sessionStorage.getItem(IMPERSONATION_KEY)).toBeNull();
+  });
+
+  it("đăng xuất chỉ thoát đăng nhập hộ, không gọi /auth/logout", async () => {
+    localStorage.setItem(HINT_KEY, "1");
+    const logout = vi.fn(() => new HttpResponse(null, { status: 204 }));
+    server.use(http.post(`${ORIGIN}/api/v1/auth/logout`, logout));
+    session.startImpersonation(impersonationResponse("imp"));
+
+    await session.logout();
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(session.getSessionState()).toEqual({ status: "anonymous", impersonationEnded: "exited" });
+    expect(localStorage.getItem(HINT_KEY)).toBe("1");
+  });
+
+  it("tải lại trang thì khôi phục từ sessionStorage, không refresh", () => {
+    const refresh = vi.fn(() => HttpResponse.json(authResponse("admin-own")));
+    server.use(http.post(`${ORIGIN}/api/v1/auth/refresh`, refresh));
+    localStorage.setItem(HINT_KEY, "1");
+    sessionStorage.setItem(
+      IMPERSONATION_KEY,
+      JSON.stringify({
+        accessToken: "imp",
+        expiresAt: Date.now() + 60_000,
+        impersonatorId: 1,
+        user: authResponse("imp").user,
+      }),
+    );
+
+    session.restoreSession();
+
+    expect(session.isImpersonating()).toBe(true);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("phiên đã quá hạn khi tải lại thì báo hết hạn", () => {
+    sessionStorage.setItem(
+      IMPERSONATION_KEY,
+      JSON.stringify({
+        accessToken: "imp",
+        expiresAt: Date.now() - 1,
+        impersonatorId: 1,
+        user: authResponse("x").user,
+      }),
+    );
+
+    session.restoreSession();
+
+    expect(session.getSessionState()).toEqual({ status: "anonymous", impersonationEnded: "expired" });
+  });
+
+  it("tự kết thúc khi hết expiresIn", () => {
+    vi.useFakeTimers({ now: 0 });
+    session.startImpersonation(impersonationResponse("imp", 900), 0);
+
+    vi.advanceTimersByTime(899_000);
+    expect(session.isImpersonating()).toBe(true);
+    vi.advanceTimersByTime(1_000);
+    expect(session.getSessionState()).toEqual({ status: "anonymous", impersonationEnded: "expired" });
   });
 });

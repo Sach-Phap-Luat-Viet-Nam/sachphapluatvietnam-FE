@@ -82,7 +82,12 @@ describe("LoginForm", () => {
     await submitCredentials(user);
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/sach?page=2"));
-    expect(body).toEqual({ email: "khach@example.com", password: "mat-khau-dung", rememberMe: true });
+    expect(body).toEqual({
+      email: "khach@example.com",
+      password: "mat-khau-dung",
+      rememberMe: true,
+      portal: "storefront",
+    });
     expect(getSessionState()).toMatchObject({ status: "authenticated", user: { fullName: "Nguyễn Văn A" } });
     expect(screen.getByRole("button", { name: "Đang kiểm tra…" })).toBeDisabled();
   });

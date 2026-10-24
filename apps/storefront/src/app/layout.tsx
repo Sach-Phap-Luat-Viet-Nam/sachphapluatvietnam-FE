@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ZaloContact } from "@/components/ZaloContact";
+import { ImpersonationBanner } from "@/features/impersonation/ImpersonationBanner";
 import { PromoPopup } from "@/features/popup/PromoPopup";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Đến nội dung chính
         </a>
         <QueryProvider>
+          <ImpersonationBanner />
           <Header />
           {children}
           <Footer />

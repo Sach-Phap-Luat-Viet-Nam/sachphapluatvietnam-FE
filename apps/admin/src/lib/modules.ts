@@ -1,6 +1,6 @@
 import type { StaffRole } from "./roles";
 
-export type AdminModuleId = "overview" | "catalog" | "content" | "inventory" | "orders" | "users";
+export type AdminModuleId = "overview" | "catalog" | "content" | "inventory" | "orders" | "users" | "customers";
 
 export interface AdminModule {
   id: AdminModuleId;
@@ -60,9 +60,17 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     id: "users",
     href: "/nhan-vien",
     label: "Nhân viên",
-    description: "Tài khoản nhân viên, phân quyền và đăng nhập hộ.",
+    description: "Tài khoản nhân viên, phân quyền, khóa tài khoản và đăng nhập hộ.",
     roles: ["super_admin"],
-    ready: false,
+    ready: true,
+  },
+  {
+    id: "customers",
+    href: "/khach-hang",
+    label: "Khách hàng",
+    description: "Tra cứu khách hàng, sổ địa chỉ, khóa tài khoản và đăng nhập hộ để hỗ trợ.",
+    roles: ["super_admin"],
+    ready: true,
   },
 ];
 

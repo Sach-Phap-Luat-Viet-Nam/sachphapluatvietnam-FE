@@ -17,6 +17,9 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   EDITION_NOT_FOUND: "Không tìm thấy ấn bản, có thể trang đã cũ. Anh/chị tải lại trang.",
   UPLOAD_NOT_CONFIGURED: "Máy chủ chưa cấu hình nơi lưu ảnh (Cloudinary). Anh/chị dán link ảnh có sẵn.",
   FORBIDDEN: "Tài khoản của anh/chị không có quyền thực hiện thao tác này.",
+  EMAIL_TAKEN: "Email này đã có tài khoản.",
+  CANNOT_REMOVE_OWN_ADMIN: "Anh/chị không tự gỡ được quyền Super Admin của chính mình.",
+  ROLE_INVALID: "Vai trò không hợp lệ.",
 };
 
 const NETWORK_ERROR = "Không kết nối được máy chủ. Anh/chị kiểm tra mạng rồi thử lại.";
@@ -46,6 +49,7 @@ const FIELD_BY_CODE: Record<string, string> = {
   SKU_COVER_DUPLICATE: "coverType",
   PRICE_INVALID: "salePrice",
   CATEGORY_PARENT_INVALID: "parentId",
+  EMAIL_TAKEN: "email",
 };
 
 /**

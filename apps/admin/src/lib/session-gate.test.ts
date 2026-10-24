@@ -45,4 +45,20 @@ describe("gateDecision", () => {
   it("cho nhân viên đã bật 2FA vào trang quản trị", () => {
     expect(gateDecision(signedIn(), "admin")).toMatchObject({ kind: "allow", user: { id: 1 } });
   });
+
+  it("phiên đăng nhập hộ nhân viên chưa bật 2FA vẫn vào trang quản trị", () => {
+    const impersonated = {
+      ...signedIn({ roles: ["warehouse_keeper"], requiresTwoFactorSetup: true }),
+      impersonation: { impersonatorId: 1, expiresAt: 900_000 },
+    };
+    expect(gateDecision(impersonated, "admin")).toMatchObject({ kind: "allow" });
+    expect(gateDecision(impersonated, "two-factor-setup")).toEqual({ kind: "redirect", to: "/" });
+  });
+
+  it("báo phiên đăng nhập hộ đã kết thúc thay vì về trang đăng nhập", () => {
+    expect(gateDecision({ status: "anonymous", impersonationEnded: "expired" }, "admin")).toEqual({
+      kind: "impersonation-ended",
+      reason: "expired",
+    });
+  });
 });

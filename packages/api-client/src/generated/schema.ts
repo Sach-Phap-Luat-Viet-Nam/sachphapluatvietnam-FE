@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/admin/users": {
+    "/api/v1/admin/customers": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,6 +14,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    Q?: string;
                     Page?: number | string;
                     Limit?: number | string;
                     Skip?: number | string;
@@ -30,9 +31,90 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResponseOfUserResponse"];
-                        "application/json": components["schemas"]["PagedResponseOfUserResponse"];
-                        "text/json": components["schemas"]["PagedResponseOfUserResponse"];
+                        "text/plain": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminCustomerResponse"];
+                        "application/json": components["schemas"]["AdminCustomerResponse"];
+                        "text/json": components["schemas"]["AdminCustomerResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Q?: string;
+                    Page?: number | string;
+                    Limit?: number | string;
+                    Skip?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
                     };
                 };
             };
@@ -59,9 +141,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserResponse"];
-                        "application/json": components["schemas"]["UserResponse"];
-                        "text/json": components["schemas"]["UserResponse"];
+                        "text/plain": components["schemas"]["AdminUserResponse"];
+                        "application/json": components["schemas"]["AdminUserResponse"];
+                        "text/json": components["schemas"]["AdminUserResponse"];
                     };
                 };
             };
@@ -103,14 +185,211 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserResponse"];
-                        "application/json": components["schemas"]["UserResponse"];
-                        "text/json": components["schemas"]["UserResponse"];
+                        "text/plain": components["schemas"]["AdminUserResponse"];
+                        "application/json": components["schemas"]["AdminUserResponse"];
+                        "text/json": components["schemas"]["AdminUserResponse"];
                     };
                 };
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LogoutUserResponse"];
+                        "application/json": components["schemas"]["LogoutUserResponse"];
+                        "text/json": components["schemas"]["LogoutUserResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserResponse"];
+                        "application/json": components["schemas"]["AdminUserResponse"];
+                        "text/json": components["schemas"]["AdminUserResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminUserResponse"];
+                        "application/json": components["schemas"]["AdminUserResponse"];
+                        "text/json": components["schemas"]["AdminUserResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/password/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordRequest"];
+                    "text/json": components["schemas"]["ResetPasswordRequest"];
+                    "application/*+json": components["schemas"]["ResetPasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/impersonate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuthResponse"];
+                        "application/json": components["schemas"]["AuthResponse"];
+                        "text/json": components["schemas"]["AuthResponse"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -457,9 +736,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserResponse"];
-                        "application/json": components["schemas"]["UserResponse"];
-                        "text/json": components["schemas"]["UserResponse"];
+                        "text/plain": components["schemas"]["MeResponse"];
+                        "application/json": components["schemas"]["MeResponse"];
+                        "text/json": components["schemas"]["MeResponse"];
                     };
                 };
             };
@@ -490,13 +769,240 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["UserResponse"];
-                        "application/json": components["schemas"]["UserResponse"];
-                        "text/json": components["schemas"]["UserResponse"];
+                        "text/plain": components["schemas"]["MeResponse"];
+                        "application/json": components["schemas"]["MeResponse"];
+                        "text/json": components["schemas"]["MeResponse"];
                     };
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/v1/me/addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AddressResponse"][];
+                        "application/json": components["schemas"]["AddressResponse"][];
+                        "text/json": components["schemas"]["AddressResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertAddressRequest"];
+                    "text/json": components["schemas"]["UpsertAddressRequest"];
+                    "application/*+json": components["schemas"]["UpsertAddressRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AddressResponse"][];
+                        "application/json": components["schemas"]["AddressResponse"][];
+                        "text/json": components["schemas"]["AddressResponse"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/addresses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertAddressRequest"];
+                    "text/json": components["schemas"]["UpsertAddressRequest"];
+                    "application/*+json": components["schemas"]["UpsertAddressRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AddressResponse"][];
+                        "application/json": components["schemas"]["AddressResponse"][];
+                        "text/json": components["schemas"]["AddressResponse"][];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/addresses/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AddressResponse"][];
+                        "application/json": components["schemas"]["AddressResponse"][];
+                        "text/json": components["schemas"]["AddressResponse"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/invoice-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertInvoiceInfoRequest"];
+                    "text/json": components["schemas"]["UpsertInvoiceInfoRequest"];
+                    "application/*+json": components["schemas"]["UpsertInvoiceInfoRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["InvoiceInfoResponse"];
+                        "application/json": components["schemas"]["InvoiceInfoResponse"];
+                        "text/json": components["schemas"]["InvoiceInfoResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/cart": {
@@ -1021,6 +1527,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/skus/{skuId}/price-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    skuId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PriceScheduleResponse"][];
+                        "application/json": components["schemas"]["PriceScheduleResponse"][];
+                        "text/json": components["schemas"]["PriceScheduleResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    skuId: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPriceScheduleRequest"];
+                    "text/json": components["schemas"]["UpsertPriceScheduleRequest"];
+                    "application/*+json": components["schemas"]["UpsertPriceScheduleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PriceScheduleResponse"];
+                        "application/json": components["schemas"]["PriceScheduleResponse"];
+                        "text/json": components["schemas"]["PriceScheduleResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/price-schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPriceScheduleRequest"];
+                    "text/json": components["schemas"]["UpsertPriceScheduleRequest"];
+                    "application/*+json": components["schemas"]["UpsertPriceScheduleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PriceScheduleResponse"];
+                        "application/json": components["schemas"]["PriceScheduleResponse"];
+                        "text/json": components["schemas"]["PriceScheduleResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/categories": {
         parameters: {
             query?: never;
@@ -1415,6 +2053,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/uploads/cover-signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UploadSignatureResponse"];
+                        "application/json": components["schemas"]["UploadSignatureResponse"];
+                        "text/json": components["schemas"]["UploadSignatureResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/books": {
         parameters: {
             query?: never;
@@ -1433,6 +2108,7 @@ export interface paths {
                     MinPrice?: number | string;
                     MaxPrice?: number | string;
                     LegalDocument?: string;
+                    OnSale?: boolean;
                     Sort?: string;
                     Page?: number | string;
                     Limit?: number | string;
@@ -1535,6 +2211,235 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/popups/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PopupResponse"];
+                        "application/json": components["schemas"]["PopupResponse"];
+                        "text/json": components["schemas"]["PopupResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/popups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number | string;
+                    Limit?: number | string;
+                    Skip?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PagedResponseOfAdminPopupResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfAdminPopupResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfAdminPopupResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPopupRequest"];
+                    "text/json": components["schemas"]["UpsertPopupRequest"];
+                    "application/*+json": components["schemas"]["UpsertPopupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPopupResponse"];
+                        "application/json": components["schemas"]["AdminPopupResponse"];
+                        "text/json": components["schemas"]["AdminPopupResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/popups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPopupResponse"];
+                        "application/json": components["schemas"]["AdminPopupResponse"];
+                        "text/json": components["schemas"]["AdminPopupResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPopupRequest"];
+                    "text/json": components["schemas"]["UpsertPopupRequest"];
+                    "application/*+json": components["schemas"]["UpsertPopupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPopupResponse"];
+                        "application/json": components["schemas"]["AdminPopupResponse"];
+                        "text/json": components["schemas"]["AdminPopupResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/uploads/popup-signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UploadSignatureResponse"];
+                        "application/json": components["schemas"]["UploadSignatureResponse"];
+                        "text/json": components["schemas"]["UploadSignatureResponse"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -2281,6 +3186,18 @@ export interface components {
             /** Format: int32 */
             quantity: number | string;
         };
+        AddressResponse: {
+            /** Format: int64 */
+            id: number | string;
+            recipientName: string;
+            phone: string;
+            province: string;
+            ward: string;
+            streetAddress: string;
+            isDefault: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         AdminBookResponse: {
             /** Format: int64 */
             id: number | string;
@@ -2312,6 +3229,14 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        AdminCustomerResponse: {
+            account: components["schemas"]["AdminUserResponse"];
+            /** Format: date */
+            birthDate: null | string;
+            occupation: null | components["schemas"]["Occupation"];
+            addresses: components["schemas"]["AddressResponse"][];
+            invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
+        };
         AdminOrderResponse: {
             order: components["schemas"]["OrderResponse"];
             /** Format: int64 */
@@ -2319,6 +3244,41 @@ export interface components {
             nextStatuses: components["schemas"]["OrderStatus"][];
             /** Format: double */
             costOfGoods: null | number | string;
+        };
+        AdminPopupResponse: {
+            /** Format: int64 */
+            id: number | string;
+            title: string;
+            imageUrl: string;
+            linkUrl: null | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            priority: number | string;
+            displayFrequency: components["schemas"]["PopupDisplayFrequency"];
+            status: components["schemas"]["PopupStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminUserResponse: {
+            /** Format: int64 */
+            id: number | string;
+            email: string;
+            fullName: string;
+            phoneNumber: null | string;
+            roles: string[];
+            twoFactorEnabled: boolean;
+            requiresTwoFactorSetup: boolean;
+            isLocked: boolean;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: date-time */
+            createdAt: string;
         };
         AuthorResponse: {
             /** Format: int64 */
@@ -2335,6 +3295,9 @@ export interface components {
             /** Format: int32 */
             expiresIn: number | string;
             user: components["schemas"]["UserResponse"];
+            loginVia: string;
+            /** Format: int64 */
+            impersonatorId: null | number | string;
         };
         BatchResponse: {
             /** Format: int64 */
@@ -2383,6 +3346,8 @@ export interface components {
             listPrice: null | number | string;
             /** Format: int32 */
             discountPercent: null | number | string;
+            /** Format: date-time */
+            saleEndsAt: null | string;
             inStock: boolean;
         };
         BookType: number;
@@ -2507,6 +3472,14 @@ export interface components {
             address: string;
             email: string;
         };
+        InvoiceInfoResponse: {
+            companyName: string;
+            taxCode: string;
+            address: string;
+            email: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         IssueStockRequest: {
             /** Format: int64 */
             skuId: number | string;
@@ -2528,16 +3501,23 @@ export interface components {
             effectiveDate: null | string;
         };
         LegalDocumentType: number;
+        /** @default 0 */
+        LoginPortal: number;
         LoginRequest: {
             email: string;
             password: string;
             /** @default false */
             rememberMe: boolean;
+            portal?: components["schemas"]["LoginPortal"];
         };
         LoginResponse: {
             requiresTwoFactor: boolean;
             twoFactorToken: null | string;
             session: null | components["schemas"]["AuthResponse"];
+        };
+        LogoutUserResponse: {
+            /** Format: int32 */
+            revokedSessions: number | string;
         };
         LookupOrderRequest: {
             orderCode: string;
@@ -2554,6 +3534,21 @@ export interface components {
             reserved: number | string;
             /** Format: int32 */
             lowStockThreshold: number | string;
+        };
+        MeResponse: {
+            /** Format: int64 */
+            id: number | string;
+            email: string;
+            fullName: string;
+            phoneNumber: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            occupation: null | components["schemas"]["Occupation"];
+            roles: string[];
+            twoFactorEnabled: boolean;
+            requiresTwoFactorSetup: boolean;
+            defaultAddress: null | components["schemas"]["AddressResponse"];
+            invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
         };
         NamedReference: {
             /** Format: int64 */
@@ -2631,6 +3626,14 @@ export interface components {
             items: components["schemas"]["AdminBookSummaryResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
+        PagedResponseOfAdminPopupResponse: {
+            items: components["schemas"]["AdminPopupResponse"][];
+            meta: components["schemas"]["PageMeta"];
+        };
+        PagedResponseOfAdminUserResponse: {
+            items: components["schemas"]["AdminUserResponse"][];
+            meta: components["schemas"]["PageMeta"];
+        };
         PagedResponseOfAuthorResponse: {
             items: components["schemas"]["AuthorResponse"][];
             meta: components["schemas"]["PageMeta"];
@@ -2655,10 +3658,6 @@ export interface components {
             items: components["schemas"]["ReceiptResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
-        PagedResponseOfUserResponse: {
-            items: components["schemas"]["UserResponse"][];
-            meta: components["schemas"]["PageMeta"];
-        };
         PageMeta: {
             /** Format: int32 */
             page: number | string;
@@ -2669,6 +3668,39 @@ export interface components {
         };
         PaymentMethod: number;
         PaymentStatus: number;
+        PopupDisplayFrequency: number;
+        PopupResponse: {
+            /** Format: int64 */
+            id: number | string;
+            title: string;
+            imageUrl: string;
+            linkUrl: null | string;
+            displayFrequency: components["schemas"]["PopupDisplayFrequency"];
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PopupStatus: number;
+        PriceScheduleResponse: {
+            /** Format: int64 */
+            id: number | string;
+            /** Format: int64 */
+            skuId: number | string;
+            /** Format: double */
+            salePrice: number | string;
+            /** Format: int32 */
+            discountPercent: number | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            note: null | string;
+            status: components["schemas"]["PriceScheduleStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PriceScheduleStatus: number;
         ReceiptLineRequest: {
             /** Format: int64 */
             skuId: number | string;
@@ -2724,6 +3756,9 @@ export interface components {
         RejectReceiptRequest: {
             reason: string;
         };
+        ResetPasswordRequest: {
+            newPassword: string;
+        };
         SetRolesRequest: {
             roles: string[];
         };
@@ -2755,8 +3790,12 @@ export interface components {
             listPrice: number | string;
             /** Format: double */
             salePrice: number | string;
+            /** Format: double */
+            regularSalePrice: number | string;
             /** Format: int32 */
             discountPercent: number | string;
+            /** Format: date-time */
+            saleEndsAt: null | string;
             allowPreorder: boolean;
             inStock: boolean;
         };
@@ -2821,6 +3860,23 @@ export interface components {
             salePrice: number | string;
             allowPreorder: boolean;
         };
+        UploadSignatureResponse: {
+            uploadUrl: string;
+            apiKey: string;
+            /** Format: int64 */
+            timestamp: number | string;
+            folder: string;
+            allowedFormats: string;
+            signature: string;
+        };
+        UpsertAddressRequest: {
+            recipientName: string;
+            phone: string;
+            province: string;
+            ward: string;
+            streetAddress: string;
+            isDefault: boolean;
+        };
         UpsertAuthorRequest: {
             name: string;
             slug: string;
@@ -2872,6 +3928,12 @@ export interface components {
             releaseDate: null | string;
             legalDocumentIds: null | (number | string)[];
         };
+        UpsertInvoiceInfoRequest: {
+            companyName: string;
+            taxCode: string;
+            address: string;
+            email: string;
+        };
         UpsertLegalDocumentRequest: {
             docNumber: string;
             docType: components["schemas"]["LegalDocumentType"];
@@ -2880,6 +3942,28 @@ export interface components {
             issuedDate: null | string;
             /** Format: date */
             effectiveDate: null | string;
+        };
+        UpsertPopupRequest: {
+            title: string;
+            imageUrl: string;
+            linkUrl: null | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            priority: number | string;
+            displayFrequency: components["schemas"]["PopupDisplayFrequency"];
+        };
+        UpsertPriceScheduleRequest: {
+            /** Format: double */
+            salePrice: number | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            note: null | string;
         };
         UserResponse: {
             /** Format: int64 */

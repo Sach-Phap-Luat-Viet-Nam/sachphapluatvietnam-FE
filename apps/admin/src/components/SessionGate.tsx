@@ -9,6 +9,7 @@ import type { SessionUser } from "@slvn/auth";
 import { loginPath } from "@/lib/routes";
 import { gateDecision } from "@/lib/session-gate";
 import type { GateRequirement } from "@/lib/session-gate";
+import { ImpersonationEnded } from "./ImpersonationEnded";
 import { LogoutButton } from "./LogoutButton";
 
 export interface SessionGateProps {
@@ -39,6 +40,9 @@ export function SessionGate({ requirement, children }: SessionGateProps) {
 
   if (decision.kind === "allow") {
     return children(decision.user);
+  }
+  if (decision.kind === "impersonation-ended") {
+    return <ImpersonationEnded reason={decision.reason} />;
   }
   if (decision.kind === "forbidden") {
     return <Forbidden email={decision.user.email} />;

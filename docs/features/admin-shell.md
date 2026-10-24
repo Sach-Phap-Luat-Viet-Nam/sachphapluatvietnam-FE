@@ -30,14 +30,15 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   bằng phiên mới đã qua 2FA và chuyển về Tổng quan.
 - **Menu theo vai trò** (`lib/modules.ts`), đúng bảng quyền trong `docs/api_reference.md`:
 
-  | Phần      | Vai trò                                                          | Trạng thái                      |
-  | --------- | ---------------------------------------------------------------- | ------------------------------- |
-  | Tổng quan | Mọi nhân viên                                                    | Đã có                           |
-  | Sách      | `super_admin`, `product_manager`                                 | Đã có (`admin-catalog.md`)      |
-  | Nội dung  | `super_admin`, `marketing`                                       | Đã có: popup (`admin-popup.md`) |
-  | Kho       | `super_admin`, `warehouse_keeper`                                | Sắp có                          |
-  | Đơn hàng  | `super_admin`, `order_manager`, `customer_service`, `accountant` | Sắp có                          |
-  | Nhân viên | `super_admin`                                                    | Sắp có                          |
+  | Phần       | Vai trò                                                          | Trạng thái                      |
+  | ---------- | ---------------------------------------------------------------- | ------------------------------- |
+  | Tổng quan  | Mọi nhân viên                                                    | Đã có                           |
+  | Sách       | `super_admin`, `product_manager`                                 | Đã có (`admin-catalog.md`)      |
+  | Nội dung   | `super_admin`, `marketing`                                       | Đã có: popup (`admin-popup.md`) |
+  | Kho        | `super_admin`, `warehouse_keeper`                                | Sắp có                          |
+  | Đơn hàng   | `super_admin`, `order_manager`, `customer_service`, `accountant` | Sắp có                          |
+  | Nhân viên  | `super_admin`                                                    | Đã có (`admin-users.md`)        |
+  | Khách hàng | `super_admin`                                                    | Đã có (`admin-users.md`)        |
 
   Phần chưa làm hiện nhãn "Sắp có" và không có link, tránh dẫn tới trang 404. Làm xong màn nào thì đổi `ready: true`.
   Gõ thẳng URL của phần không được giao thì `components/ModuleGate.tsx` (đặt ở `layout.tsx` của từng phần) hiện "Không
@@ -70,7 +71,6 @@ Giống storefront: `API_BASE_URL` (bắt buộc), `PROXY_SECRET` (trên Vercel)
   API (`apps/admin/e2e/admin.spec.ts`).
 - Ở **local**, storefront (3000) và admin (3001) dùng chung cookie của `localhost`: đăng nhập app này sẽ thay phiên của
   app kia. Trên Vercel hai domain tách riêng nên không bị.
-- Chưa có màn Kho, Đơn hàng, Nhân viên (kèm nút Đăng nhập hộ, `fast-login-super-admin.md`).
-- Chưa có trang `/impersonate` cho phiên đăng nhập hộ; `@slvn/auth` chưa đọc `loginVia`, `impersonatorId`.
+- Chưa có màn Kho, Đơn hàng. Nhân viên, Khách hàng và đăng nhập hộ: `admin-users.md`.
 - Chưa có màn đổi mật khẩu (`/auth/password/change`); nhân viên mới dùng mật khẩu tạm do Super Admin đặt.
 - Chưa đồng bộ đăng xuất giữa các tab.

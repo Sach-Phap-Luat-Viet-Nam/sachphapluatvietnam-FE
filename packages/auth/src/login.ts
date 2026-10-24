@@ -13,9 +13,19 @@ const loginResponseSchema = z.object({
 /** Kết quả bước nhập mật khẩu: đã có phiên, hoặc cần nhập tiếp mã 6 số. */
 export type LoginResult = { status: "signed-in"; user: SessionUser } | { status: "two-factor"; twoFactorToken: string };
 
+/** App gọi đăng nhập. Backend chỉ cho tài khoản Super Admin đăng nhập ở `admin`. */
+export type LoginPortal = "storefront" | "admin";
+
 /** Đăng nhập bằng email + mật khẩu. Tài khoản đã bật 2FA thì trả `twoFactorToken` để gọi `loginWithTwoFactor`. */
-export async function login(values: LoginValues): Promise<LoginResult> {
-  const data = loginResponseSchema.parse(await unwrap(authApi().POST("/api/v1/auth/login", { body: values })));
+export async function login(values: LoginValues, portal: LoginPortal = "storefront"): Promise<LoginResult> {
+  const data = loginResponseSchema.parse(
+    await unwrap(
+      authApi().POST("/api/v1/auth/login", {
+        // @ts-expect-error OpenAPI sinh enum `LoginPortal` thành number; backend nhận chuỗi snake_case.
+        body: { ...values, portal },
+      }),
+    ),
+  );
   if (data.requiresTwoFactor && data.twoFactorToken) {
     return { status: "two-factor", twoFactorToken: data.twoFactorToken };
   }

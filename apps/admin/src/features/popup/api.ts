@@ -11,9 +11,17 @@ export const POPUPS_PAGE_SIZE = 20;
 /** Danh sách popup, sắp theo ưu tiên. */
 export async function fetchPopups(page: number): Promise<PopupPage> {
   const data = await unwrap(
-    browserApi().GET("/api/v1/admin/popups", { params: { query: { page, limit: POPUPS_PAGE_SIZE } } }),
+    browserApi().GET("/api/v1/admin/popups", { params: { query: { Page: page, Limit: POPUPS_PAGE_SIZE } } }),
   );
   return popupPageSchema.parse(data);
+}
+
+function toRequestBody(body: PopupBody) {
+  return {
+    ...body,
+    // OpenAPI sinh enum `DisplayFrequency` thành number; backend nhận chuỗi snake_case.
+    displayFrequency: body.displayFrequency as unknown as number,
+  };
 }
 
 export async function fetchPopup(id: number): Promise<AdminPopup> {
@@ -23,11 +31,14 @@ export async function fetchPopup(id: number): Promise<AdminPopup> {
 }
 
 export async function createPopup(body: PopupBody): Promise<AdminPopup> {
-  return adminPopupSchema.parse(await unwrap(browserApi().POST("/api/v1/admin/popups", { body })));
+  const data = await unwrap(browserApi().POST("/api/v1/admin/popups", { body: toRequestBody(body) }));
+  return adminPopupSchema.parse(data);
 }
 
 export async function updatePopup(id: number, body: PopupBody): Promise<AdminPopup> {
-  const data = await unwrap(browserApi().PUT("/api/v1/admin/popups/{id}", { params: { path: { id } }, body }));
+  const data = await unwrap(
+    browserApi().PUT("/api/v1/admin/popups/{id}", { params: { path: { id } }, body: toRequestBody(body) }),
+  );
   return adminPopupSchema.parse(data);
 }
 
