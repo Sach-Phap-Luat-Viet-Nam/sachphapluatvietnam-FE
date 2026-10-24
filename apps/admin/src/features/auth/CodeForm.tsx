@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import type { ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isApiError } from "@slvn/api-client";
 import { authErrorMessage, fieldErrors, twoFactorSchema } from "@slvn/auth";
 import type { TwoFactorValues } from "@slvn/auth";
 import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
+
+const CODE_LENGTH = 6;
 
 export interface CodeFormProps {
   submitLabel: string;
@@ -17,7 +20,7 @@ export interface CodeFormProps {
   onError?: (error: unknown) => boolean;
 }
 
-/** Ô nhập mã 6 số từ ứng dụng xác thực, dùng cho bước đăng nhập 2FA và màn bật 2FA. */
+/** Ô nhập mã 6 số từ ứng dụng xác thực (tự gửi khi đủ 6 số), dùng cho bước đăng nhập 2FA và màn bật 2FA. */
 export function CodeForm({ submitLabel, pendingLabel, onSubmitCode, onError }: CodeFormProps) {
   // Giữ nút ở trạng thái chờ sau khi thành công (đang chuyển trang) để không gửi lại mã.
   const [done, setDone] = useState(false);
@@ -25,6 +28,7 @@ export function CodeForm({ submitLabel, pendingLabel, onSubmitCode, onError }: C
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TwoFactorValues>({ resolver: zodResolver(twoFactorSchema), defaultValues: { code: "" } });
 
@@ -46,8 +50,23 @@ export function CodeForm({ submitLabel, pendingLabel, onSubmitCode, onError }: C
   };
 
   const busy = isSubmitting || done;
+  const submit = handleSubmit(onSubmit);
+
+  // Chỉ giữ chữ số (dán "123 456" vẫn được); đủ 6 số thì tự gửi, trừ khi đang gửi để không gửi trùng.
+  const codeField = register("code", {
+    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+      const digits = event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH);
+      if (digits !== event.target.value) {
+        setValue("code", digits);
+      }
+      if (digits.length === CODE_LENGTH && !busy) {
+        void submit();
+      }
+    },
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <label htmlFor="otp-code" className={LABEL}>
           Mã xác thực
@@ -57,14 +76,15 @@ export function CodeForm({ submitLabel, pendingLabel, onSubmitCode, onError }: C
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
-          maxLength={6}
+          // Dài hơn 6 để dán được mã có khoảng trắng; ô tự bỏ ký tự không phải số.
+          maxLength={CODE_LENGTH + 2}
           placeholder="123456"
           // Ô nhập mã hiện ra ngay sau thao tác của người dùng nên đưa focus vào luôn.
           autoFocus
-          {...register("code")}
+          {...codeField}
           aria-invalid={Boolean(errors.code)}
           aria-describedby={errors.code ? "otp-code-error" : undefined}
-          className={`${INPUT} tracking-[0.4em]`}
+          className={`${INPUT} text-center text-xl font-semibold tracking-[0.5em] tabular-nums`}
         />
         {errors.code && (
           <p id="otp-code-error" role="alert" className={FIELD_ERROR}>

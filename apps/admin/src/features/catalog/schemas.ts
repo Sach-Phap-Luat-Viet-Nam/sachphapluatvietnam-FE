@@ -108,17 +108,8 @@ export const authorSchema = z.object({
 });
 export type Author = z.infer<typeof authorSchema>;
 
-/** Danh sách phân trang `{ items, meta }`. */
-export function pageSchema<Item extends z.ZodType>(item: Item) {
-  return z.object({
-    items: z.array(item),
-    meta: z.object({ page: z.number(), limit: z.number(), total: z.number() }),
-  });
-}
-export interface Page<Item> {
-  items: Item[];
-  meta: { page: number; limit: number; total: number };
-}
+export { pageSchema } from "@/lib/page-schema";
+export type { Page } from "@/lib/page-schema";
 
 // Form: mọi ô nhập giữ dạng chuỗi như trong `<input>`, chuyển sang kiểu của API ở forms.ts.
 

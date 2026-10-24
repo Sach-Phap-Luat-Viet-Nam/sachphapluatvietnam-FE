@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, ShieldCheck, TriangleAlert } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
 import {
   authErrorMessage,
@@ -21,11 +21,13 @@ import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form
 import { signInDestination } from "./sign-in";
 
 const LOGIN_FIELDS = ["email", "password"] as const;
+const FIELD_ICON = "text-muted pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2";
 const NOT_STAFF = "Tài khoản này không có quyền vào trang quản trị. Anh/chị dùng tài khoản nhân viên.";
 
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState<string | null>(null);
   // Giữ nút ở trạng thái chờ trong lúc chuyển trang để không gửi lại form.
   const [redirecting, setRedirecting] = useState(false);
@@ -86,7 +88,12 @@ export function LoginForm() {
   if (twoFactorToken) {
     return (
       <div className="flex flex-col gap-5">
-        <p className="text-muted leading-7">Anh/chị nhập mã 6 số đang hiện trong ứng dụng xác thực.</p>
+        <p className="bg-primary/5 text-primary flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-medium">
+          <ShieldCheck size={16} aria-hidden="true" /> Bước 2/2 · Xác thực 2 lớp
+        </p>
+        <p className="text-muted leading-7">
+          Anh/chị mở ứng dụng xác thực trên điện thoại và nhập mã 6 số đang hiện. Nhập đủ 6 số là tự gửi.
+        </p>
         <CodeForm
           submitLabel="Xác nhận"
           pendingLabel="Đang xác thực…"
@@ -117,16 +124,19 @@ export function LoginForm() {
         <label htmlFor="email" className={LABEL}>
           Email
         </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="username"
-          placeholder="ten@sachluat.vn"
-          {...register("email")}
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          className={INPUT}
-        />
+        <div className="relative">
+          <Mail size={18} aria-hidden="true" className={FIELD_ICON} />
+          <input
+            id="email"
+            type="email"
+            autoComplete="username"
+            placeholder="ten@sachluat.vn"
+            {...register("email")}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className={`${INPUT} pl-10`}
+          />
+        </div>
         {errors.email && (
           <p id="email-error" role="alert" className={FIELD_ERROR}>
             {errors.email.message}
@@ -138,14 +148,17 @@ export function LoginForm() {
           Mật khẩu
         </label>
         <div className="relative">
+          <LockKeyhole size={18} aria-hidden="true" className={FIELD_ICON} />
           <input
             id="password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             {...register("password")}
+            onKeyDown={(event) => setCapsLock(event.getModifierState("CapsLock"))}
+            onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))}
             aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            className={`${INPUT} pr-13`}
+            aria-describedby={errors.password ? "password-error" : capsLock ? "caps-lock-hint" : undefined}
+            className={`${INPUT} pr-13 pl-10`}
           />
           <button
             type="button"
@@ -157,6 +170,11 @@ export function LoginForm() {
             {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
           </button>
         </div>
+        {capsLock && (
+          <p id="caps-lock-hint" role="status" className="text-warning flex items-center gap-2 text-sm">
+            <TriangleAlert size={16} aria-hidden="true" /> Đang bật Caps Lock
+          </p>
+        )}
         {errors.password && (
           <p id="password-error" role="alert" className={FIELD_ERROR}>
             {errors.password.message}
@@ -164,7 +182,14 @@ export function LoginForm() {
         )}
       </div>
       <button type="submit" disabled={busy} className={SUBMIT}>
-        {busy ? "Đang kiểm tra…" : "Đăng nhập"}
+        {busy ? (
+          <>
+            <LoaderCircle size={18} aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> Đang kiểm
+            tra…
+          </>
+        ) : (
+          "Đăng nhập"
+        )}
       </button>
       {errors.root?.server && (
         <p role="alert" className={FORM_ERROR}>

@@ -115,13 +115,13 @@ describe("LoginForm (admin)", () => {
 
     await submitCredentials(user);
     const code = await screen.findByLabelText("Mã xác thực");
+    expect(screen.getByText(/Bước 2\/2/)).toBeVisible();
+    // Nhập đủ 6 số là tự gửi, không cần bấm nút.
     await user.type(code, "000000");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
     expect(await screen.findByText("Mã xác thực không đúng. Anh/chị vui lòng nhập lại.")).toBeVisible();
 
     await user.clear(code);
     await user.type(code, "123456");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
   });
@@ -140,9 +140,42 @@ describe("LoginForm (admin)", () => {
 
     await submitCredentials(user);
     await user.type(await screen.findByLabelText("Mã xác thực"), "123456");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Phiên xác thực đã hết 5 phút");
     expect(screen.getByLabelText("Email")).toHaveValue("kho@sachluat.vn");
+  });
+
+  it("bỏ khoảng trắng khi dán mã và gửi đúng 6 số", async () => {
+    let otp: unknown;
+    server.use(
+      http.post(`${ORIGIN}/api/v1/auth/login`, () =>
+        HttpResponse.json({ requiresTwoFactor: true, twoFactorToken: "2fa-token", session: null }),
+      ),
+      http.post(`${ORIGIN}/api/v1/auth/login/2fa`, async ({ request }) => {
+        otp = await request.json();
+        return HttpResponse.json(session(["order_manager"]));
+      }),
+    );
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await submitCredentials(user);
+    await user.click(await screen.findByLabelText("Mã xác thực"));
+    await user.paste("123 456");
+
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(otp).toEqual({ twoFactorToken: "2fa-token", code: "123456" });
+  });
+
+  it("báo khi đang bật Caps Lock ở ô mật khẩu", async () => {
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.click(screen.getByLabelText("Mật khẩu"));
+    await user.keyboard("{CapsLock}a");
+    expect(screen.getByText("Đang bật Caps Lock")).toBeVisible();
+
+    await user.keyboard("{CapsLock}a");
+    expect(screen.queryByText("Đang bật Caps Lock")).not.toBeInTheDocument();
   });
 });

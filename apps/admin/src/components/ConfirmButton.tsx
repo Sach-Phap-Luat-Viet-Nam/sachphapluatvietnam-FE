@@ -13,10 +13,20 @@ export interface ConfirmButtonProps {
   onConfirm: () => void;
   pending?: boolean;
   variant?: ButtonVariant;
+  /** Màu nút xác nhận; mặc định `danger` cho thao tác xóa/ẩn. */
+  confirmVariant?: ButtonVariant;
 }
 
 /** Nút cho thao tác khó quay lại (xóa, ẩn): bấm lần đầu hiện câu hỏi và nút xác nhận ngay tại chỗ. */
-export function ConfirmButton({ children, question, confirmLabel, onConfirm, pending, variant }: ConfirmButtonProps) {
+export function ConfirmButton({
+  children,
+  question,
+  confirmLabel,
+  onConfirm,
+  pending,
+  variant,
+  confirmVariant = "danger",
+}: ConfirmButtonProps) {
   const [asking, setAsking] = useState(false);
   const confirmRef = useRef<HTMLButtonElement>(null);
 
@@ -45,7 +55,7 @@ export function ConfirmButton({ children, question, confirmLabel, onConfirm, pen
           setAsking(false);
           onConfirm();
         }}
-        className={buttonClassName({ variant: "danger", size: "sm" })}
+        className={buttonClassName({ variant: confirmVariant, size: "sm" })}
       >
         {confirmLabel}
       </button>

@@ -21,6 +21,13 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   CANNOT_MANAGE_USER: "Không thể đổi vai trò, mật khẩu hoặc trạng thái của chính mình hay Super Admin khác.",
   ROLE_INVALID: "Có vai trò không hợp lệ. Anh/chị tải lại trang rồi chọn lại.",
   FORBIDDEN: "Tài khoản của anh/chị không có quyền thực hiện thao tác này.",
+  RECEIPT_NOT_DRAFT: "Phiếu này đã được duyệt hoặc từ chối. Anh/chị tải lại để xem trạng thái mới.",
+  RECEIPT_SELF_APPROVAL: "Anh/chị là người lập phiếu này nên không tự duyệt được. Nhờ một Super Admin khác duyệt.",
+  BATCH_CODE_DUPLICATE: "Mã lô đã có cho SKU này. Anh/chị dùng mã lô khác.",
+  RECEIPT_EMPTY: "Phiếu cần ít nhất một dòng.",
+  OUT_OF_STOCK: "Không đủ tồn khả dụng cho số lượng này.",
+  ORDER_INVALID_TRANSITION: "Đơn vừa được đổi trạng thái ở nơi khác. Anh/chị xem lại trạng thái mới rồi thao tác lại.",
+  ORDER_NOT_PAID: "Đơn chưa thanh toán nên không hoàn tiền được.",
 };
 
 const NETWORK_ERROR = "Không kết nối được máy chủ. Anh/chị kiểm tra mạng rồi thử lại.";

@@ -38,6 +38,23 @@ export function isStaff(roles: readonly string[]): boolean {
   return roles.some((role) => role !== "customer");
 }
 
+// Quyền thao tác trong một phần quản trị (policy của backend, docs/features/auth.md). Chỉ để ẩn nút; backend vẫn kiểm tra.
+
+/** Duyệt/từ chối phiếu nhập kho (policy `inventory_approve`). */
+export function canApproveReceipts(roles: readonly string[]): boolean {
+  return roles.includes("super_admin");
+}
+
+/** Đổi trạng thái đơn hàng (policy `orders_manage`); các vai trò còn lại của phần Đơn hàng chỉ xem. */
+export function canManageOrders(roles: readonly string[]): boolean {
+  return roles.includes("super_admin") || roles.includes("order_manager");
+}
+
+/** Xem danh sách sách (policy `catalog_admin`), cần để tìm SKU khi lập phiếu nhập hoặc mở thẻ kho. */
+export function canBrowseCatalog(roles: readonly string[]): boolean {
+  return roles.includes("super_admin") || roles.includes("product_manager");
+}
+
 /** Nhãn tiếng Việt của vai trò nhân viên, bỏ `customer`; vai trò chưa biết thì giữ nguyên mã. */
 export function staffRoleLabels(roles: readonly string[]): string[] {
   return roles.filter((role) => role !== "customer").map(roleLabel);
