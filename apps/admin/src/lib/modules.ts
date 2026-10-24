@@ -1,6 +1,6 @@
 import type { StaffRole } from "./roles";
 
-export type AdminModuleId = "overview" | "catalog" | "inventory" | "orders" | "users";
+export type AdminModuleId = "overview" | "catalog" | "content" | "inventory" | "orders" | "users";
 
 export interface AdminModule {
   id: AdminModuleId;
@@ -13,7 +13,8 @@ export interface AdminModule {
   ready: boolean;
 }
 
-// Quyền theo bảng "Admin — người dùng và phân quyền" trong docs/api_reference.md.
+// Quyền theo bảng "Admin — người dùng và phân quyền" trong docs/api_reference.md; "Nội dung" theo policy
+// `content_admin` trong docs/features/popup.md.
 export const ADMIN_MODULES: readonly AdminModule[] = [
   {
     id: "overview",
@@ -29,6 +30,14 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     label: "Sách",
     description: "Đầu sách, ấn bản, SKU, danh mục, tác giả, văn bản pháp luật.",
     roles: ["super_admin", "product_manager"],
+    ready: false,
+  },
+  {
+    id: "content",
+    href: "/noi-dung/popup",
+    label: "Nội dung",
+    description: "Popup quảng cáo trên website: ảnh, link, lịch chạy và tần suất hiển thị.",
+    roles: ["super_admin", "marketing"],
     ready: false,
   },
   {

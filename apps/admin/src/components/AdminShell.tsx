@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Menu, ShoppingCart, UserRound, Users, Warehouse, X } from "lucide-react";
+import { BookOpen, LayoutDashboard, Megaphone, Menu, ShoppingCart, UserRound, Users, Warehouse, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { SessionUser } from "@slvn/auth";
 import { cn } from "@slvn/ui";
@@ -17,6 +17,7 @@ import { SessionGate } from "./SessionGate";
 const MODULE_ICONS: Record<AdminModuleId, LucideIcon> = {
   overview: LayoutDashboard,
   catalog: BookOpen,
+  content: Megaphone,
   inventory: Warehouse,
   orders: ShoppingCart,
   users: Users,

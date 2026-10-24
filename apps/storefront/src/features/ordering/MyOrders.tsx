@@ -8,7 +8,7 @@ import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { orderingErrorMessage } from "./errors";
 import { ORDER_STATUS_LABELS, PAYMENT_METHOD_SHORT_LABELS, label, orderStatusTone } from "./labels";
-import { SignInRequired } from "./SignInRequired";
+import { OrdersSignInRequired } from "./OrdersSignInRequired";
 import { useMyOrders } from "./useOrders";
 
 const TONE_CLASSES = {
@@ -32,7 +32,7 @@ export function MyOrders({ page }: MyOrdersProps) {
   const { session, data, error, isError, isFetching, isPlaceholderData, refetch } = useMyOrders(page);
 
   if (session.status === "anonymous") {
-    return <SignInRequired next={pageHref(page)} />;
+    return <OrdersSignInRequired next={pageHref(page)} />;
   }
 
   if (isError) {

@@ -1,3 +1,4 @@
+import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 import { isApiError } from "@slvn/api-client";
 
 /** Thông báo theo `code` cho các màn quản trị (bảng mã lỗi ở docs/api_reference.md). */
@@ -66,4 +67,17 @@ export function formFieldErrors<Field extends string>(
     const message = error.errors[field]?.[0];
     return message ? [{ field, message }] : [];
   });
+}
+
+/** Hiện lỗi backend lên form: lỗi theo field ở từng ô, còn lại ở `root.server`. */
+export function showServerError<Values extends FieldValues>(
+  error: unknown,
+  fields: readonly Path<Values>[],
+  setError: UseFormSetError<Values>,
+): void {
+  const invalidFields = formFieldErrors(error, fields);
+  invalidFields.forEach(({ field, message }) => setError(field, { message }));
+  if (invalidFields.length === 0) {
+    setError("root.server", { message: adminErrorMessage(error) });
+  }
 }

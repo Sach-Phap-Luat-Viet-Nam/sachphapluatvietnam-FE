@@ -60,4 +60,23 @@ export interface PendingPaths {
   >;
   "/api/v1/admin/uploads/popup-signature": UploadSignaturePath;
   "/api/v1/admin/uploads/cover-signature": UploadSignaturePath;
+  /**
+   * Sổ địa chỉ của khách: **FE đề xuất, backend chưa làm** (đặc tả ở docs/features/address-book.md). Danh sách
+   * `AddressResponse[]` và thêm địa chỉ (`UpsertAddressRequest`).
+   */
+  "/api/v1/me/addresses": PathItem<
+    NoParameters,
+    {
+      get: Operation<NoParameters, { 200: UnknownJson }>;
+      post: OperationWithBody<NoParameters, { 201: UnknownJson }>;
+    }
+  >;
+  /** Sửa (thay toàn bộ, `isDefault: true` để đặt mặc định) và xóa một địa chỉ. */
+  "/api/v1/me/addresses/{id}": PathItem<
+    NoParameters,
+    {
+      put: OperationWithBody<IdParameters, { 200: UnknownJson }>;
+      delete: Operation<IdParameters, { 204: NoContent }>;
+    }
+  >;
 }

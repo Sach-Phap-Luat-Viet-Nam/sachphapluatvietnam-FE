@@ -32,6 +32,8 @@
   --font-editorial: var(--font-noto-serif, "Noto Serif"), "Times New Roman", serif;
 
   --color-danger: #b42318;
+  --color-danger-hover: #912018;
+  --color-danger-foreground: #ffffff;
   --color-success: #067647;
   --color-warning: #93370d;
   --color-warning-surface: #fffaeb;

@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from "react";
 
 import { cn } from "../cn";
 
-export type ButtonVariant = "primary" | "accent" | "outline" | "ghost";
+export type ButtonVariant = "primary" | "accent" | "outline" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -10,6 +10,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   accent: "bg-accent text-accent-foreground hover:bg-accent-hover",
   outline: "border border-border bg-background text-foreground hover:bg-surface",
   ghost: "text-foreground hover:bg-surface",
+  danger: "bg-danger text-danger-foreground hover:bg-danger-hover",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

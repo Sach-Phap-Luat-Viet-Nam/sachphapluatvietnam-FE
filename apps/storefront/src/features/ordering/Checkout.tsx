@@ -348,13 +348,18 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
         <CartSummary
           cart={cart}
           action={
-            <ul className="border-gold/20 flex flex-col gap-2 border-t pt-4 text-sm">
+            <ul className="border-gold/20 divide-gold/10 flex flex-col divide-y border-t text-sm">
               {cart.items.map((item) => (
-                <li key={item.skuId} className="flex justify-between gap-4">
-                  <span className="text-sand min-w-0">
-                    {item.bookTitle} <span className="text-mist">× {item.quantity}</span>
+                <li key={item.skuId} className="flex flex-col gap-1.5 py-3.5 last:pb-0">
+                  <span className="text-ivory line-clamp-2 leading-6" title={item.bookTitle}>
+                    {item.bookTitle}
                   </span>
-                  <span className="shrink-0">{formatPrice(item.lineTotal)}</span>
+                  <span className="flex items-baseline justify-between gap-4">
+                    <span className="text-mist">
+                      SL: {item.quantity} × {formatPrice(item.unitPrice)}
+                    </span>
+                    <span className="text-sand shrink-0 font-semibold">{formatPrice(item.lineTotal)}</span>
+                  </span>
                 </li>
               ))}
             </ul>

@@ -4,7 +4,7 @@ const ids = (roles: string[]) => modulesForRoles(roles).map((module) => module.i
 
 describe("modulesForRoles", () => {
   it("Super Admin thấy mọi phần", () => {
-    expect(ids(["super_admin"])).toEqual(["overview", "catalog", "inventory", "orders", "users"]);
+    expect(ids(["super_admin"])).toEqual(["overview", "catalog", "content", "inventory", "orders", "users"]);
   });
 
   it("theo đúng bảng phân quyền của từng vai trò", () => {
@@ -18,7 +18,7 @@ describe("modulesForRoles", () => {
     expect(ids(["product_manager", "order_manager"])).toEqual(["overview", "catalog", "orders"]);
   });
 
-  it("marketing chưa có API riêng nên chỉ có Tổng quan", () => {
-    expect(ids(["marketing"])).toEqual(["overview"]);
+  it("marketing quản lý nội dung (popup)", () => {
+    expect(ids(["marketing"])).toEqual(["overview", "content"]);
   });
 });

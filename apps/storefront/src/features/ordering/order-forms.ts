@@ -1,24 +1,15 @@
 import { z } from "zod";
+import { PHONE_MESSAGE, isValidPhone, normalizePhone } from "@/lib/phone";
+
+export { isValidPhone, normalizePhone };
 
 export const PAYMENT_METHODS = ["cod", "bank_transfer"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
-/** `0xxxxxxxxx` hoặc `+84xxxxxxxxx` (docs/api_reference.md, `CreateOrderRequest.phone`). */
-const PHONE_PATTERN = /^(0\d{9}|\+84\d{9})$/;
 /** Mã số thuế 10 số, chi nhánh thêm `-xxx`. */
 const TAX_CODE_PATTERN = /^\d{10}(-\d{3})?$/;
 
-const PHONE_MESSAGE = "Số điện thoại gồm 10 số, bắt đầu bằng 0 (hoặc +84).";
 const EMAIL_MESSAGE = "Email chưa đúng định dạng.";
-
-/** Bỏ khoảng trắng, dấu chấm, gạch nối khách hay gõ (`090 123 4567`). */
-export function normalizePhone(phone: string): string {
-  return phone.replace(/[\s.-]/g, "");
-}
-
-export function isValidPhone(phone: string): boolean {
-  return PHONE_PATTERN.test(normalizePhone(phone));
-}
 
 function isEmail(value: string): boolean {
   return z.email().safeParse(value).success;

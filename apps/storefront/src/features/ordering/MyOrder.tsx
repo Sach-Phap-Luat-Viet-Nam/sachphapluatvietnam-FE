@@ -13,7 +13,7 @@ import { orderingErrorMessage } from "./errors";
 import { OrderDetails } from "./OrderDetails";
 import { BANK_ACCOUNT } from "./payment";
 import type { BankAccount } from "./payment";
-import { SignInRequired } from "./SignInRequired";
+import { OrdersSignInRequired } from "./OrdersSignInRequired";
 import { useCancelOrder, useMyOrder } from "./useOrders";
 
 const MAX_REASON_LENGTH = 1000;
@@ -131,7 +131,7 @@ export function MyOrder({ code, bankAccount = BANK_ACCOUNT }: MyOrderProps) {
   );
 
   if (session.status === "anonymous") {
-    return <SignInRequired next={`/don-hang/${encodeURIComponent(code)}`} />;
+    return <OrdersSignInRequired next={`/don-hang/${encodeURIComponent(code)}`} />;
   }
 
   if (isError && isApiError(error) && error.code === "NOT_FOUND") {

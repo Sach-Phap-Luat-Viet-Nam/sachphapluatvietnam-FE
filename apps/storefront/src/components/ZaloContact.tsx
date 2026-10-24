@@ -1,7 +1,7 @@
-/** Số tư vấn qua Zalo (Mr Thành). Đổi số ở đây là đổi cho cả nút và link. */
+/** Số tư vấn qua Zalo (Nguyễn Tài Thành). Đổi số ở đây là đổi cho cả nút và link. */
 const ZALO_PHONE = "0984739739";
 const ZALO_PHONE_DISPLAY = "0984 739 739";
-const ZALO_CONTACT_NAME = "Mr Thành";
+const ZALO_CONTACT_NAME = "Nguyễn Tài Thành";
 
 /**
  * Nút tư vấn qua Zalo nổi ở góc phải dưới mọi trang. Mobile chỉ hiện nút tròn; từ tablet hiện thêm tên và số điện thoại.
