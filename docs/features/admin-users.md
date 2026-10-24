@@ -20,22 +20,34 @@ repo backend; luồng fast login chi tiết ở `fast-login-super-admin.md`.
 Hai phần "Nhân viên", "Khách hàng" chỉ dành cho `super_admin` (`lib/modules.ts`, policy `users_admin`). Gõ thẳng URL khi
 không có vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập".
 
-- **Danh sách nhân viên**: họ tên, email, vai trò, nhãn "Đã bật/Chưa bật 2FA", "Đã vô hiệu hóa", "Bạn" cho chính mình.
-  Tìm theo email, họ tên hoặc số điện thoại (`q`, bấm Tìm mới gọi API).
+- **Nhân viên và Khách hàng cùng một giao diện** (`UserCard`, `AccountActions`): cùng đầu trang, ô tìm (`UserSearch`),
+  danh sách thẻ, phân trang và thanh thao tác. Chỉ khác ở những chỗ khách hàng không có:
+  - Nhân viên: nhãn "Chưa bật/Đã bật 2FA", dòng "Vai trò" (mỗi vai trò một nhãn), nút Đổi vai trò, nút "Thêm nhân viên".
+  - Khách hàng: số điện thoại cạnh email, nút "Xem chi tiết" (tên khách cũng là link tới trang chi tiết).
+  - Mọi dòng: tên, nhãn "Bạn" (chính mình), "Hoạt động" hoặc "Đã vô hiệu hóa", email. Tìm theo email, họ tên hoặc số
+    điện thoại (`q`, bấm Tìm mới gọi API).
+- **Thanh thao tác** chia 3 nhóm, màu nút theo mức độ (`AccountActions.tsx`, kiểu nút ở `@slvn/ui`):
+  - Bên trái, nút chính: **Đăng nhập hộ** (`primary`, xanh navy đặc).
+  - Ở giữa, quản lý tài khoản: Đổi vai trò, Đặt mật khẩu, Xem chi tiết (`outline`, viền xám).
+  - Đẩy sang phải, thao tác nhạy cảm: Đăng xuất hộ (`outline`), **Vô hiệu hóa** (`danger-outline`, viền đỏ) hoặc
+    **Kích hoạt lại** (`success-outline`, viền xanh lá).
+  - Mỗi nút có icon. Kết quả và lỗi hiện ngay dưới thanh nút của dòng đó; form Đổi vai trò / Đặt mật khẩu mở ngay dưới
+    thanh nút, mở form này thì đóng form kia. Trang chi tiết khách dùng đúng thanh nút này.
 - **Thêm nhân viên**: email, họ tên, mật khẩu tạm (≥ 8 ký tự), ít nhất một vai trò nhân viên. Nhân viên phải tự bật 2FA ở
   lần đăng nhập đầu; Super Admin tự báo mật khẩu tạm. Email trùng (`EMAIL_TAKEN`) hiện ngay ở ô email.
 - **Chỉ thao tác tài khoản dưới cấp** (`canManage`): Đổi vai trò, Đặt mật khẩu, Vô hiệu hóa, Đăng nhập hộ không hiện với
   chính mình và Super Admin khác (Super Admin chỉ có 1–2 tài khoản, quản lý ngoài giao diện); backend vẫn kiểm tra và trả
   `CANNOT_MANAGE_USER`. "Đăng xuất hộ" không hiện với chính mình.
-- **Đổi vai trò**: tích chọn vai trò nhân viên, gửi danh sách đầy đủ (`PUT .../roles`). Vai trò ngoài danh sách nhân viên
-  (ví dụ `customer`) được giữ nguyên (`toSetRolesBody`).
+- **Đổi vai trò**: tích chọn vai trò nhân viên, gửi danh sách đầy đủ (`PUT .../roles`). Ô **Tất cả** ở đầu danh sách tích
+  hoặc bỏ tích mọi vai trò có thể cấp (không gồm Super Admin), hiện dấu "–" khi mới tích một phần và tự cập nhật khi tích
+  lẻ; có cả ở form "Thêm nhân viên". Vai trò ngoài danh sách nhân viên (ví dụ `customer`) được giữ nguyên
+  (`toSetRolesBody`).
 - **Đặt mật khẩu**: mật khẩu mới 8–128 ký tự. Backend mở khóa nếu đang tạm khóa do sai mật khẩu và đăng xuất mọi thiết bị.
 - **Vô hiệu hóa / Kích hoạt lại**: vô hiệu hóa có bước xác nhận; tài khoản bị đăng xuất và không đăng nhập lại được tới
   khi kích hoạt lại. Khác với khóa 15 phút do sai mật khẩu. Tài khoản bị vô hiệu hóa không có nút Đăng nhập hộ.
 - **Đăng xuất hộ**: có bước xác nhận, báo số phiên đã thu hồi. Access token đang dùng vẫn hợp lệ tối đa 15 phút.
-- **Khách hàng**: danh sách mới đăng ký trước (tìm như nhân viên); chi tiết có cùng các thao tác (trừ đổi vai trò) và
-  hồ sơ, sổ địa chỉ, thông tin xuất hóa đơn.
-- Sau mỗi thao tác ghi, danh sách được tải lại (`invalidateQueries`) và hiện thông báo kết quả.
+- **Khách hàng**: danh sách mới đăng ký trước; trang chi tiết có thêm hồ sơ, sổ địa chỉ, thông tin xuất hóa đơn.
+- Sau mỗi thao tác ghi, danh sách được tải lại (`invalidateQueries`).
 
 ### Đăng nhập hộ
 
@@ -84,8 +96,10 @@ Mã lỗi có câu chữ riêng (`lib/admin-errors.ts`): `EMAIL_TAKEN`, `USER_NO
 
 ## Cấu hình cần thiết (biến môi trường)
 
-- App admin: `NEXT_PUBLIC_STOREFRONT_URL` (gốc URL storefront, không có `/` cuối). Đọc lúc build nên đổi giá trị phải
-  build lại. Thiếu thì nút đăng nhập hộ khách báo chưa cấu hình.
+- App admin: `NEXT_PUBLIC_STOREFRONT_URL` (gốc URL storefront; có `/` cuối cũng được). Biến `NEXT_PUBLIC_*` được **nhúng
+  vào bản build**, nên thêm hoặc đổi giá trị xong phải **Redeploy** admin (bỏ chọn dùng build cache), nếu không bản đang
+  chạy vẫn là bản cũ và nút đăng nhập hộ khách báo chưa cấu hình. Chỉ cần đặt ở project admin trên Vercel (Production);
+  backend trên Render không dùng biến này.
 
 ## Hạn chế / việc còn lại
 

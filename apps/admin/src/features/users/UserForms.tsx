@@ -1,6 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, fieldA11y } from "@/components/Field";
@@ -20,15 +21,42 @@ function RoleChecklist({
   idPrefix,
   error,
   registration,
+  selected,
+  onSelectAll,
 }: {
   idPrefix: string;
   error?: string;
   /** Kết quả `register("roles")`: các ô tích cùng tên nên RHF gom thành mảng giá trị. */
   registration: UseFormRegisterReturn;
+  /** Các vai trò đang tích, để ô "Tất cả" biết trạng thái. */
+  selected: readonly string[];
+  /** Tích hoặc bỏ tích tất cả vai trò có thể cấp. */
+  onSelectAll: (select: boolean) => void;
 }) {
+  const allRef = useRef<HTMLInputElement>(null);
+  const all = selected.length === ASSIGNABLE_STAFF_ROLES.length;
+  const some = selected.length > 0 && !all;
+  useEffect(() => {
+    // "Tích một phần" chỉ đặt được bằng thuộc tính DOM, không có prop React.
+    if (allRef.current) {
+      allRef.current.indeterminate = some;
+    }
+  }, [some]);
+
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className={LABEL}>Vai trò</legend>
+      <label className="border-border flex min-h-11 items-center gap-3 border-b font-medium">
+        <input
+          ref={allRef}
+          type="checkbox"
+          id={`${idPrefix}-all`}
+          checked={all}
+          onChange={(event) => onSelectAll(event.target.checked)}
+          className={CHECKBOX}
+        />
+        Tất cả
+      </label>
       <div className="grid gap-x-6 sm:grid-cols-2">
         {ASSIGNABLE_STAFF_ROLES.map((role) => (
           <label key={role} className="flex min-h-11 items-center gap-3">
@@ -57,11 +85,14 @@ export function CreateStaffForm({ onSave, onCancel }: CreateStaffFormProps) {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    setValue,
+    control,
+    formState: { errors, isSubmitting, isSubmitted },
   } = useForm<CreateStaffFormValues>({
     resolver: zodResolver(createStaffFormSchema),
     defaultValues: { email: "", fullName: "", password: "", roles: [] },
   });
+  const selectedRoles = useWatch({ control, name: "roles" });
 
   return (
     <form
@@ -108,7 +139,18 @@ export function CreateStaffForm({ onSave, onCancel }: CreateStaffFormProps) {
           className={INPUT}
         />
       </Field>
-      <RoleChecklist idPrefix="staff-role" error={errors.roles?.message} registration={register("roles")} />
+      <RoleChecklist
+        idPrefix="staff-role"
+        error={errors.roles?.message}
+        registration={register("roles")}
+        selected={selectedRoles}
+        onSelectAll={(select) =>
+          setValue("roles", select ? [...ASSIGNABLE_STAFF_ROLES] : [], {
+            shouldDirty: true,
+            shouldValidate: isSubmitted,
+          })
+        }
+      />
       <FormActions
         pending={isSubmitting}
         submitLabel="Thêm nhân viên"
@@ -131,11 +173,14 @@ export function RolesForm({ user, onSave, onCancel }: RolesFormProps) {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    setValue,
+    control,
+    formState: { errors, isSubmitting, isSubmitted },
   } = useForm<RolesFormValues>({
     resolver: zodResolver(rolesFormSchema),
     defaultValues: { roles: staffRolesOf(user) },
   });
+  const selectedRoles = useWatch({ control, name: "roles" });
 
   return (
     <form
@@ -150,7 +195,18 @@ export function RolesForm({ user, onSave, onCancel }: RolesFormProps) {
       })}
       className="flex flex-col gap-4"
     >
-      <RoleChecklist idPrefix={`roles-${user.id}`} error={errors.roles?.message} registration={register("roles")} />
+      <RoleChecklist
+        idPrefix={`roles-${user.id}`}
+        error={errors.roles?.message}
+        registration={register("roles")}
+        selected={selectedRoles}
+        onSelectAll={(select) =>
+          setValue("roles", select ? [...ASSIGNABLE_STAFF_ROLES] : [], {
+            shouldDirty: true,
+            shouldValidate: isSubmitted,
+          })
+        }
+      />
       <FormActions
         pending={isSubmitting}
         submitLabel="Lưu vai trò"

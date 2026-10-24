@@ -9,7 +9,8 @@ export const STOREFRONT_URL = process.env.NEXT_PUBLIC_STOREFRONT_URL || null;
 
 export const POPUP_BLOCKED = "Trình duyệt chặn mở tab mới. Anh/chị cho phép popup với trang quản trị rồi thử lại.";
 export const STOREFRONT_MISSING =
-  "Chưa cấu hình địa chỉ Storefront (NEXT_PUBLIC_STOREFRONT_URL) nên chưa đăng nhập hộ khách được.";
+  "Bản admin này chưa có địa chỉ Storefront (NEXT_PUBLIC_STOREFRONT_URL) nên chưa đăng nhập hộ khách được. " +
+  "Biến này chỉ có hiệu lực ở bản build mới: thêm biến rồi Redeploy lại admin (bỏ chọn dùng build cache).";
 
 /** Tài khoản chỉ có vai trò `customer` mở Storefront; còn lại (nhân viên) mở Admin. */
 export function impersonationOrigin(

@@ -66,8 +66,15 @@ export const popupFormSchema = z
         (value) => value === "" || isSafeLinkUrl(value),
         "Nhập đường dẫn trong site (bắt đầu bằng /) hoặc link http/https.",
       ),
-    startsAt: z.string().regex(DATE_TIME_PATTERN, "Anh/chị chọn thời điểm bắt đầu."),
-    endsAt: z.string().refine((value) => value === "" || DATE_TIME_PATTERN.test(value), "Thời điểm không hợp lệ."),
+    startsAt: z
+      .string()
+      .regex(DATE_TIME_PATTERN, "Nhập thời điểm bắt đầu dạng dd/mm/yyyy hh:mm, ví dụ 01/11/2026 08:00."),
+    endsAt: z
+      .string()
+      .refine(
+        (value) => value === "" || DATE_TIME_PATTERN.test(value),
+        "Nhập thời điểm kết thúc dạng dd/mm/yyyy hh:mm, ví dụ 30/11/2026 23:59.",
+      ),
     isActive: z.boolean(),
     priority: z
       .string()

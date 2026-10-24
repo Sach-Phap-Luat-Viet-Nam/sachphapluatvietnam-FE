@@ -72,7 +72,8 @@ afterEach(() => {
 afterAll(() => server.close());
 
 async function rowOf(name: string) {
-  const row = (await screen.findByText(name)).closest("li");
+  // Tên người dùng đứng trước các nhãn vai trò trong dòng nên phần tử đầu tiên là tên.
+  const row = (await screen.findAllByText(name))[0]?.closest("li");
   if (!row) throw new Error(`Không thấy dòng ${name}`);
   return row;
 }
@@ -273,5 +274,75 @@ describe("UserList", () => {
     expect(
       within(await rowOf("Quản trị viên")).queryByRole("button", { name: "Đăng nhập hộ" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("ô Tất cả tích hoặc bỏ tích mọi vai trò, tự cập nhật khi tích lẻ", async () => {
+    useUsers([ADMIN, KEEPER]);
+    let body: unknown;
+    server.use(
+      http.put(`${ORIGIN}/api/v1/admin/users/2/roles`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json(KEEPER);
+      }),
+    );
+    const user = userEvent.setup();
+    renderList();
+
+    const row = await rowOf("Thủ kho");
+    await user.click(within(row).getByRole("button", { name: /Đổi vai trò/ }));
+    const form = within(row).getByRole("form", { name: /Đổi vai trò của Thủ kho/ });
+    const all = within(form).getByRole("checkbox", { name: "Tất cả" });
+    const roleBoxes = () =>
+      within(form)
+        .getAllByRole("checkbox")
+        .filter((box) => box !== all);
+
+    // Mới có Thủ kho: ô Tất cả ở trạng thái "một phần", chưa tích.
+    expect(all).not.toBeChecked();
+    expect(all).toHaveProperty("indeterminate", true);
+
+    await user.click(all);
+    expect(roleBoxes()).toHaveLength(6);
+    expect(roleBoxes().every((box) => (box as HTMLInputElement).checked)).toBe(true);
+    expect(all).toBeChecked();
+    expect(all).toHaveProperty("indeterminate", false);
+
+    await user.click(within(form).getByRole("checkbox", { name: "Kế toán" }));
+    expect(all).not.toBeChecked();
+    await user.click(within(form).getByRole("checkbox", { name: "Kế toán" }));
+    expect(all).toBeChecked();
+
+    await user.click(within(form).getByRole("button", { name: "Lưu vai trò" }));
+    await vi.waitFor(() =>
+      expect(body).toEqual({
+        roles: ["product_manager", "order_manager", "warehouse_keeper", "customer_service", "marketing", "accountant"],
+      }),
+    );
+
+    // Bỏ tích Tất cả thì bỏ hết, Super Admin không nằm trong danh sách để tích.
+    await user.click(within(row).getByRole("button", { name: /Đổi vai trò/ }));
+    const reopened = within(row).getByRole("form", { name: /Đổi vai trò của Thủ kho/ });
+    await user.click(within(reopened).getByRole("checkbox", { name: "Tất cả" }));
+    await user.click(within(reopened).getByRole("checkbox", { name: "Tất cả" }));
+    expect(within(reopened).queryByRole("checkbox", { name: "Super Admin" })).not.toBeInTheDocument();
+    expect(within(reopened).getByRole("checkbox", { name: "Tất cả" })).not.toBeChecked();
+  });
+
+  it("thêm nhân viên: Tất cả chọn đủ vai trò và hết lỗi chưa chọn vai trò", async () => {
+    useUsers([ADMIN]);
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(await screen.findByRole("button", { name: "Thêm nhân viên" }));
+    const form = screen.getByRole("form", { name: "Thêm nhân viên" });
+    await user.click(within(form).getByRole("button", { name: "Thêm nhân viên" }));
+    expect(await within(form).findByText("Anh/chị chọn ít nhất một vai trò.")).toBeVisible();
+
+    await user.click(within(form).getByRole("checkbox", { name: "Tất cả" }));
+
+    await vi.waitFor(() =>
+      expect(within(form).queryByText("Anh/chị chọn ít nhất một vai trò.")).not.toBeInTheDocument(),
+    );
+    expect(within(form).getByRole("checkbox", { name: "Marketing" })).toBeChecked();
   });
 });

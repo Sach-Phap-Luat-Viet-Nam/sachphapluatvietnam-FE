@@ -39,10 +39,11 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
 - **Giao diện** (`features/popup/OfferShelf.tsx`): desktop là lưới 3 thẻ; điện thoại và tablet là hàng vuốt ngang, lộ một
   phần thẻ kế tiếp. Mỗi thẻ gồm ảnh popup (khung 16:10, cắt từ phía trên, `object-cover object-top`), tên chương trình
-  và "Xem lại nội dung". Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+  (tự xuống dòng khi dài) và "Xem lại nội dung" luôn nằm **sát đáy thẻ** (các thẻ trong hàng cao bằng nhau). Không hiện ngày kết thúc (API storefront không trả `endsAt`).
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
   nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
-  bật là có nút riêng thay vì bấm vào ảnh.
+  bật là có nút riêng thay vì bấm vào ảnh. Hộp thoại rộng đúng bằng ảnh; tiêu đề dài tự xuống dòng cạnh nút (thanh dưới
+  dùng `w-0 min-w-full` để không làm hộp thoại rộng thêm).
 - **Không áp `displayFrequency`** và **không ghi dấu "đã xem"**: bấm xem lại không làm popup tự bật biến mất hay hiện lại.
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)

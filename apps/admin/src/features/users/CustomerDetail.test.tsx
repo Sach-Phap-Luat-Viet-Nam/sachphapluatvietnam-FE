@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -92,9 +92,9 @@ describe("CustomerDetail", () => {
     await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
     await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
 
-    expect(await screen.findByText("Đã vô hiệu hóa tài khoản và đăng xuất mọi thiết bị.")).toBeVisible();
+    expect(await screen.findByText("Đã vô hiệu hóa Nguyễn Văn A và đăng xuất mọi thiết bị.")).toBeVisible();
     expect(deactivate).toHaveBeenCalledTimes(1);
-    expect(await screen.findByRole("button", { name: "Kích hoạt lại" })).toBeVisible();
+    expect(await screen.findByRole("button", { name: /Kích hoạt lại/ })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Đăng nhập hộ" })).not.toBeInTheDocument();
   });
 
@@ -109,11 +109,14 @@ describe("CustomerDetail", () => {
     const user = userEvent.setup();
     renderDetail();
 
-    await user.click(await screen.findByRole("button", { name: "Đặt mật khẩu" }));
-    await user.type(screen.getByLabelText(/Mật khẩu mới/), "mat-khau-tam-1");
-    await user.click(screen.getByRole("button", { name: /Lưu|Đặt mật khẩu/ }));
+    await user.click(await screen.findByRole("button", { name: "Đặt mật khẩu mới cho Nguyễn Văn A" }));
+    const form = screen.getByRole("form", { name: "Đặt mật khẩu mới cho Nguyễn Văn A" });
+    await user.type(within(form).getByLabelText("Mật khẩu mới"), "mat-khau-tam-1");
+    await user.click(within(form).getByRole("button", { name: "Đặt mật khẩu" }));
 
-    expect(await screen.findByText("Đã đặt mật khẩu mới và đăng xuất mọi thiết bị của khách.")).toBeVisible();
+    expect(
+      await screen.findByText("Đã đặt mật khẩu mới cho Nguyễn Văn A và đăng xuất mọi thiết bị của họ."),
+    ).toBeVisible();
     expect(body).toEqual({ newPassword: "mat-khau-tam-1" });
   });
 
