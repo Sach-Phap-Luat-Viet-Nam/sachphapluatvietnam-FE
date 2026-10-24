@@ -124,7 +124,7 @@ export function AddToCartForm({ bookSlug, options, newerEdition }: AddToCartForm
               {formatPrice(selected.listPrice)}
             </span>
           )}
-          {discount && <span className="bg-burgundy text-ivory px-2 py-0.5 text-sm">{discount}</span>}
+          {discount && <span className="bg-burgundy text-cream px-2 py-0.5 text-sm font-semibold">{discount}</span>}
         </div>
         {(regularPrice !== null || saleEnds) && (
           <p className="text-sand text-sm">
