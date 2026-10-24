@@ -22,9 +22,10 @@ function activePopup(body: Record<string, unknown> | null) {
   );
 }
 
-/** Ảnh trong jsdom không tự tải; giả lập tải xong để popup mở. */
+/** Ảnh trong jsdom không tự tải: giả lập tải xong rồi chờ popup mở (`next/image` gọi `onLoad` sau `decode()`). */
 async function loadImage() {
   fireEvent.load(await screen.findByRole("img", { hidden: true }));
+  await vi.waitFor(() => expect(screen.getByRole("dialog")).toHaveAttribute("open"));
 }
 
 beforeAll(() => {
@@ -60,14 +61,21 @@ describe("PromoPopup", () => {
   });
 
   it("không hiện lại trong cùng phiên với once_per_session", async () => {
-    server.use(activePopup(POPUP));
+    let requests = 0;
+    server.use(
+      http.get(`${ORIGIN}/api/v1/popups/active`, () => {
+        requests += 1;
+        return HttpResponse.json(POPUP);
+      }),
+    );
     const { unmount } = render(<PromoPopup />);
     await loadImage();
     unmount();
 
     render(<PromoPopup />);
-    // Chờ request xong: popup đã xem thì không render ảnh.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await vi.waitFor(() => expect(requests).toBe(2));
+    // Cho promise sau request chạy xong: popup đã xem thì không render ảnh.
+    await Promise.resolve();
     expect(screen.queryByRole("img", { hidden: true })).not.toBeInTheDocument();
   });
 
