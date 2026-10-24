@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { clearSession, readImpersonationFragment, startSession } from "@slvn/auth";
-import { canManage, impersonationOrigin, openImpersonation, POPUP_BLOCKED } from "./impersonation";
+import { impersonationOrigin, openImpersonation, POPUP_BLOCKED } from "./impersonation";
 
 const ORIGIN = window.location.origin;
 const server = setupServer();
@@ -32,14 +32,6 @@ describe("impersonationOrigin", () => {
 
   it("chưa cấu hình Storefront thì không mở được tab khách", () => {
     expect(impersonationOrigin(["customer"], null, "https://admin.vn")).toBeNull();
-  });
-});
-
-describe("canManage", () => {
-  it("không thao tác với chính mình hay Super Admin khác", () => {
-    expect(canManage({ id: 1, roles: ["warehouse_keeper"] }, 1)).toBe(false);
-    expect(canManage({ id: 2, roles: ["super_admin"] }, 1)).toBe(false);
-    expect(canManage({ id: 3, roles: ["customer"] }, 1)).toBe(true);
   });
 });
 

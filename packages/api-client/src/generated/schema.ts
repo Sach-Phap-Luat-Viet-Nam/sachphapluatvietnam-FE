@@ -31,9 +31,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResponseOfAdminUserResponse"];
-                        "application/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
-                        "text/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "text/plain": components["schemas"]["PagedResponseOfUserResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfUserResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfUserResponse"];
                     };
                 };
             };
@@ -112,9 +112,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResponseOfAdminUserResponse"];
-                        "application/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
-                        "text/json": components["schemas"]["PagedResponseOfAdminUserResponse"];
+                        "text/plain": components["schemas"]["PagedResponseOfUserResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfUserResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfUserResponse"];
                     };
                 };
             };
@@ -141,9 +141,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AdminUserResponse"];
-                        "application/json": components["schemas"]["AdminUserResponse"];
-                        "text/json": components["schemas"]["AdminUserResponse"];
+                        "text/plain": components["schemas"]["UserResponse"];
+                        "application/json": components["schemas"]["UserResponse"];
+                        "text/json": components["schemas"]["UserResponse"];
                     };
                 };
             };
@@ -185,9 +185,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AdminUserResponse"];
-                        "application/json": components["schemas"]["AdminUserResponse"];
-                        "text/json": components["schemas"]["AdminUserResponse"];
+                        "text/plain": components["schemas"]["UserResponse"];
+                        "application/json": components["schemas"]["UserResponse"];
+                        "text/json": components["schemas"]["UserResponse"];
                     };
                 };
             };
@@ -238,7 +238,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/users/{id}/lock": {
+    "/api/v1/admin/users/{id}/password": {
         parameters: {
             query?: never;
             header?: never;
@@ -246,86 +246,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["AdminUserResponse"];
-                        "application/json": components["schemas"]["AdminUserResponse"];
-                        "text/json": components["schemas"]["AdminUserResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/users/{id}/unlock": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["AdminUserResponse"];
-                        "application/json": components["schemas"]["AdminUserResponse"];
-                        "text/json": components["schemas"]["AdminUserResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/users/{id}/password/reset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
+        put: {
             parameters: {
                 query?: never;
                 header?: never;
@@ -348,6 +269,85 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserResponse"];
+                        "application/json": components["schemas"]["UserResponse"];
+                        "text/json": components["schemas"]["UserResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UserResponse"];
+                        "application/json": components["schemas"]["UserResponse"];
+                        "text/json": components["schemas"]["UserResponse"];
+                    };
                 };
             };
         };
@@ -3230,10 +3230,7 @@ export interface components {
             updatedAt: string;
         };
         AdminCustomerResponse: {
-            account: components["schemas"]["AdminUserResponse"];
-            /** Format: date */
-            birthDate: null | string;
-            occupation: null | components["schemas"]["Occupation"];
+            account: components["schemas"]["UserResponse"];
             addresses: components["schemas"]["AddressResponse"][];
             invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
         };
@@ -3264,21 +3261,6 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-        };
-        AdminUserResponse: {
-            /** Format: int64 */
-            id: number | string;
-            email: string;
-            fullName: string;
-            phoneNumber: null | string;
-            roles: string[];
-            twoFactorEnabled: boolean;
-            requiresTwoFactorSetup: boolean;
-            isLocked: boolean;
-            /** Format: date-time */
-            lockedUntil: null | string;
-            /** Format: date-time */
-            createdAt: string;
         };
         AuthorResponse: {
             /** Format: int64 */
@@ -3547,6 +3529,7 @@ export interface components {
             roles: string[];
             twoFactorEnabled: boolean;
             requiresTwoFactorSetup: boolean;
+            isActive: boolean;
             defaultAddress: null | components["schemas"]["AddressResponse"];
             invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
         };
@@ -3630,10 +3613,6 @@ export interface components {
             items: components["schemas"]["AdminPopupResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
-        PagedResponseOfAdminUserResponse: {
-            items: components["schemas"]["AdminUserResponse"][];
-            meta: components["schemas"]["PageMeta"];
-        };
         PagedResponseOfAuthorResponse: {
             items: components["schemas"]["AuthorResponse"][];
             meta: components["schemas"]["PageMeta"];
@@ -3656,6 +3635,10 @@ export interface components {
         };
         PagedResponseOfReceiptResponse: {
             items: components["schemas"]["ReceiptResponse"][];
+            meta: components["schemas"]["PageMeta"];
+        };
+        PagedResponseOfUserResponse: {
+            items: components["schemas"]["UserResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
         PageMeta: {
@@ -3977,6 +3960,7 @@ export interface components {
             roles: string[];
             twoFactorEnabled: boolean;
             requiresTwoFactorSetup: boolean;
+            isActive: boolean;
         };
     };
     responses: never;

@@ -1,72 +1,72 @@
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
-import { adminUserSchema, customerDetailSchema, logoutResultSchema, userPageSchema } from "./schemas";
-import type { AdminUser, CreateStaffValues, CustomerDetail, UserPage } from "./schemas";
+import {
+  customerDetailSchema,
+  customerPageSchema,
+  logoutResultSchema,
+  staffPageSchema,
+  staffUserSchema,
+} from "./schemas";
+import type { CustomerDetail, CustomerPage, StaffPage, StaffUser } from "./schemas";
+import type { toCreateStaffBody } from "./user-forms";
 
-// API "Admin — người dùng" (docs/features/auth.md của backend), policy `users_admin`: chỉ Super Admin, bắt buộc 2FA.
+// API Admin người dùng (docs/features/auth.md của backend), policy `users_admin`: chỉ `super_admin`, bắt buộc 2FA.
 
-export const USERS_PAGE_SIZE = 20;
+export const STAFF_PAGE_SIZE = 20;
 
-export interface UserListQuery {
-  q: string;
-  page: number;
-}
-
-function listQuery({ q, page }: UserListQuery) {
-  return { Q: q || undefined, Page: page, Limit: USERS_PAGE_SIZE };
-}
-
-/** Nhân viên (mọi tài khoản có vai trò nhân viên), xếp theo id. `q` tìm trong email, họ tên, số điện thoại. */
-export async function fetchStaff(query: UserListQuery): Promise<UserPage> {
-  const data = await unwrap(browserApi().GET("/api/v1/admin/users", { params: { query: listQuery(query) } }));
-  return userPageSchema.parse(data);
+/** Danh sách nhân viên (tài khoản có ít nhất một vai trò nhân viên). `q` tìm trong email, họ tên, số điện thoại. */
+export async function fetchStaff(page: number, q = ""): Promise<StaffPage> {
+  const data = await unwrap(
+    browserApi().GET("/api/v1/admin/users", {
+      params: { query: { Q: q || undefined, Page: page, Limit: STAFF_PAGE_SIZE } },
+    }),
+  );
+  return staffPageSchema.parse(data);
 }
 
 /** Khách hàng (vai trò `customer`), mới đăng ký trước. */
-export async function fetchCustomers(query: UserListQuery): Promise<UserPage> {
-  const data = await unwrap(browserApi().GET("/api/v1/admin/customers", { params: { query: listQuery(query) } }));
-  return userPageSchema.parse(data);
+export async function fetchCustomers(page: number, q = ""): Promise<CustomerPage> {
+  const data = await unwrap(
+    browserApi().GET("/api/v1/admin/customers", {
+      params: { query: { Q: q || undefined, Page: page, Limit: STAFF_PAGE_SIZE } },
+    }),
+  );
+  return customerPageSchema.parse(data);
 }
 
+/** Chi tiết khách: tài khoản, sổ địa chỉ, thông tin hóa đơn. Id không phải khách hàng → `USER_NOT_FOUND`. */
 export async function fetchCustomer(id: number): Promise<CustomerDetail> {
   const data = await unwrap(browserApi().GET("/api/v1/admin/customers/{id}", { params: { path: { id } } }));
   return customerDetailSchema.parse(data);
 }
 
-export async function createStaff(body: CreateStaffValues): Promise<AdminUser> {
-  return adminUserSchema.parse(await unwrap(browserApi().POST("/api/v1/admin/users", { body })));
+export async function createStaff(body: ReturnType<typeof toCreateStaffBody>): Promise<StaffUser> {
+  return staffUserSchema.parse(await unwrap(browserApi().POST("/api/v1/admin/users", { body })));
 }
 
-export async function setRoles(id: number, roles: string[]): Promise<AdminUser> {
+/** Thay toàn bộ vai trò của tài khoản. */
+export async function setRoles(id: number, roles: string[]): Promise<StaffUser> {
   const data = await unwrap(
     browserApi().PUT("/api/v1/admin/users/{id}/roles", { params: { path: { id } }, body: { roles } }),
   );
-  return adminUserSchema.parse(data);
+  return staffUserSchema.parse(data);
 }
 
-/** Khóa không thời hạn và thu hồi mọi phiên của tài khoản. */
-export async function lockUser(id: number): Promise<AdminUser> {
-  const data = await unwrap(browserApi().POST("/api/v1/admin/users/{id}/lock", { params: { path: { id } } }));
-  return adminUserSchema.parse(data);
-}
-
-export async function unlockUser(id: number): Promise<AdminUser> {
-  const data = await unwrap(browserApi().POST("/api/v1/admin/users/{id}/unlock", { params: { path: { id } } }));
-  return adminUserSchema.parse(data);
-}
-
-/** Đặt mật khẩu tạm; backend thu hồi mọi phiên của tài khoản. */
+/** Đặt mật khẩu mới: backend mở khóa tài khoản và thu hồi mọi phiên của người đó. */
 export async function resetPassword(id: number, newPassword: string): Promise<void> {
   await unwrap(
-    browserApi().POST("/api/v1/admin/users/{id}/password/reset", {
-      params: { path: { id } },
-      body: { newPassword },
-    }),
+    browserApi().PUT("/api/v1/admin/users/{id}/password", { params: { path: { id } }, body: { newPassword } }),
   );
 }
 
-/** Đăng xuất hộ trên mọi thiết bị; trả số phiên vừa thu hồi. */
-export async function logoutUser(id: number): Promise<number> {
+/** Vô hiệu hóa (`false`) hoặc kích hoạt lại (`true`) tài khoản. */
+export async function setActive(id: number, active: boolean): Promise<StaffUser> {
+  const path = active ? "/api/v1/admin/users/{id}/activate" : "/api/v1/admin/users/{id}/deactivate";
+  return staffUserSchema.parse(await unwrap(browserApi().POST(path, { params: { path: { id } } })));
+}
+
+/** Đăng xuất hộ: thu hồi mọi phiên, trả số phiên đã thu hồi. */
+export async function logoutEverywhere(id: number): Promise<number> {
   const data = await unwrap(browserApi().POST("/api/v1/admin/users/{id}/logout", { params: { path: { id } } }));
   return logoutResultSchema.parse(data).revokedSessions;
 }
@@ -76,9 +76,13 @@ export async function impersonate(id: number): Promise<unknown> {
   return unwrap(browserApi().POST("/api/v1/admin/users/{id}/impersonate", { params: { path: { id } } }));
 }
 
-export const userKeys = {
-  staff: (query: UserListQuery) => ["users", "staff", query] as const,
-  customers: (query: UserListQuery) => ["users", "customers", query] as const,
-  customer: (id: number) => ["users", "customer", id] as const,
-  all: ["users"] as const,
+export const staffKeys = {
+  lists: ["staff"] as const,
+  list: (page: number, q = "") => ["staff", "list", page, q] as const,
+};
+
+export const customerKeys = {
+  all: ["customers"] as const,
+  list: (page: number, q: string) => ["customers", "list", page, q] as const,
+  detail: (id: number) => ["customers", "detail", id] as const,
 };

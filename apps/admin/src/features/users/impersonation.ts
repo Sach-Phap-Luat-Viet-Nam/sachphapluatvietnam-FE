@@ -21,11 +21,6 @@ export function impersonationOrigin(
   return customerOnly ? storefrontUrl : adminOrigin;
 }
 
-/** Thao tác dưới cấp (đăng nhập hộ, khóa, đặt lại mật khẩu): không phải chính mình, không phải Super Admin khác. */
-export function canManage(account: { id: number; roles: readonly string[] }, currentUserId: number): boolean {
-  return account.id !== currentUserId && !account.roles.includes("super_admin");
-}
-
 /**
  * Mở tab đăng nhập hộ. Tab được mở ngay khi bấm (trước khi gọi API) để trình duyệt không coi là popup tự bật, rồi
  * mới chuyển tới trang `/dang-nhap-ho` kèm phiên trong URL fragment.

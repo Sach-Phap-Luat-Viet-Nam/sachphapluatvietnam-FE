@@ -17,16 +17,14 @@ const account = {
   roles: ["customer"],
   twoFactorEnabled: false,
   requiresTwoFactorSetup: false,
-  isLocked: false,
-  lockedUntil: null,
-  createdAt: "2026-10-24T05:30:00Z",
+  isActive: true,
+  birthDate: null,
+  occupation: "lawyer",
 };
 
-function detail(isLocked = false) {
+function detail(isActive = true) {
   return {
-    account: { ...account, isLocked },
-    birthDate: null,
-    occupation: "lawyer",
+    account: { ...account, isActive },
     addresses: [
       {
         id: 7,
@@ -52,17 +50,17 @@ function renderDetail() {
   );
 }
 
-let locked = false;
+let active = true;
 
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => {
-  locked = false;
+  active = true;
   startSession({
     accessToken: "t1",
     expiresIn: 900,
     user: { id: 1, email: "root@sachluat.vn", fullName: "Root", roles: ["super_admin"], requiresTwoFactorSetup: false },
   });
-  server.use(http.get(`${ORIGIN}/api/v1/admin/customers/42`, () => HttpResponse.json(detail(locked))));
+  server.use(http.get(`${ORIGIN}/api/v1/admin/customers/42`, () => HttpResponse.json(detail(active))));
 });
 afterEach(() => {
   server.resetHandlers();
@@ -81,27 +79,29 @@ describe("CustomerDetail", () => {
     expect(screen.getByText("Hoạt động")).toBeVisible();
   });
 
-  it("khóa tài khoản sau khi xác nhận", async () => {
-    const lock = vi.fn(() => {
-      locked = true;
-      return HttpResponse.json({ ...account, isLocked: true });
+  it("vô hiệu hóa sau khi xác nhận, ẩn nút đăng nhập hộ", async () => {
+    const deactivate = vi.fn(() => {
+      active = false;
+      return HttpResponse.json({ ...account, isActive: false });
     });
-    server.use(http.post(`${ORIGIN}/api/v1/admin/users/42/lock`, lock));
+    server.use(http.post(`${ORIGIN}/api/v1/admin/users/42/deactivate`, deactivate));
     const user = userEvent.setup();
     renderDetail();
 
-    await user.click(await screen.findByRole("button", { name: "Khóa" }));
-    await user.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
+    expect(await screen.findByRole("button", { name: "Đăng nhập hộ" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
+    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
 
-    expect(await screen.findByText("Đã khóa khach@example.com và đăng xuất mọi phiên.")).toBeVisible();
-    expect(lock).toHaveBeenCalledTimes(1);
-    expect(await screen.findByRole("button", { name: "Mở khóa" })).toBeVisible();
+    expect(await screen.findByText("Đã vô hiệu hóa tài khoản và đăng xuất mọi thiết bị.")).toBeVisible();
+    expect(deactivate).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole("button", { name: "Kích hoạt lại" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Đăng nhập hộ" })).not.toBeInTheDocument();
   });
 
-  it("đặt lại mật khẩu tạm, kiểm tra độ dài trước khi gửi", async () => {
+  it("đặt mật khẩu mới bằng PUT /password", async () => {
     let body: unknown;
     server.use(
-      http.post(`${ORIGIN}/api/v1/admin/users/42/password/reset`, async ({ request }) => {
+      http.put(`${ORIGIN}/api/v1/admin/users/42/password`, async ({ request }) => {
         body = await request.json();
         return new HttpResponse(null, { status: 204 });
       }),
@@ -109,16 +109,11 @@ describe("CustomerDetail", () => {
     const user = userEvent.setup();
     renderDetail();
 
-    await user.click(await screen.findByRole("button", { name: "Đặt lại mật khẩu" }));
-    await user.type(screen.getByLabelText("Mật khẩu tạm mới"), "ngan");
-    await user.click(screen.getByRole("button", { name: "Đặt mật khẩu" }));
-    expect(await screen.findByText("Mật khẩu tối thiểu 8 ký tự.")).toBeVisible();
+    await user.click(await screen.findByRole("button", { name: "Đặt mật khẩu" }));
+    await user.type(screen.getByLabelText(/Mật khẩu mới/), "mat-khau-tam-1");
+    await user.click(screen.getByRole("button", { name: /Lưu|Đặt mật khẩu/ }));
 
-    await user.clear(screen.getByLabelText("Mật khẩu tạm mới"));
-    await user.type(screen.getByLabelText("Mật khẩu tạm mới"), "mat-khau-tam-1");
-    await user.click(screen.getByRole("button", { name: "Đặt mật khẩu" }));
-
-    expect(await screen.findByText(/Đã đặt mật khẩu tạm cho khach@example.com/)).toBeVisible();
+    expect(await screen.findByText("Đã đặt mật khẩu mới và đăng xuất mọi thiết bị của khách.")).toBeVisible();
     expect(body).toEqual({ newPassword: "mat-khau-tam-1" });
   });
 

@@ -66,17 +66,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               }
             }
@@ -181,17 +181,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAdminUserResponse"
+                  "$ref": "#/components/schemas/PagedResponseOfUserResponse"
                 }
               }
             }
@@ -228,17 +228,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             }
@@ -289,17 +289,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             }
@@ -348,90 +348,8 @@
         }
       }
     },
-    "/api/v1/admin/users/{id}/lock": {
-      "post": {
-        "tags": [
-          "AdminUsers"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/users/{id}/unlock": {
-      "post": {
-        "tags": [
-          "AdminUsers"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminUserResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/users/{id}/password/reset": {
-      "post": {
+    "/api/v1/admin/users/{id}/password": {
+      "put": {
         "tags": [
           "AdminUsers"
         ],
@@ -470,6 +388,88 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/deactivate": {
+      "post": {
+        "tags": [
+          "AdminUsers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/activate": {
+      "post": {
+        "tags": [
+          "AdminUsers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -4416,32 +4416,13 @@
       "AdminCustomerResponse": {
         "required": [
           "account",
-          "birthDate",
-          "occupation",
           "addresses",
           "invoiceInfo"
         ],
         "type": "object",
         "properties": {
           "account": {
-            "$ref": "#/components/schemas/AdminUserResponse"
-          },
-          "birthDate": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date"
-          },
-          "occupation": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/Occupation"
-              }
-            ]
+            "$ref": "#/components/schemas/UserResponse"
           },
           "addresses": {
             "type": "array",
@@ -4569,69 +4550,6 @@
             "format": "date-time"
           },
           "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "AdminUserResponse": {
-        "required": [
-          "id",
-          "email",
-          "fullName",
-          "phoneNumber",
-          "roles",
-          "twoFactorEnabled",
-          "requiresTwoFactorSetup",
-          "isLocked",
-          "lockedUntil",
-          "createdAt"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64"
-          },
-          "email": {
-            "type": "string"
-          },
-          "fullName": {
-            "type": "string"
-          },
-          "phoneNumber": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "twoFactorEnabled": {
-            "type": "boolean"
-          },
-          "requiresTwoFactorSetup": {
-            "type": "boolean"
-          },
-          "isLocked": {
-            "type": "boolean"
-          },
-          "lockedUntil": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -5796,6 +5714,7 @@
           "roles",
           "twoFactorEnabled",
           "requiresTwoFactorSetup",
+          "isActive",
           "defaultAddress",
           "invoiceInfo"
         ],
@@ -5848,6 +5767,9 @@
             "type": "boolean"
           },
           "requiresTwoFactorSetup": {
+            "type": "boolean"
+          },
+          "isActive": {
             "type": "boolean"
           },
           "defaultAddress": {
@@ -6223,24 +6145,6 @@
           }
         }
       },
-      "PagedResponseOfAdminUserResponse": {
-        "required": [
-          "items",
-          "meta"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminUserResponse"
-            }
-          },
-          "meta": {
-            "$ref": "#/components/schemas/PageMeta"
-          }
-        }
-      },
       "PagedResponseOfAuthorResponse": {
         "required": [
           "items",
@@ -6342,6 +6246,24 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ReceiptResponse"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        }
+      },
+      "PagedResponseOfUserResponse": {
+        "required": [
+          "items",
+          "meta"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
             }
           },
           "meta": {
@@ -7697,7 +7619,8 @@
           "occupation",
           "roles",
           "twoFactorEnabled",
-          "requiresTwoFactorSetup"
+          "requiresTwoFactorSetup",
+          "isActive"
         ],
         "type": "object",
         "properties": {
@@ -7748,6 +7671,9 @@
             "type": "boolean"
           },
           "requiresTwoFactorSetup": {
+            "type": "boolean"
+          },
+          "isActive": {
             "type": "boolean"
           }
         }

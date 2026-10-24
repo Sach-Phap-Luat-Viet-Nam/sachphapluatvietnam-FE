@@ -22,6 +22,11 @@ const ROLE_LABELS: Record<string, string> = {
   customer: "Khách hàng",
 };
 
+/** Nhãn tiếng Việt của một vai trò; vai trò chưa biết thì giữ nguyên mã. */
+export function roleLabel(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
 /** Có ít nhất một vai trò nhân viên. Tài khoản chỉ có `customer` không được vào admin. */
 export function isStaff(roles: readonly string[]): boolean {
   return roles.some((role) => role !== "customer");
@@ -29,5 +34,5 @@ export function isStaff(roles: readonly string[]): boolean {
 
 /** Nhãn tiếng Việt của vai trò nhân viên, bỏ `customer`; vai trò chưa biết thì giữ nguyên mã. */
 export function staffRoleLabels(roles: readonly string[]): string[] {
-  return roles.filter((role) => role !== "customer").map((role) => ROLE_LABELS[role] ?? role);
+  return roles.filter((role) => role !== "customer").map(roleLabel);
 }

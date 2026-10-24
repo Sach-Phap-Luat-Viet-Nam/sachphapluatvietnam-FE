@@ -1,28 +1,38 @@
 import { z } from "zod";
+import { STAFF_ROLES } from "@/lib/roles";
 
-// Schema theo `AdminUserResponse`, `AdminCustomerResponse` (docs/features/auth.md của backend). Parse bằng Zod vì
-// type sinh từ OpenAPI để số là `number | string`.
+// `GET /admin/users` trả `UserResponse` (docs/api_reference.md). `isActive` chỉ có ở backend từ bản thêm vô hiệu hóa
+// tài khoản: thiếu thì coi là đang hoạt động để màn không lỗi khi backend chưa cập nhật.
 
-export const adminUserSchema = z.object({
+export const staffUserSchema = z.object({
   id: z.number(),
   email: z.string(),
   fullName: z.string(),
-  phoneNumber: z.string().nullable(),
   roles: z.array(z.string()),
   twoFactorEnabled: z.boolean(),
   requiresTwoFactorSetup: z.boolean(),
-  /** Bị Super Admin khóa (`lockedUntil = null`) hoặc tạm khóa 15 phút do đăng nhập sai nhiều lần. */
-  isLocked: z.boolean(),
-  lockedUntil: z.string().nullable(),
-  createdAt: z.string(),
+  isActive: z.boolean().default(true),
 });
-export type AdminUser = z.infer<typeof adminUserSchema>;
+export type StaffUser = z.infer<typeof staffUserSchema>;
 
-export const userPageSchema = z.object({
-  items: z.array(adminUserSchema),
+export const staffPageSchema = z.object({
+  items: z.array(staffUserSchema),
   meta: z.object({ page: z.number(), limit: z.number(), total: z.number() }),
 });
-export type UserPage = z.infer<typeof userPageSchema>;
+export type StaffPage = z.infer<typeof staffPageSchema>;
+
+export const customerUserSchema = staffUserSchema.extend({
+  phoneNumber: z.string().nullable(),
+  birthDate: z.string().nullable(),
+  occupation: z.string().nullable(),
+});
+export type CustomerUser = z.infer<typeof customerUserSchema>;
+
+export const customerPageSchema = z.object({
+  items: z.array(customerUserSchema),
+  meta: z.object({ page: z.number(), limit: z.number(), total: z.number() }),
+});
+export type CustomerPage = z.infer<typeof customerPageSchema>;
 
 const addressSchema = z.object({
   id: z.number(),
@@ -33,12 +43,10 @@ const addressSchema = z.object({
   streetAddress: z.string(),
   isDefault: z.boolean(),
 });
-export type CustomerAddress = z.infer<typeof addressSchema>;
 
+/** `AdminCustomerResponse`: tài khoản, sổ địa chỉ (mặc định đứng đầu), thông tin hóa đơn (null khi chưa lưu). */
 export const customerDetailSchema = z.object({
-  account: adminUserSchema,
-  birthDate: z.string().nullable(),
-  occupation: z.string().nullable(),
+  account: customerUserSchema,
   addresses: z.array(addressSchema),
   invoiceInfo: z
     .object({ companyName: z.string(), taxCode: z.string(), address: z.string(), email: z.string() })
@@ -48,16 +56,26 @@ export type CustomerDetail = z.infer<typeof customerDetailSchema>;
 
 export const logoutResultSchema = z.object({ revokedSessions: z.number() });
 
-/** Mật khẩu theo quy tắc backend: 8–128 ký tự. */
-const passwordSchema = z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128, "Mật khẩu tối đa 128 ký tự.");
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
 
-export const resetPasswordSchema = z.object({ newPassword: passwordSchema });
-export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+const passwordSchema = z
+  .string()
+  .min(PASSWORD_MIN, `Mật khẩu tối thiểu ${PASSWORD_MIN} ký tự.`)
+  .max(PASSWORD_MAX, `Mật khẩu tối đa ${PASSWORD_MAX} ký tự.`);
 
-export const createStaffSchema = z.object({
-  email: z.email("Email không hợp lệ.").max(256),
-  fullName: z.string().trim().min(1, "Nhập họ tên.").max(255),
+const rolesSchema = z.array(z.enum(STAFF_ROLES)).min(1, "Anh/chị chọn ít nhất một vai trò.");
+
+export const createStaffFormSchema = z.object({
+  email: z.email("Email chưa đúng định dạng.").max(256, "Tối đa 256 ký tự."),
+  fullName: z.string().trim().min(1, "Anh/chị nhập họ tên.").max(255, "Tối đa 255 ký tự."),
   password: passwordSchema,
-  roles: z.array(z.string()).min(1, "Chọn ít nhất một vai trò."),
+  roles: rolesSchema,
 });
-export type CreateStaffValues = z.infer<typeof createStaffSchema>;
+export type CreateStaffFormValues = z.infer<typeof createStaffFormSchema>;
+
+export const resetPasswordFormSchema = z.object({ newPassword: passwordSchema });
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
+
+export const rolesFormSchema = z.object({ roles: rolesSchema });
+export type RolesFormValues = z.infer<typeof rolesFormSchema>;

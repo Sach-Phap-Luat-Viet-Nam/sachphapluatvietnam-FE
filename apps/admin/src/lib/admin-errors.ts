@@ -16,10 +16,11 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   REFERENCE_NOT_FOUND: "Có danh mục, tác giả hoặc văn bản vừa bị xóa. Anh/chị tải lại trang rồi chọn lại.",
   EDITION_NOT_FOUND: "Không tìm thấy ấn bản, có thể trang đã cũ. Anh/chị tải lại trang.",
   UPLOAD_NOT_CONFIGURED: "Máy chủ chưa cấu hình nơi lưu ảnh (Cloudinary). Anh/chị dán link ảnh có sẵn.",
+  EMAIL_TAKEN: "Email này đã được đăng ký cho một tài khoản khác.",
+  USER_NOT_FOUND: "Không tìm thấy tài khoản, có thể trang đã cũ. Anh/chị tải lại trang.",
+  CANNOT_MANAGE_USER: "Không thể đổi vai trò, mật khẩu hoặc trạng thái của chính mình hay Super Admin khác.",
+  ROLE_INVALID: "Có vai trò không hợp lệ. Anh/chị tải lại trang rồi chọn lại.",
   FORBIDDEN: "Tài khoản của anh/chị không có quyền thực hiện thao tác này.",
-  EMAIL_TAKEN: "Email này đã có tài khoản.",
-  CANNOT_REMOVE_OWN_ADMIN: "Anh/chị không tự gỡ được quyền Super Admin của chính mình.",
-  ROLE_INVALID: "Vai trò không hợp lệ.",
 };
 
 const NETWORK_ERROR = "Không kết nối được máy chủ. Anh/chị kiểm tra mạng rồi thử lại.";
