@@ -1,4 +1,4 @@
-import { formatDate, formatDateTime } from "./format-date";
+import { formatDate, formatDateTime, vnDateKey } from "./format-date";
 
 describe("formatDate", () => {
   it("giữ nguyên ngày với chuỗi ngày thuần, không lệch múi giờ", () => {
@@ -18,5 +18,13 @@ describe("formatDate", () => {
 describe("formatDateTime", () => {
   it("hiển thị giờ theo múi giờ Việt Nam", () => {
     expect(formatDateTime("2026-03-10T07:05:00Z")).toBe("14:05 10/03/2026");
+  });
+});
+
+describe("vnDateKey", () => {
+  it("lấy ngày theo giờ Việt Nam, không theo UTC", () => {
+    // 17:30 UTC ngày 15 là 00:30 ngày 16 ở Việt Nam.
+    expect(vnDateKey(new Date("2026-01-15T17:30:00Z"))).toBe("2026-01-16");
+    expect(vnDateKey(new Date("2026-01-15T16:59:00Z"))).toBe("2026-01-15");
   });
 });

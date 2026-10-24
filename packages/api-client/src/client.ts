@@ -3,8 +3,12 @@ import type { Client } from "openapi-fetch";
 
 import { ApiError } from "./api-error";
 import type { paths } from "./generated/schema";
+import type { PendingPaths } from "./pending-paths";
 
-export type ApiClient = Client<paths>;
+/** Route sinh từ OpenAPI cộng các route backend đã có nhưng chưa sinh lại type (`pending-paths.ts`). */
+type ClientPaths = paths & PendingPaths;
+
+export type ApiClient = Client<ClientPaths>;
 
 export interface CreateApiClientOptions {
   /** Gốc URL của backend, ví dụ `http://localhost:5279`. Đường dẫn trong `paths` đã có tiền tố `/api/v1`. */
@@ -19,7 +23,7 @@ export interface CreateApiClientOptions {
  * cookie HttpOnly do backend đặt.
  */
 export function createApiClient({ baseUrl, headers, fetch }: CreateApiClientOptions): ApiClient {
-  return createClient<paths>({
+  return createClient<ClientPaths>({
     baseUrl,
     headers,
     credentials: "include",

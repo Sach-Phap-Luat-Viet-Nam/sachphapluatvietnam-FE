@@ -42,6 +42,19 @@ export function formatDate(value: string | Date | null | undefined): string | nu
   return Number.isNaN(date.getTime()) ? null : dateFormatter.format(date);
 }
 
+// `en-CA` cho định dạng `YYYY-MM-DD`.
+const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: VN_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Ngày theo giờ Việt Nam dạng `2026-01-15`, dùng làm khóa so sánh "cùng ngày" (ví dụ tần suất một lần mỗi ngày). */
+export function vnDateKey(date: Date): string {
+  return dateKeyFormatter.format(date);
+}
+
 /** Định dạng ngày giờ theo giờ Việt Nam, ví dụ `15/01/2026, 14:30`. */
 export function formatDateTime(value: string | Date | null | undefined): string | null {
   if (value === null || value === undefined || value === "") {
