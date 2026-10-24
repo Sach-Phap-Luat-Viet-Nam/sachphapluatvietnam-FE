@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
+import { discountPercent } from "./cart";
 import { etaText, payableShipping } from "./checkout-preview";
 import type { CheckoutPreview } from "./checkout-preview";
 
@@ -45,6 +46,7 @@ export function CheckoutSummary({
   const subtotal = preview?.subtotal ?? fallback.subtotal;
   const quantity = preview ? preview.items.reduce((sum, item) => sum + item.quantity, 0) : fallback.totalQuantity;
   const saved = Math.max(0, listSubtotal - subtotal);
+  const percent = discountPercent(listSubtotal, subtotal);
   const eta = preview ? etaText(preview.eta) : null;
   const shippingFree = preview !== undefined && payableShipping(preview) === 0;
 
@@ -62,7 +64,7 @@ export function CheckoutSummary({
           </Row>
         )}
         {saved > 0 && (
-          <Row term="Giảm giá sách" tone="ok">
+          <Row term={`Giảm giá${percent !== null ? ` (${percent}%)` : ""}`} tone="ok">
             −{formatPrice(saved)}
           </Row>
         )}
@@ -93,6 +95,11 @@ export function CheckoutSummary({
           </div>
         )}
       </dl>
+      {saved > 0 && (
+        <p className="border-ok/50 text-ok bg-ok/10 border px-4 py-3 text-[15px] font-medium">
+          Bạn tiết kiệm {formatPrice(saved)} so với giá bìa.
+        </p>
+      )}
       {preview && preview.appliedPromotions.length > 0 && (
         <ul
           aria-label="Ưu đãi đã áp"

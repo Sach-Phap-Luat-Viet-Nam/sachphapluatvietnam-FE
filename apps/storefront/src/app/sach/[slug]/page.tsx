@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { AlertTriangle, BookOpen, Check } from "lucide-react";
 import { Container, cn } from "@slvn/ui";
 import { formatDate } from "@slvn/utils";
-import { TrustBand } from "@/components/TrustBand";
 import { coverTypeLabel } from "@/lib/labels";
 import { getBook } from "@/features/catalog/api";
 import {
@@ -279,7 +278,8 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
         </div>
       </Container>
 
-      <TrustBand />
+      {/* Chừa khoảng trống trước chân trang */}
+      <div aria-hidden="true" className="h-20 sm:h-24" />
     </main>
   );
 }

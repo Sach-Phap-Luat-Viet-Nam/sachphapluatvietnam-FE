@@ -181,7 +181,7 @@ giỏ, thanh toán, đơn hàng. Bật giảm chuyển động thì chỉ còn c
 ## Hạn chế / việc còn lại
 
 - **Thông tin tài khoản nhận chuyển khoản chưa có**: `BANK_ACCOUNT = null` nên chỉ có COD. Điền ngân hàng, số tài khoản,
-  chủ tài khoản vào `features/ordering/payment.ts` để bật chuyển khoản. `TrustBand` vẫn ghi "hoặc chuyển khoản".
+  chủ tài khoản vào `features/ordering/payment.ts` để bật chuyển khoản.
 - Backend Render (kiểm tra 24/10/2026): `POST /cart/items`, `DELETE /cart/items/{id}` trả 500 `INTERNAL_ERROR`,
   `/health/ready` trả 503 (Redis/CSDL chưa sẵn sàng); `GET /cart`, `GET /books/{slug}`, `POST /shipping/quote` chạy
   được. Chưa thử được thêm giỏ và đặt hàng end-to-end với backend thật.

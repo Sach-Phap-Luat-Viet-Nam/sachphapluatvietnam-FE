@@ -111,7 +111,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
       )}
       {/* Giá luôn ở đáy thẻ để thẳng hàng giữa các thẻ có tên dài ngắn khác nhau. */}
       <div className="mt-auto pt-4">
-        <div className="border-ivory/10 relative flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-t pt-4">
+        <div className="border-ivory/10 relative flex flex-col gap-3 border-t pt-4">
           <BookPrice book={book} />
           {buyable ? cartAction : <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
         </div>

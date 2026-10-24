@@ -37,9 +37,24 @@ function cartOf(items: CartItem[]): Cart {
   };
 }
 
-function quote() {
-  return http.post(`${ORIGIN}/api/v1/shipping/quote`, () =>
-    HttpResponse.json({ shippingFee: 30000, freeShippingThreshold: 300000 }),
+/** Response `POST /checkout/preview` của giỏ có tạm tính `subtotal`: phí ship 30.000 ₫, miễn phí từ 300.000 ₫. */
+function quote(subtotal = 200000, overrides: Record<string, unknown> = {}) {
+  return http.post(`${ORIGIN}/api/v1/checkout/preview`, () =>
+    HttpResponse.json({
+      items: [],
+      subtotal,
+      discount: 0,
+      shippingFee: 30000,
+      shippingDiscount: 0,
+      total: subtotal + 30000,
+      appliedPromotions: [],
+      couponApplied: null,
+      freeShippingThreshold: 300000,
+      amountToFreeShipping: Math.max(0, 300000 - subtotal),
+      eta: null,
+      zoneName: null,
+      ...overrides,
+    }),
   );
 }
 
@@ -75,12 +90,32 @@ describe("CartView", () => {
     expect(screen.getByRole("link", { name: "Đặt hàng" })).toHaveAttribute("href", "/thanh-toan");
   });
 
+  it("applies the automatic promotion from the backend preview to the cart total", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(cartOf([item({ quantity: 2, lineTotal: 300000 })]))),
+      quote(300000, {
+        discount: 25000,
+        shippingFee: 0,
+        total: 275000,
+        appliedPromotions: [
+          { promotionId: 1, name: "Khai trương", kind: "order_discount", couponCode: null, amount: 25000 },
+        ],
+      }),
+    );
+    renderCart();
+
+    const offers = await screen.findByRole("list", { name: "Ưu đãi đã áp" });
+    expect(within(offers).getByText("Khai trương")).toBeVisible();
+    expect(screen.getByText("Giảm giá khuyến mãi")).toBeVisible();
+    expect(screen.getByText("275.000 ₫")).toBeVisible();
+  });
+
   it("shows the discount per line and the savings in the summary", async () => {
     server.use(
       http.get(`${ORIGIN}/api/v1/cart`, () =>
         HttpResponse.json(cartOf([item({ unitPrice: 410000, listPrice: 750000, quantity: 2, lineTotal: 820000 })])),
       ),
-      quote(),
+      quote(820000),
     );
     renderCart();
 

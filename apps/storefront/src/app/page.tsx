@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { Container } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { CategoryStrip } from "@/components/CategoryStrip";
-import { TrustBand } from "@/components/TrustBand";
 import { BookCard } from "@/features/catalog/BookCard";
 import { getBooks, getCategoryTree } from "@/features/catalog/api";
 import type { BookSummary, CategoryNode } from "@/features/catalog/schemas";
@@ -182,7 +181,8 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <TrustBand />
+      {/* Chừa khoảng trống trước chân trang */}
+      <div aria-hidden="true" className="h-20 sm:h-24" />
     </main>
   );
 }

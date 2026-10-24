@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container, cn } from "@slvn/ui";
 import { CategoryStrip } from "@/components/CategoryStrip";
-import { TrustBand } from "@/components/TrustBand";
 import { ActiveFilters } from "@/features/catalog/ActiveFilters";
 import { BookCard } from "@/features/catalog/BookCard";
 import { CatalogFilters } from "@/features/catalog/CatalogFilters";
@@ -183,7 +182,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
         </section>
       </Container>
 
-      <TrustBand />
+      {/* Chừa khoảng trống trước chân trang */}
+      <div aria-hidden="true" className="h-20 sm:h-24" />
     </main>
   );
 }
