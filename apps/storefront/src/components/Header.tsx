@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
+import { CartLink } from "@/features/ordering/CartLink";
 import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
 import { PromoBar } from "./PromoBar";
@@ -8,7 +9,7 @@ export function Header() {
   return (
     <header className="motion-drop bg-ink-deep relative z-20">
       <PromoBar />
-      <Container className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-4 sm:py-5">
+      <Container className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4 py-4 sm:gap-x-8 sm:py-5">
         <BrandMark />
         <form
           action="/sach"
@@ -34,7 +35,8 @@ export function Header() {
             Tìm
           </button>
         </form>
-        <nav aria-label="Tài khoản">
+        <nav aria-label="Tài khoản" className="flex items-center gap-1 sm:gap-5">
+          <CartLink />
           <AccountNav />
         </nav>
       </Container>

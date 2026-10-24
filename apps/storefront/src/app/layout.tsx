@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { QueryProvider } from "@/components/QueryProvider";
 import { PromoPopup } from "@/features/popup/PromoPopup";
 import "./globals.css";
 
@@ -36,10 +37,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           Đến nội dung chính
         </a>
-        <Header />
-        {children}
-        <Footer />
-        <PromoPopup />
+        <QueryProvider>
+          <Header />
+          {children}
+          <Footer />
+          <PromoPopup />
+        </QueryProvider>
       </body>
     </html>
   );

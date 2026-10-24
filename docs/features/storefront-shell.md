@@ -10,7 +10,8 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
 
 - **Theme**: token màu riêng của storefront nằm trong `src/app/globals.css` (`@theme`), ghi đè token của `@slvn/ui` chỉ
   trong app này; theme chung của package vẫn sáng cho admin. Font nạp bằng `next/font` ở `layout.tsx`.
-- **Header**: logo, ô tìm kiếm (form GET tới `/sach`), link Đăng nhập (đã đăng nhập thì hiện tên và nút Đăng xuất). Chưa hiện giỏ hàng vì chức năng giỏ chưa làm.
+- **Header**: logo, ô tìm kiếm (form GET tới `/sach`), icon giỏ hàng kèm số cuốn (`storefront-ordering.md`), link Đăng
+  nhập (đã đăng nhập thì hiện tên và nút Đăng xuất).
 - **Footer**: chỉ link tới trang đã có và thông tin giao hàng/thanh toán có thật (BR-14); chưa có hotline, địa chỉ.
   Link "Đăng nhập" (`FooterLoginLink`) ẩn khi khách đã đăng nhập; trong lúc đang kiểm tra phiên vẫn hiện.
 - **`/sach`** render trên server, phân trang **24 sách/trang**:
@@ -23,7 +24,7 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
   backend sẽ từ chối bị bỏ qua, khoảng giá ngược được đảo lại.
 - **Thẻ sách**: bìa đứng trên "kệ", nhãn giảm giá hoặc "Sắp phát hành", loại sách, ấn bản · năm, dòng "Cập nhật đến",
   giá bán và giá bìa gạch ngang, trạng thái (sắp phát hành, ngừng bán, tạm hết hàng – bìa mờ, chưa có giá). Bấm bìa
-  hoặc tên sách mở dialog xem nhanh.
+  hoặc tên sách mở dialog xem nhanh, trong đó có nút sang trang chi tiết `/sach/<slug>` (`storefront-ordering.md`).
 - Ảnh bìa dùng `coverImageUrl`; chưa có ảnh thì vẽ bìa mạ vàng từ tên sách.
 - **`/dang-nhap`**: React Hook Form + Zod, lỗi theo field, ẩn/hiện mật khẩu, "Giữ đăng nhập 30 ngày", link mua sách không
   cần tài khoản. Gọi API đăng nhập thật, chi tiết ở `auth-login.md`.
@@ -58,7 +59,6 @@ thành `number`, số thành `number | string`). Lỗi API (`ApiError`) hoặc r
 
 ## Hạn chế / việc còn lại
 
-- Chưa có trang chi tiết `/sach/[slug]`, giỏ hàng, đặt mua, tra cứu đơn; nút "Thêm vào giỏ" trong thiết kế chưa hiện.
 - Ảnh bìa dùng `next/image` với `unoptimized` vì chưa chốt CDN; khi có domain ảnh thì khai báo `images.remotePatterns`.
 - Backend tìm kiếm có phân biệt dấu; `sort=newest` đang đưa sách chưa có `releaseDate` lên đầu (lỗi đã biết của backend).
 - Đề nghị backend sửa OpenAPI (enum dạng chuỗi, số dạng integer, tên query param chữ thường) để bỏ schema Zod tự viết.

@@ -1,6 +1,9 @@
 import type { paths } from "@slvn/api-client";
 import { formatPrice } from "@slvn/utils";
+import { COVER_TYPE_LABELS } from "@/lib/labels";
 import type { BookSummary, CategoryNode } from "./schemas";
+
+export { COVER_TYPE_LABELS };
 
 export type CatalogParams = Record<string, string | string[] | undefined>;
 export type BooksQuery = NonNullable<paths["/api/v1/books"]["get"]["parameters"]["query"]>;
@@ -17,7 +20,6 @@ export const BOOK_TYPE_LABELS = {
   textbook: "Giáo trình",
   monograph: "Sách chuyên khảo",
 } as const;
-export const COVER_TYPE_LABELS = { paperback: "Bìa mềm", hardcover: "Bìa cứng" } as const;
 export const SORT_LABELS = {
   newest: "Mới phát hành",
   price_asc: "Giá: thấp đến cao",

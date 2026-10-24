@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef } from "react";
-import { Check, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Check, X } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatDiscount, formatPrice } from "@slvn/utils";
+import { bookPath } from "./book-detail";
 import { availability, bookTypeLabel } from "./catalog";
 import type { AvailabilityTone } from "./catalog";
 import type { BookSummary } from "./schemas";
@@ -111,7 +113,7 @@ export function BookCard({ book, index }: BookCardProps) {
       <dialog
         ref={dialog}
         aria-labelledby={`book-${book.id}`}
-        className="bg-panel text-ivory border-gold/30 backdrop:bg-ink/80 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-auto border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
+        className="modal bg-panel text-ivory border-gold/30 backdrop:bg-ink/80 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-auto border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
       >
         <div className="mb-6 flex items-center justify-between">
           <span className="text-gold text-xs tracking-[0.3em]">XEM NHANH</span>
@@ -142,6 +144,12 @@ export function BookCard({ book, index }: BookCardProps) {
               <BookPrice book={book} />
               <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>
             </div>
+            <Link
+              href={bookPath(book.slug)}
+              className="btn-sweep bg-gold text-ink mt-6 flex min-h-12 items-center justify-center gap-2.5 px-6 font-semibold"
+            >
+              {status.tone === "ok" ? "Xem chi tiết và đặt mua" : "Xem chi tiết"} <ArrowRight size={17} />
+            </Link>
           </div>
         </div>
       </dialog>

@@ -372,6 +372,44 @@
   .sheet::backdrop {
     background: rgb(5 9 16 / 0.7);
   }
+
+  /*
+   * Dialog giữa màn hình: mở thì nổi lên và rõ dần, đóng thì mờ nhanh. Đóng cần giữ `display`/`overlay` tới hết
+   * transition (allow-discrete); trình duyệt chưa hỗ trợ thì chỉ có hiệu ứng lúc mở.
+   */
+  .modal,
+  .modal::backdrop {
+    opacity: 0;
+    transition:
+      opacity 0.2s ease-in,
+      transform 0.2s ease-in,
+      overlay 0.2s allow-discrete,
+      display 0.2s allow-discrete;
+  }
+  .modal {
+    transform: translateY(12px) scale(0.97);
+  }
+  .modal[open],
+  .modal[open]::backdrop {
+    opacity: 1;
+    transition:
+      opacity 0.35s ease-out,
+      transform 0.5s var(--ease-out-soft),
+      overlay 0.35s allow-discrete,
+      display 0.35s allow-discrete;
+  }
+  .modal[open] {
+    transform: none;
+  }
+  @starting-style {
+    .modal[open],
+    .modal[open]::backdrop {
+      opacity: 0;
+    }
+    .modal[open] {
+      transform: translateY(24px) scale(0.95);
+    }
+  }
 }
 
 :root {

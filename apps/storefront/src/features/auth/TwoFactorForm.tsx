@@ -8,7 +8,7 @@ import { isApiError } from "@slvn/api-client";
 import { authErrorMessage, fieldErrors, loginWithTwoFactor, twoFactorSchema } from "@slvn/auth";
 import type { TwoFactorValues } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
+import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 
 export interface TwoFactorFormProps {
   twoFactorToken: string;

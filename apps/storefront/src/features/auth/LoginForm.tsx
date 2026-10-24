@@ -9,7 +9,7 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { authErrorMessage, fieldErrors, login, loginSchema, safeNextPath } from "@slvn/auth";
 import type { LoginValues } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
+import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { TwoFactorForm } from "./TwoFactorForm";
 
 const LOGIN_FIELDS = ["email", "password"] as const;
