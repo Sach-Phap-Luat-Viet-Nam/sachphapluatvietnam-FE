@@ -38,7 +38,7 @@ export function shouldShowPopup(popup: Popup, stores: PopupStores, now: Date): b
     case "every_visit":
       return true;
     case "once_per_session":
-      return read(stores.session, key) === null;
+      return true;
     case "once_per_day":
       return read(stores.local, key) !== vnDateKey(now);
   }
