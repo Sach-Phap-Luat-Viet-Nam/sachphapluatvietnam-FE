@@ -47,6 +47,7 @@ apps/
   admin/                      # Next.js, cổng 3001, cấu trúc giống storefront
 packages/
   api-client/                 # Client openapi-fetch, type sinh tự động (src/generated/), xử lý ProblemDetails
+  auth/                       # Phiên đăng nhập phía trình duyệt, login/2FA, thông báo lỗi auth (dùng chung 2 app)
   ui/                         # Component giao diện dùng chung, theme Tailwind (màu, font)
   utils/                      # Hàm thuần: định dạng tiền VNĐ, ngày giờ, slug, ...
   config/                     # tsconfig, eslint, prettier dùng chung

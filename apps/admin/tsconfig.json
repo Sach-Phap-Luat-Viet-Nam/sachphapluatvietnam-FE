@@ -1,0 +1,13 @@
+{
+  "extends": "@slvn/config/tsconfig/nextjs.json",
+  "compilerOptions": { "paths": { "@/*": ["./src/*"] } },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "e2e/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

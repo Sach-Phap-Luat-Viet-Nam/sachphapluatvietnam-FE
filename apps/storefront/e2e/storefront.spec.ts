@@ -50,7 +50,13 @@ test("navigates to login, validates fields and signs in", async ({ page }, testI
               accessToken: "e2e-token",
               tokenType: "Bearer",
               expiresIn: 900,
-              user: { id: 1, email: "demo@example.com", fullName: "Khách Demo", roles: ["customer"] },
+              user: {
+                id: 1,
+                email: "demo@example.com",
+                fullName: "Khách Demo",
+                roles: ["customer"],
+                requiresTwoFactorSetup: false,
+              },
             },
           },
         });

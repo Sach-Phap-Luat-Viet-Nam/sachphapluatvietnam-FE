@@ -5,12 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
+import { authErrorMessage, fieldErrors, loginWithTwoFactor, twoFactorSchema } from "@slvn/auth";
+import type { TwoFactorValues } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { loginWithTwoFactor } from "./api";
-import { authErrorMessage, fieldErrors } from "./auth-errors";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
-import { twoFactorSchema } from "./schemas";
-import type { TwoFactorValues } from "./schemas";
 
 export interface TwoFactorFormProps {
   twoFactorToken: string;

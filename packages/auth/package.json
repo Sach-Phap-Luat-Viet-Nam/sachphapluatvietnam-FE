@@ -1,0 +1,22 @@
+{
+  "name": "@slvn/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@slvn/api-client": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@slvn/config": "workspace:*",
+    "@types/node": "^24.19.2",
+    "eslint": "^9.39.5"
+  }
+}

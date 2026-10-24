@@ -5,14 +5,18 @@ import type { ApiClient } from "@slvn/api-client";
 // Phiên đăng nhập phía trình duyệt (docs/api_reference.md, mục Xác thực): access token chỉ nằm trong bộ nhớ,
 // refresh token nằm trong cookie HttpOnly `sl_refresh` do backend đặt. Chỉ import từ Client Component.
 
+/** Thông tin người dùng giữ trong phiên (một phần của `UserResponse`). */
 export const sessionUserSchema = z.object({
   id: z.number(),
   email: z.string(),
   fullName: z.string(),
   roles: z.array(z.string()),
+  /** Nhân viên chưa bật 2FA: phải sang màn bật 2FA, gọi API Admin sẽ bị 403. */
+  requiresTwoFactorSetup: z.boolean(),
 });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 
+/** `AuthResponse` của backend. Parse bằng Zod vì type sinh từ OpenAPI để số là `number | string`. */
 export const authResponseSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number(),
@@ -20,6 +24,7 @@ export const authResponseSchema = z.object({
 });
 export type AuthSession = z.infer<typeof authResponseSchema>;
 
+/** `unknown`: chưa kiểm tra cookie; `anonymous`: chưa đăng nhập; `authenticated`: đã có access token. */
 export type SessionState =
   { status: "unknown" } | { status: "anonymous" } | { status: "authenticated"; user: SessionUser };
 
@@ -70,6 +75,7 @@ export function subscribeSession(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
+/** Trạng thái phiên hiện tại, dùng với `useSyncExternalStore`. */
 export function getSessionState(): SessionState {
   return state;
 }
@@ -79,12 +85,14 @@ export function getServerSessionState(): SessionState {
   return UNKNOWN;
 }
 
+/** Lưu access token vào bộ nhớ sau khi đăng nhập, bật 2FA hoặc refresh. */
 export function startSession(session: AuthSession): void {
   accessToken = session.accessToken;
   writeHint(true);
   setState({ status: "authenticated", user: session.user });
 }
 
+/** Xóa phiên ở trình duyệt, không gọi backend. Đăng xuất thật dùng `logout`. */
 export function clearSession(): void {
   accessToken = null;
   writeHint(false);

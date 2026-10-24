@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import type * as AuthSessionModule from "./auth-session";
+import type * as AuthSessionModule from "./session";
 
 const ORIGIN = window.location.origin;
 const HINT_KEY = "slvn:has-session";
@@ -36,7 +36,7 @@ beforeEach(async () => {
   // Phiên là state cấp module nên nạp lại module cho từng test.
   vi.resetModules();
   localStorage.clear();
-  session = await import("./auth-session");
+  session = await import("./session");
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

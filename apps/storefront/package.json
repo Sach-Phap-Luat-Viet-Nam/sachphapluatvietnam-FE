@@ -14,6 +14,7 @@
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",
     "@slvn/api-client": "workspace:*",
+    "@slvn/auth": "workspace:*",
     "@slvn/ui": "workspace:*",
     "@slvn/utils": "workspace:*",
     "@tanstack/react-query": "^5.104.5",

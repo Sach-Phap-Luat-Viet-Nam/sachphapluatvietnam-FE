@@ -7,15 +7,17 @@ mã 6 số. Phiên được giữ khi tải lại trang, Header hiện tên khá
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
-App **storefront**. Mọi request đi cùng origin qua proxy `/api/v1/*` (`src/proxy.ts`) vì backend chưa bật CORS và cookie
-`sl_refresh` là `SameSite=Strict`.
+App **storefront**. Mọi request đi cùng origin qua proxy `/api/v1/*` (`src/proxy.ts`, logic chung ở
+`backendProxyTarget` của `@slvn/api-client`) vì backend chưa bật CORS và cookie `sl_refresh` là `SameSite=Strict`.
+Logic phiên, `login`, schema, thông báo lỗi và `safeNextPath` nằm ở package `@slvn/auth` (`packages/auth/src`), dùng
+chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm ở `features/auth/` của từng app.
 
 - **Đăng nhập** (`features/auth/LoginForm.tsx`): validate bằng Zod, gọi `/auth/login`.
-  - `requiresTwoFactor = false`: lưu phiên, chuyển tới `?next=` (chỉ nhận path nội bộ, xem `redirect.ts`), mặc định `/`.
+  - `requiresTwoFactor = false`: lưu phiên, chuyển tới `?next=` (chỉ nhận path nội bộ, xem `packages/auth/src/redirect.ts`), mặc định `/`.
   - `requiresTwoFactor = true`: chuyển sang bước nhập mã (`TwoFactorForm.tsx`), gọi `/auth/login/2fa` với
     `twoFactorToken`. Mã sai thì báo ở ô nhập; `twoFactorToken` quá 5 phút thì quay lại bước mật khẩu kèm thông báo.
   - Nút gửi bị khóa trong lúc chờ và lúc chuyển trang để không gửi trùng.
-- **Phiên** (`lib/auth-session.ts`):
+- **Phiên** (`packages/auth/src/session.ts`):
   - Access token chỉ giữ trong bộ nhớ của tab, không lưu `localStorage`/cookie. Refresh token là cookie HttpOnly
     `sl_refresh` do backend đặt.
   - Trạng thái phiên (`unknown` / `anonymous` / `authenticated`) đọc qua `useSyncExternalStore`.
@@ -41,7 +43,7 @@ App **storefront**. Mọi request đi cùng origin qua proxy `/api/v1/*` (`src/p
 | POST   | `/api/v1/auth/refresh`   | Khôi phục phiên, refresh khi 401 | `INVALID_REFRESH_TOKEN` (401) → chưa đăng nhập          |
 | POST   | `/api/v1/auth/logout`    | Đăng xuất                        | 401 coi như đã đăng xuất                                |
 
-- Thông báo lỗi ở `features/auth/auth-errors.ts`: các mã ở trên có câu chữ riêng, mã khác dùng `title` của `ApiError`,
+- Thông báo lỗi ở `packages/auth/src/errors.ts`: các mã ở trên có câu chữ riêng, mã khác dùng `title` của `ApiError`,
   lỗi 5xx kèm `traceId`, mất mạng báo "Không kết nối được máy chủ".
 - Response parse bằng Zod (`authResponseSchema`) vì type sinh từ OpenAPI để số là `number | string`.
 
@@ -56,7 +58,7 @@ Không thêm biến mới. Dùng `API_BASE_URL` (và `PROXY_SECRET` trên Vercel
 - Production cần FE và API **cùng site** vì cookie là `SameSite=Strict` (docs/api_reference.md).
 - Chưa gọi `GET /api/v1/cart` sau đăng nhập để gộp giỏ khách (chưa có tính năng giỏ).
 - Chưa đồng bộ đăng xuất giữa các tab: tab khác vẫn hiện tên đến khi tải lại trang hoặc gặp 401.
-- Tài khoản nhân viên chưa bật 2FA (`requiresTwoFactorSetup`) vẫn đăng nhập được ở storefront; màn bật 2FA thuộc app
-  admin.
+- Tài khoản nhân viên chưa bật 2FA (`requiresTwoFactorSetup`) vẫn đăng nhập được ở storefront; màn bật 2FA ở app
+  admin (`/xac-thuc-hai-lop`).
 - Chưa có trang đăng ký, quên mật khẩu, hồ sơ; chưa có luồng đăng nhập hộ `/impersonate` (fast-login-super-admin.md).
 - Trang `/dang-nhap` chưa tự chuyển đi khi khách đã đăng nhập.

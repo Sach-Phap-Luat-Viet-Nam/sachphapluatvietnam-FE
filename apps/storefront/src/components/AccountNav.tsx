@@ -3,7 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { LogOut, UserRound } from "lucide-react";
-import { getServerSessionState, getSessionState, logout, restoreSession, subscribeSession } from "@/lib/auth-session";
+import { getServerSessionState, getSessionState, logout, restoreSession, subscribeSession } from "@slvn/auth";
 
 const LOGOUT_ERROR = "Chưa đăng xuất được, vui lòng thử lại.";
 

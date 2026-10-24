@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { unwrap } from "@slvn/api-client";
-import { authApi, authResponseSchema, startSession } from "@/lib/auth-session";
+import { authApi, authResponseSchema, startSession } from "./session";
+import type { SessionUser } from "./session";
 import type { LoginValues } from "./schemas";
 
 const loginResponseSchema = z.object({
@@ -9,7 +10,8 @@ const loginResponseSchema = z.object({
   session: authResponseSchema.nullable(),
 });
 
-export type LoginResult = { status: "signed-in" } | { status: "two-factor"; twoFactorToken: string };
+/** Kết quả bước nhập mật khẩu: đã có phiên, hoặc cần nhập tiếp mã 6 số. */
+export type LoginResult = { status: "signed-in"; user: SessionUser } | { status: "two-factor"; twoFactorToken: string };
 
 /** Đăng nhập bằng email + mật khẩu. Tài khoản đã bật 2FA thì trả `twoFactorToken` để gọi `loginWithTwoFactor`. */
 export async function login(values: LoginValues): Promise<LoginResult> {
@@ -21,10 +23,14 @@ export async function login(values: LoginValues): Promise<LoginResult> {
     throw new Error("Login response has neither session nor twoFactorToken");
   }
   startSession(data.session);
-  return { status: "signed-in" };
+  return { status: "signed-in", user: data.session.user };
 }
 
-export async function loginWithTwoFactor(twoFactorToken: string, code: string): Promise<void> {
-  const data = await unwrap(authApi().POST("/api/v1/auth/login/2fa", { body: { twoFactorToken, code } }));
-  startSession(authResponseSchema.parse(data));
+/** Bước nhập mã 6 số, dùng `twoFactorToken` từ `login` (hạn 5 phút). Trả người dùng của phiên mới. */
+export async function loginWithTwoFactor(twoFactorToken: string, code: string): Promise<SessionUser> {
+  const session = authResponseSchema.parse(
+    await unwrap(authApi().POST("/api/v1/auth/login/2fa", { body: { twoFactorToken, code } })),
+  );
+  startSession(session);
+  return session.user;
 }

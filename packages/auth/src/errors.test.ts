@@ -1,5 +1,5 @@
 import { ApiError } from "@slvn/api-client";
-import { authErrorMessage, fieldErrors } from "./auth-errors";
+import { authErrorMessage, fieldErrors } from "./errors";
 
 describe("authErrorMessage", () => {
   it("dùng câu chữ riêng cho mã lỗi đăng nhập", () => {

@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import "@slvn/ui/theme.css";
+
+/* Admin dùng theme sáng mặc định của @slvn/ui (navy chủ đạo, đỏ đô nhấn), không ghi đè token. */
+
+@layer base {
+  body {
+    @apply bg-surface text-foreground font-sans text-base antialiased;
+  }
+  button,
+  select,
+  summary {
+    @apply cursor-pointer;
+  }
+  a,
+  button,
+  input,
+  select,
+  summary {
+    @apply focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+  input::placeholder {
+    @apply text-muted;
+  }
+}

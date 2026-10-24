@@ -43,24 +43,41 @@ từ trình duyệt gọi `/api/v1/*` trên chính domain storefront, được `
 - Cookie HttpOnly của backend (`sl_refresh`, `sl_cart`) được đặt trên domain storefront. Backend không được đặt thuộc
   tính `Domain` cho cookie, nếu không trình duyệt sẽ bỏ cookie.
 
-## Lỗi admin làm dừng deploy storefront
+## Deploy admin (project Vercel riêng)
 
-Log ngày 23/10/2026 cho thấy Vercel gọi script build tại repo root, script này từng build cả hai app.
-`apps/admin` chưa có `app` hoặc `pages`, nên clean build trả lỗi:
+Admin là một project Vercel **riêng**, import cùng repo này. Cấu hình giống storefront, chỉ khác Root Directory:
 
-```text
-Couldn't find any `pages` or `app` directory. Please create one under the project root
-```
+| Thiết lập                                                  | Giá trị                                                                     |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Root Directory                                             | `apps/admin`                                                                |
+| Framework Preset                                           | Next.js                                                                     |
+| Include files outside the root directory in the Build Step | Bật, để dùng `packages/*`                                                   |
+| Build Command                                              | Được ghim trong `apps/admin/vercel.json`: `pnpm --filter @slvn/admin build` |
+| Biến môi trường                                            | `API_BASE_URL`, `PROXY_SECRET` giống storefront (`apps/admin/.env.example`) |
 
-Storefront sau đó bị hủy bằng SIGKILL do pnpm dừng cả nhóm build, không phải lỗi compile của storefront.
-Script `pnpm build` tại repo root hiện chỉ build `@slvn/storefront` cho đến khi admin được triển khai.
-Khi có admin, cấu hình một project Vercel riêng với Root Directory tương ứng và kiểm tra lại script build toàn repo.
+Các bước: Vercel → **Add New → Project** → chọn repo → đặt Root Directory `apps/admin` → khai báo 2 biến → Deploy.
+
+### Gắn domain / subdomain
+
+- Chưa có tên miền riêng: đổi tên project (Settings → General) để có địa chỉ dạng `<ten-project>.vercel.app`, ví dụ
+  `sachphapluatvietnam-admin.vercel.app`.
+- Có tên miền riêng: vào project admin → **Domains** → thêm `admin.<ten-mien>`, rồi tạo bản ghi **CNAME** `admin` ở nhà
+  cung cấp DNS với đúng giá trị Vercel hiển thị. SSL do Vercel tự cấp.
+- Cookie `sl_refresh` là host-only nên phiên admin và storefront tách riêng theo domain. `vercel.app` nằm trong Public
+  Suffix List nên hai project `*.vercel.app` cũng không dùng chung cookie.
+
+### Ghi chú lịch sử: lỗi admin làm dừng deploy storefront
+
+Log ngày 23/10/2026: Vercel gọi script build ở repo root, lúc đó build cả hai app trong khi `apps/admin` chưa có `app/`
+(`Couldn't find any pages or app directory`), pnpm dừng cả nhóm nên storefront bị SIGKILL. Từ đó mỗi project ghim
+Build Command trong `vercel.json` của app mình. Script `pnpm build` ở root nay build cả hai app (admin đã có trang).
 
 ## Kiểm tra deployment
 
-1. Build Logs phải chạy `@slvn/storefront`, không còn `apps/admin build`.
+1. Build Logs của từng project chỉ chạy đúng app của project đó (`@slvn/storefront` hoặc `@slvn/admin`).
 2. Route output có `/`, `/sach`, `/dang-nhap`.
 3. Deployment mới nhất có trạng thái Ready và được gán domain production.
-4. `/` chuyển đến `/sach`; `/sach` và `/dang-nhap` trả HTTP 200.
+4. Storefront: `/` chuyển đến `/sach`; `/sach` và `/dang-nhap` trả HTTP 200.
+5. Admin: `/dang-nhap` và `/robots.txt` trả HTTP 200; mở `/` khi chưa đăng nhập thì chuyển về `/dang-nhap`.
 
 Build local chỉ xác nhận source build được; không xác nhận dashboard hay domain đã được cập nhật.

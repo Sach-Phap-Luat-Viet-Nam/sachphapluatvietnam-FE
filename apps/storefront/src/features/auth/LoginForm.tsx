@@ -6,13 +6,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { authErrorMessage, fieldErrors, login, loginSchema, safeNextPath } from "@slvn/auth";
+import type { LoginValues } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { login } from "./api";
-import { authErrorMessage, fieldErrors } from "./auth-errors";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
-import { safeNextPath } from "./redirect";
-import { loginSchema } from "./schemas";
-import type { LoginValues } from "./schemas";
 import { TwoFactorForm } from "./TwoFactorForm";
 
 const LOGIN_FIELDS = ["email", "password"] as const;
