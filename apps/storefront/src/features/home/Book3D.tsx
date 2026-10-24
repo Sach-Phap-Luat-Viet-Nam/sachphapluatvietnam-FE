@@ -1,21 +1,24 @@
 import Image from "next/image";
 import { Scale } from "lucide-react";
 
+/** Kích thước bìa (tỷ lệ ~1:√2 của sách) và độ dày gáy theo nơi đặt. */
+const BOOK_SIZES = {
+  hero: "h-77.5 w-55 [--book-depth:40px] sm:h-102.5 sm:w-72.5 sm:[--book-depth:56px]",
+  detail: "h-92 w-65 [--book-depth:48px] sm:h-118 sm:w-83 sm:[--book-depth:64px]",
+} as const;
+
 export interface Book3DProps {
   title: string;
   coverImageUrl: string | null;
+  size?: keyof typeof BOOK_SIZES;
 }
 
-/** Cuốn sách 3D (bìa, gáy, mép giấy, bìa sau) cho hero; nghiêng theo biến CSS của HeroSpotlight. */
-export function Book3D({ title, coverImageUrl }: Book3DProps) {
+/** Cuốn sách 3D (bìa, gáy, mép giấy, bìa sau); nghiêng theo biến CSS của HeroSpotlight bao ngoài. */
+export function Book3D({ title, coverImageUrl, size = "hero" }: Book3DProps) {
   return (
     <div className="book-reveal perspective-[1500px]">
       <div className="book-stage">
-        <div
-          role="img"
-          aria-label={`Bìa sách ${title}`}
-          className="book-3d h-77.5 w-55 [--book-depth:40px] sm:h-102.5 sm:w-72.5 sm:[--book-depth:56px]"
-        >
+        <div role="img" aria-label={`Bìa sách ${title}`} className={`book-3d ${BOOK_SIZES[size]}`}>
           <div className="book-front bg-cover-navy flex p-4 sm:p-5.5">
             {coverImageUrl ? (
               <Image
