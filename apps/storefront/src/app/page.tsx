@@ -132,20 +132,25 @@ export default async function HomePage() {
         }))}
       />
 
-      <Container className="py-20 sm:py-24">
-        <section aria-labelledby="new-books" className="flex flex-col gap-6 sm:gap-11">
-          <div className="motion-reveal flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-            <div className="flex max-w-xl flex-col gap-3">
+      <section aria-labelledby="new-books" className="shelf-lamp">
+        <Container className="flex flex-col gap-8 py-20 sm:gap-14 sm:py-28">
+          <div className="motion-reveal flex flex-wrap items-end justify-between gap-x-6 gap-y-6">
+            <div className="flex max-w-xl flex-col gap-4">
               <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em]">
                 <span className="bg-gold h-px w-10" />
                 VỪA LÊN KỆ
               </p>
-              <h2 id="new-books" className="font-editorial text-4xl leading-tight font-bold sm:text-[52px]">
-                Mới phát hành
+              <h2 id="new-books" className="font-editorial text-[42px] leading-[1.05] font-bold sm:text-6xl">
+                Mới <span className="foil-text font-medium italic">phát hành</span>
               </h2>
-              <p className="text-sand leading-7">Những ấn bản vừa in, mỗi cuốn ghi rõ văn bản được cập nhật đến đâu.</p>
+              <p className="text-sand text-[17px] leading-8">
+                Những ấn bản vừa in, mỗi cuốn ghi rõ văn bản được cập nhật đến đâu.
+              </p>
             </div>
-            <Link href="/sach?sort=newest" className="link-underline flex items-center gap-2.5 py-1.5 text-[15px]">
+            <Link
+              href="/sach?sort=newest"
+              className="btn-sweep border-gold/50 hover:text-ink flex h-12 items-center gap-2.5 border px-6 text-[15px] font-medium transition-colors duration-500"
+            >
               Xem tất cả sách mới
               <ArrowRight size={16} />
             </Link>
@@ -154,9 +159,9 @@ export default async function HomePage() {
             // Mobile/tablet: kệ vuốt ngang, lộ một phần cuốn kế tiếp để gợi ý vuốt; desktop: lưới 4 cột.
             // Khoảng trống trên bìa trong BookCard đã đủ cho sách nhấc lên khi hover nên vùng cuộn không cắt mất.
             <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:none] gap-5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
-              {books.map((book) => (
+              {books.map((book, index) => (
                 <li key={book.id} className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
-                  <BookCard book={book} />
+                  <BookCard book={book} index={index + 1} />
                 </li>
               ))}
             </ul>
@@ -165,8 +170,8 @@ export default async function HomePage() {
               Tủ sách đang được cập nhật. Sách mới sẽ sớm lên kệ.
             </p>
           )}
-        </section>
-      </Container>
+        </Container>
+      </section>
 
       <TrustBand />
     </main>
