@@ -70,9 +70,16 @@ describe("BookCreate", () => {
     let body: unknown;
     server.use(
       http.post(`${ORIGIN}/api/v1/admin/books`, async ({ request }) => {
-        const json: Record<string, unknown> = await request.json();
-        body = json;
-        return HttpResponse.json(bookResponse(json), { status: 201 });
+        body = await request.json();
+        return HttpResponse.json(
+          bookResponse({
+            title: "Bộ luật Dân sự 2026",
+            slug: "bo-luat-dan-su-2026",
+            bookType: "commentary",
+            status: "draft",
+          }),
+          { status: 201 },
+        );
       }),
     );
     const user = userEvent.setup();

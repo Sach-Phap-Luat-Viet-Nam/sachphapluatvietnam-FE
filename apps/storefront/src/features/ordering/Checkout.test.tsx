@@ -238,7 +238,7 @@ describe("Checkout", () => {
     renderCheckout();
 
     // Địa chỉ mặc định được chọn sẵn và điền vào form; email lấy từ hồ sơ.
-    expect(await screen.findByRole("radio", { name: /1 Xuân Thủy/ })).toBeChecked();
+    expect(await screen.findByRole("radio", { name: /Phường Cầu Giấy/ })).toBeChecked();
     await vi.waitFor(() => expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("Hà Nội"));
     expect(screen.getByLabelText("Họ và tên")).toHaveValue("Trần Thị B");
     expect(screen.getByLabelText("Email (không bắt buộc)")).toHaveValue("a@example.com");
