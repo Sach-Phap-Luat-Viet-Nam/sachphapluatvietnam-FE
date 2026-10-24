@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
+import { DevApiMocking } from "@/components/DevApiMocking";
 import { Footer } from "@/components/Footer";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ZaloContact } from "@/components/ZaloContact";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Footer />
           <PromoPopup />
           <ZaloContact />
+          <DevApiMocking />
         </QueryProvider>
       </body>
     </html>

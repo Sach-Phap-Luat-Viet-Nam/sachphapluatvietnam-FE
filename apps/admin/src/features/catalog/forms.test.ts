@@ -44,7 +44,14 @@ const EDITION: Edition = {
     },
   ],
   legalDocuments: [
-    { id: 5, docNumber: "91/2015/QH13", docType: "code", title: "Bộ luật Dân sự", issuedDate: null, effectiveDate: null },
+    {
+      id: 5,
+      docNumber: "91/2015/QH13",
+      docType: "code",
+      title: "Bộ luật Dân sự",
+      issuedDate: null,
+      effectiveDate: null,
+    },
   ],
 };
 

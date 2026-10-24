@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ImageUp } from "lucide-react";
 import { buttonClassName, cn } from "@slvn/ui";
 import { adminErrorMessage } from "@/lib/admin-errors";
-import { ImageUploadError, optimizedImageUrl, uploadImage } from "@/lib/image-upload";
+import { ImageUploadError, isPreviewableImageUrl, optimizedImageUrl, uploadImage } from "@/lib/image-upload";
 import type { UploadTarget } from "@/lib/image-upload";
 import { fieldA11y } from "./Field";
 import { FIELD_ERROR, HINT, INPUT, LABEL } from "./form-styles";
@@ -64,7 +64,7 @@ export function ImageField({ id, label, value, onChange, target, alt, error, opt
             preview.className,
           )}
         >
-          {value ? (
+          {isPreviewableImageUrl(value) ? (
             // `unoptimized`: link có thể ở bất kỳ host nào khi backend chưa cấu hình Cloudinary.
             <Image
               src={optimizedImageUrl(value)}
@@ -75,7 +75,9 @@ export function ImageField({ id, label, value, onChange, target, alt, error, opt
               className="h-full w-full object-contain"
             />
           ) : (
-            <span className="text-muted px-3 text-center text-sm">Chưa có ảnh</span>
+            <span className="text-muted px-3 text-center text-sm">
+              {value ? "Link ảnh chưa hợp lệ" : "Chưa có ảnh"}
+            </span>
           )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-3">

@@ -207,7 +207,11 @@ function CategoryForm({ category, categories, onCancel, onSaved }: CategoryFormP
         />
       </Field>
       <Field id="category-parent" label="Danh mục cha" error={errors.parentId?.message}>
-        <select {...register("parentId")} {...fieldA11y("category-parent", errors.parentId?.message)} className={SELECT}>
+        <select
+          {...register("parentId")}
+          {...fieldA11y("category-parent", errors.parentId?.message)}
+          className={SELECT}
+        >
           <option value="">— Danh mục gốc —</option>
           {parentOptions.map((row) => (
             <option key={row.id} value={String(row.id)}>

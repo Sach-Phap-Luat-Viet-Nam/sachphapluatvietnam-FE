@@ -86,7 +86,9 @@ export function BookList() {
         <LoadingStatus />
       ) : books.data.items.length === 0 ? (
         <p className={`${CARD} text-muted p-6`}>
-          {query.q || query.status ? "Không có đầu sách phù hợp." : "Chưa có đầu sách nào. Bấm “Thêm đầu sách” để bắt đầu."}
+          {query.q || query.status
+            ? "Không có đầu sách phù hợp."
+            : "Chưa có đầu sách nào. Bấm “Thêm đầu sách” để bắt đầu."}
         </p>
       ) : (
         <>

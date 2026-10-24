@@ -86,14 +86,12 @@ export function ReferencePicker({ id, label, value, onChange, search, queryKey, 
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={`Thêm ${item.label}`}
                 onClick={() => onChange([...value, item])}
                 className="h-auto min-h-9 w-full justify-start py-1.5 text-left"
               >
                 <Plus size={16} aria-hidden="true" className="shrink-0" />
-                <span>
-                  <span className="sr-only">Thêm </span>
-                  {item.label}
-                </span>
+                {item.label}
               </Button>
             </li>
           ))}

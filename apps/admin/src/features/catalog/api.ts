@@ -3,7 +3,14 @@ import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
 import type { BookBody, EditionBody, SkuCreateBody } from "./forms";
 import type { toAuthorBody, toCategoryBody, toLegalDocumentBody, toSkuPriceBody } from "./forms";
-import { adminBookSchema, adminBookSummarySchema, authorSchema, categorySchema, legalDocumentSchema, pageSchema } from "./schemas";
+import {
+  adminBookSchema,
+  adminBookSummarySchema,
+  authorSchema,
+  categorySchema,
+  legalDocumentSchema,
+  pageSchema,
+} from "./schemas";
 import type { AdminBook, AdminBookSummary, Author, Category, LegalDocument, Page } from "./schemas";
 
 // API "Admin — Catalog" (docs/api_reference.md), quyền `super_admin`, `product_manager`. Gọi qua proxy `/api/v1`.
@@ -35,7 +42,9 @@ export async function fetchBooks({ q, status, page }: BookListQuery): Promise<Pa
 }
 
 export async function fetchBook(id: number): Promise<AdminBook> {
-  return adminBookSchema.parse(await unwrap(browserApi().GET("/api/v1/admin/books/{id}", { params: { path: { id } } })));
+  return adminBookSchema.parse(
+    await unwrap(browserApi().GET("/api/v1/admin/books/{id}", { params: { path: { id } } })),
+  );
 }
 
 export async function createBook(body: BookBody): Promise<AdminBook> {

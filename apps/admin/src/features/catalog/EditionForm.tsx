@@ -69,7 +69,11 @@ export function EditionForm({ defaultValues, submitLabel, bookTitle, onSave, onC
     }
   };
 
-  const text = (name: (typeof EDITION_FIELDS)[number], label: string, options: { optional?: boolean; hint?: string } = {}) => (
+  const text = (
+    name: (typeof EDITION_FIELDS)[number],
+    label: string,
+    options: { optional?: boolean; hint?: string } = {},
+  ) => (
     <Field id={id(name)} label={label} optional={options.optional} hint={options.hint} error={errors[name]?.message}>
       <input
         type="text"

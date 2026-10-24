@@ -10,7 +10,7 @@ import { ConfirmButton } from "@/components/ConfirmButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CARD, FORM_ERROR } from "@/components/form-styles";
 import { adminErrorMessage } from "@/lib/admin-errors";
-import { optimizedImageUrl } from "@/lib/image-upload";
+import { isPreviewableImageUrl, optimizedImageUrl } from "@/lib/image-upload";
 import { setLatestEdition, updateEdition } from "./api";
 import { EditionForm } from "./EditionForm";
 import { editionToFormValues, legalDocumentLabel } from "./forms";
@@ -98,7 +98,7 @@ export function EditionCard({ bookTitle, edition }: EditionCardProps) {
       ) : (
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="bg-surface border-border flex h-40 w-30 shrink-0 items-center justify-center overflow-hidden rounded border">
-            {edition.coverImageUrl ? (
+            {edition.coverImageUrl && isPreviewableImageUrl(edition.coverImageUrl) ? (
               <Image
                 src={optimizedImageUrl(edition.coverImageUrl)}
                 alt={`Bìa sách ${bookTitle}, ${title}`}

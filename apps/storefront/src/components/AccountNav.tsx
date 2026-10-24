@@ -7,7 +7,7 @@ import { getServerSessionState, getSessionState, logout, restoreSession, subscri
 
 const LOGOUT_ERROR = "Chưa đăng xuất được, vui lòng thử lại.";
 
-/** Link Đăng nhập, hoặc tên khách, link Đơn của tôi và nút Đăng xuất khi đã có phiên. */
+/** Link Đăng nhập, hoặc tên khách (link tới trang tài khoản), link Đơn của tôi và nút Đăng xuất khi đã có phiên. */
 export function AccountNav() {
   const session = useSyncExternalStore(subscribeSession, getSessionState, getServerSessionState);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -45,12 +45,17 @@ export function AccountNav() {
   return (
     // Mobile chỉ hiện icon (chữ vẫn còn cho trình đọc màn hình) để logo, giỏ và tài khoản nằm một hàng.
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] sm:gap-x-4">
-      <span className="flex min-h-11 max-w-60 items-center gap-2.5">
-        <span className="border-gold/60 bg-gold/10 text-gold flex size-9 shrink-0 items-center justify-center rounded-full border">
+      <Link
+        href="/tai-khoan"
+        title="Tài khoản"
+        className="group hover:text-gold flex min-h-11 max-w-60 items-center gap-2.5 transition-colors"
+      >
+        <span className="border-gold/60 bg-gold/10 text-gold group-hover:border-gold flex size-9 shrink-0 items-center justify-center rounded-full border">
           <UserRound size={18} strokeWidth={1.6} />
         </span>
         <span className="truncate font-medium max-sm:sr-only">{session.user.fullName}</span>
-      </span>
+        <span className="sr-only">, tài khoản</span>
+      </Link>
       <span aria-hidden="true" className="bg-ivory/15 h-6 w-px max-sm:hidden" />
       <Link
         href="/don-hang"

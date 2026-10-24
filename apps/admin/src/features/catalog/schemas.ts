@@ -153,9 +153,7 @@ const sortOrderField = z
   .trim()
   .regex(/^\d{1,6}$/, "Nhập số nguyên từ 0.");
 
-const dateField = z
-  .string()
-  .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Ngày không hợp lệ.");
+const dateField = z.string().refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), "Ngày không hợp lệ.");
 
 /** Mục đã chọn trong ô chọn tác giả / văn bản pháp luật: giữ cả nhãn để hiển thị. */
 export const referenceSchema = z.object({ id: z.number(), label: z.string() });

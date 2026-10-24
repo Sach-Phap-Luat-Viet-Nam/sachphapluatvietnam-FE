@@ -4,7 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { vi } from "vitest";
 import { clearSession, startSession } from "@slvn/auth";
+import { addressHandlers } from "@/mocks/address-handlers";
 import { Checkout } from "./Checkout";
 
 const ORIGIN = window.location.origin;
@@ -163,6 +165,9 @@ describe("Checkout", () => {
   it("links members to the order in their account after placing it", async () => {
     server.use(
       ...baseHandlers(),
+      // Hồ sơ, sổ địa chỉ không có: form để trống như khách vãng lai.
+      http.get(`${ORIGIN}/api/v1/me`, () => problem(404, "NOT_FOUND")),
+      http.get(`${ORIGIN}/api/v1/me/addresses`, () => problem(404, "NOT_FOUND")),
       http.post(`${ORIGIN}/api/v1/orders`, () => HttpResponse.json(order(), { status: 201 })),
     );
     startSession({
@@ -186,6 +191,77 @@ describe("Checkout", () => {
       "href",
       "/don-hang/SLVN2610230001",
     );
+  });
+
+  it("prefills members from their profile and saved addresses, and saves a new address", async () => {
+    let orderBody: unknown;
+    const home = {
+      id: 1,
+      recipientName: "Trần Thị B",
+      phone: "0912345678",
+      province: "Hà Nội",
+      ward: "Phường Cầu Giấy",
+      streetAddress: "1 Xuân Thủy",
+      isDefault: true,
+    };
+    const office = { ...home, id: 2, ward: "Phường Bến Nghé", province: "TP. Hồ Chí Minh", isDefault: false };
+    server.use(
+      ...baseHandlers(),
+      http.get(`${ORIGIN}/api/v1/me`, () =>
+        HttpResponse.json({
+          id: 12,
+          email: "a@example.com",
+          fullName: "Nguyễn Văn A",
+          phoneNumber: "0901234567",
+          birthDate: null,
+          occupation: null,
+        }),
+      ),
+      ...addressHandlers([home, office]),
+      http.post(`${ORIGIN}/api/v1/orders`, async ({ request }) => {
+        orderBody = await request.json();
+        return HttpResponse.json(order(), { status: 201 });
+      }),
+    );
+    startSession({
+      accessToken: "token-1",
+      expiresIn: 900,
+      user: {
+        id: 12,
+        email: "a@example.com",
+        fullName: "Nguyễn Văn A",
+        roles: ["customer"],
+        requiresTwoFactorSetup: false,
+      },
+    });
+    const user = userEvent.setup();
+    renderCheckout();
+
+    // Địa chỉ mặc định được chọn sẵn và điền vào form; email lấy từ hồ sơ.
+    expect(await screen.findByRole("radio", { name: /1 Xuân Thủy/ })).toBeChecked();
+    await vi.waitFor(() => expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("Hà Nội"));
+    expect(screen.getByLabelText("Họ và tên")).toHaveValue("Trần Thị B");
+    expect(screen.getByLabelText("Email (không bắt buộc)")).toHaveValue("a@example.com");
+    expect(screen.queryByLabelText("Lưu địa chỉ này vào sổ địa chỉ")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: /Phường Bến Nghé/ }));
+    expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("TP. Hồ Chí Minh");
+
+    await user.click(screen.getByRole("radio", { name: "Giao đến địa chỉ khác" }));
+    expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("");
+    await user.type(screen.getByLabelText("Tỉnh/Thành phố"), "Đà Nẵng");
+    await user.type(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
+    await user.type(screen.getByLabelText("Số nhà, tên đường"), "3 Bạch Đằng");
+    await user.click(screen.getByLabelText("Lưu địa chỉ này vào sổ địa chỉ"));
+    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+
+    expect(await screen.findByText("Đã lưu địa chỉ vào sổ địa chỉ.")).toBeVisible();
+    expect(orderBody).toMatchObject({
+      customerName: "Trần Thị B",
+      phone: "0912345678",
+      email: "a@example.com",
+      shippingAddress: { province: "Đà Nẵng", ward: "Phường Hải Châu", streetAddress: "3 Bạch Đằng" },
+    });
   });
 
   it("maps backend validation errors to the matching fields", async () => {

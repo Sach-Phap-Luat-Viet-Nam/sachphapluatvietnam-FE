@@ -13,7 +13,9 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
 /** Nhãn trạng thái nhỏ (Đang bán, Nháp, Ẩn...). */
 export function StatusBadge({ tone, children }: { tone: BadgeTone; children: string }) {
   return (
-    <span className={cn("inline-flex w-fit rounded px-2 py-0.5 text-sm font-medium whitespace-nowrap", TONE_CLASSES[tone])}>
+    <span
+      className={cn("inline-flex w-fit rounded px-2 py-0.5 text-sm font-medium whitespace-nowrap", TONE_CLASSES[tone])}
+    >
       {children}
     </span>
   );

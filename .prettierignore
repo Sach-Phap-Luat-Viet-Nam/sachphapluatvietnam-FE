@@ -5,3 +5,4 @@ packages/api-client/openapi/
 coverage/
 playwright-report/
 test-results/
+apps/storefront/public/mockServiceWorker.js

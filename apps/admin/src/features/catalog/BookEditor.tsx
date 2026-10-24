@@ -117,7 +117,9 @@ function BookEditorContent({ book }: { book: AdminBook }) {
         )}
 
         {book.editions.length === 0 && !addingEdition ? (
-          <p className={`${CARD} text-muted p-5`}>Chưa có ấn bản. Sách chỉ hiện trên website khi có ấn bản đã công bố.</p>
+          <p className={`${CARD} text-muted p-5`}>
+            Chưa có ấn bản. Sách chỉ hiện trên website khi có ấn bản đã công bố.
+          </p>
         ) : (
           book.editions.map((edition) => <EditionCard key={edition.id} bookTitle={book.title} edition={edition} />)
         )}

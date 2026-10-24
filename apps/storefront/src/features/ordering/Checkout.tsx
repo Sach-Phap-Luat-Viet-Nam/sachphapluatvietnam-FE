@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import type { InputHTMLAttributes } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useForm, useWatch } from "react-hook-form";
-import type { UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
@@ -13,6 +11,10 @@ import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
+import { TextField } from "@/components/TextField";
+import { MAX_ADDRESSES } from "@/lib/account-api";
+import type { Address, AddressBody } from "@/lib/account-api";
+import { useAddresses, useProfile, useSaveAddress } from "@/lib/use-account";
 import { placeOrder } from "./api";
 import { checkoutBlocker } from "./cart";
 import { CartSummary } from "./CartSummary";
@@ -22,6 +24,8 @@ import { orderingErrorMessage } from "./errors";
 import { PAYMENT_METHOD_LABELS, label } from "./labels";
 import { OrderPlaced } from "./OrderPlaced";
 import { BANK_ACCOUNT, availablePaymentMethods } from "./payment";
+import { SavedAddressPicker } from "./SavedAddressPicker";
+import type { AddressChoice } from "./SavedAddressPicker";
 import type { BankAccount } from "./payment";
 import type { Order } from "./schemas";
 import { useCart, useClearCartCache, useRefreshCart } from "./useCart";
@@ -34,43 +38,14 @@ const PAYMENT_HINTS: Record<PaymentMethod, string> = {
   bank_transfer: "Chuyển khoản trong 30 phút sau khi đặt, nội dung là mã đơn hàng.",
 };
 
-interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  id: string;
-  label: string;
-  registration: UseFormRegisterReturn;
-  error?: string;
-}
-
-function TextField({ id, label, registration, error, className, ...props }: TextFieldProps) {
-  return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <label htmlFor={id} className={LABEL}>
-        {label}
-      </label>
-      <input
-        id={id}
-        {...props}
-        {...registration}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={cn(INPUT, "border-border")}
-      />
-      {error && (
-        <p id={`${id}-error`} role="alert" className="text-danger text-sm">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 const SECTION_TITLE = "font-editorial text-2xl font-bold";
 
 interface CheckoutFormProps {
   methods: PaymentMethod[];
   /** Lý do giỏ chưa đặt được (ngừng bán, thiếu hàng): vẫn giữ form để khách không mất thông tin đã nhập. */
   blocker: string | null;
-  onPlaced: (order: Order) => void;
+  /** `addressToSave`: địa chỉ khách muốn lưu vào sổ địa chỉ sau khi đặt (thành viên). */
+  onPlaced: (order: Order, addressToSave: AddressBody | null) => void;
 }
 
 function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
@@ -84,12 +59,72 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
     control,
     handleSubmit,
     setError,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: { ...CHECKOUT_DEFAULTS, paymentMethod: methods[0] ?? "cod" },
   });
   const wantsInvoice = useWatch({ control, name: "wantsInvoice" });
+
+  // Thành viên: điền sẵn từ hồ sơ và sổ địa chỉ (lib/use-account). Khách vãng lai hai query này không chạy.
+  const { data: profile } = useProfile();
+  const { data: savedAddresses } = useAddresses();
+  const [addressChoice, setAddressChoice] = useState<AddressChoice | null>(null);
+  const [saveToBook, setSaveToBook] = useState(false);
+  // Chưa chọn gì thì theo địa chỉ mặc định (đứng đầu sổ); sổ trống hoặc chưa có API thì là "địa chỉ khác".
+  const selectedAddress: AddressChoice = addressChoice ?? savedAddresses?.[0]?.id ?? "other";
+
+  const fillAddress = useCallback(
+    (address: Address) => {
+      setValue("customerName", address.recipientName);
+      setValue("phone", address.phone);
+      setValue("shippingAddress", {
+        province: address.province,
+        ward: address.ward,
+        streetAddress: address.streetAddress,
+      });
+    },
+    [setValue],
+  );
+
+  // Chỉ điền vào ô còn trống để không ghi đè thứ khách đã gõ trước khi dữ liệu tải xong.
+  useEffect(() => {
+    if (!profile) return;
+    const fills = [
+      ["customerName", profile.fullName],
+      ["phone", profile.phoneNumber ?? ""],
+      ["email", profile.email],
+    ] as const;
+    for (const [field, value] of fills) {
+      if (value && !getValues(field).trim()) setValue(field, value);
+    }
+  }, [profile, getValues, setValue]);
+
+  // Điền địa chỉ mặc định một lần khi sổ địa chỉ tải xong.
+  const appliedDefault = useRef(false);
+  useEffect(() => {
+    const preferred = savedAddresses?.[0];
+    if (appliedDefault.current || !preferred) return;
+    appliedDefault.current = true;
+    const { province, ward, streetAddress } = getValues("shippingAddress");
+    if (!province.trim() && !ward.trim() && !streetAddress.trim()) fillAddress(preferred);
+  }, [savedAddresses, getValues, fillAddress]);
+
+  const chooseAddress = (choice: AddressChoice) => {
+    setAddressChoice(choice);
+    const address = savedAddresses?.find((item) => item.id === choice);
+    if (address) {
+      fillAddress(address);
+      return;
+    }
+    // Địa chỉ khác: xóa phần địa chỉ để khách nhập mới, giữ người nhận.
+    setValue("shippingAddress", { province: "", ward: "", streetAddress: "" });
+  };
+
+  const canSaveAddress =
+    savedAddresses !== undefined && selectedAddress === "other" && savedAddresses.length < MAX_ADDRESSES;
 
   const onSubmit = async (values: CheckoutValues) => {
     const body = toCreateOrderBody(values);
@@ -106,7 +141,17 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
         order = await placeOrder(body, freshKey);
       }
       clearCart();
-      onPlaced(order);
+      onPlaced(
+        order,
+        canSaveAddress && saveToBook
+          ? {
+              recipientName: body.customerName,
+              phone: body.phone,
+              ...body.shippingAddress,
+              isDefault: savedAddresses?.length === 0,
+            }
+          : null,
+      );
     } catch (error) {
       const invalidFields = fieldErrors(error, CHECKOUT_FIELDS);
       invalidFields.forEach(({ field, message }) => setError(field, { message }));
@@ -156,6 +201,9 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
 
       <fieldset className="flex flex-col gap-5">
         <legend className={cn(SECTION_TITLE, "mb-5")}>Địa chỉ giao hàng</legend>
+        {savedAddresses && savedAddresses.length > 0 && (
+          <SavedAddressPicker addresses={savedAddresses} value={selectedAddress} onChange={chooseAddress} />
+        )}
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField
             id="province"
@@ -179,6 +227,17 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
           registration={register("shippingAddress.streetAddress")}
           error={errors.shippingAddress?.streetAddress?.message}
         />
+        {canSaveAddress && (
+          <label className="text-sand flex min-h-8 w-fit items-center gap-3 text-[15px]">
+            <input
+              type="checkbox"
+              checked={saveToBook}
+              onChange={(event) => setSaveToBook(event.target.checked)}
+              className="accent-gold size-4.5"
+            />
+            Lưu địa chỉ này vào sổ địa chỉ
+          </label>
+        )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
@@ -298,9 +357,32 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
   const { data: cart, isError, error, refetch, isFetching } = useCart();
   // Giữ đơn vừa tạo trong state (không lưu vào storage) vì đơn có thông tin cá nhân của khách.
   const [placed, setPlaced] = useState<Order | null>(null);
+  const saveAddress = useSaveAddress();
+
+  const handlePlaced = (order: Order, addressToSave: AddressBody | null) => {
+    setPlaced(order);
+    if (addressToSave) saveAddress.mutate(addressToSave);
+  };
 
   if (placed) {
-    return <OrderPlaced order={placed} bankAccount={bankAccount} />;
+    return (
+      <div className="flex flex-col gap-4">
+        {/* Đơn đã tạo xong; lưu địa chỉ chỉ là tiện ích nên lỗi thì báo nhẹ, không chặn màn cảm ơn. */}
+        <p aria-live="polite" className="text-sm empty:hidden">
+          {saveAddress.isSuccess && <span className="text-ok">Đã lưu địa chỉ vào sổ địa chỉ.</span>}
+          {saveAddress.isError && (
+            <span className="text-upcoming">
+              Chưa lưu được địa chỉ vào sổ địa chỉ, bạn có thể thêm lại ở trang{" "}
+              <Link href="/tai-khoan" className="link-underline text-gold">
+                Tài khoản
+              </Link>
+              .
+            </span>
+          )}
+        </p>
+        <OrderPlaced order={placed} bankAccount={bankAccount} />
+      </div>
+    );
   }
 
   if (isError) {
@@ -342,7 +424,7 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
       <CheckoutForm
         methods={availablePaymentMethods(bankAccount)}
         blocker={checkoutBlocker(cart)}
-        onPlaced={setPlaced}
+        onPlaced={handlePlaced}
       />
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">
         <CartSummary

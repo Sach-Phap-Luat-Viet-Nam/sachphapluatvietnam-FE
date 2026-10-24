@@ -197,9 +197,7 @@ export function BookForm({ defaultValues, mode, onSave }: BookFormProps) {
                         checked={field.value.includes(row.id)}
                         onChange={(event) =>
                           field.onChange(
-                            event.target.checked
-                              ? [...field.value, row.id]
-                              : field.value.filter((id) => id !== row.id),
+                            event.target.checked ? [...field.value, row.id] : field.value.filter((id) => id !== row.id),
                           )
                         }
                         className={CHECKBOX}

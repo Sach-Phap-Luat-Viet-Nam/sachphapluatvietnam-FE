@@ -1,7 +1,13 @@
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { clearSession, startSession } from "@slvn/auth";
-import { cloudinaryFormData, ImageUploadError, optimizedImageUrl, uploadImage } from "./image-upload";
+import {
+  cloudinaryFormData,
+  ImageUploadError,
+  isPreviewableImageUrl,
+  optimizedImageUrl,
+  uploadImage,
+} from "./image-upload";
 
 const ORIGIN = window.location.origin;
 const UPLOAD_URL = "https://api.cloudinary.com/v1_1/demo/image/upload";
@@ -72,9 +78,9 @@ describe("uploadImage", () => {
       http.post(UPLOAD_URL, () => HttpResponse.json({ error: { message: "Invalid" } }, { status: 400 })),
     );
 
-    await expect(
-      uploadImage(new File(["x"], "a.png", { type: "image/png" }), "popup"),
-    ).rejects.toBeInstanceOf(ImageUploadError);
+    await expect(uploadImage(new File(["x"], "a.png", { type: "image/png" }), "popup")).rejects.toBeInstanceOf(
+      ImageUploadError,
+    );
   });
 
   it("trả ApiError khi backend chưa cấu hình Cloudinary", async () => {
@@ -87,6 +93,15 @@ describe("uploadImage", () => {
     await expect(uploadImage(new File(["x"], "a.png", { type: "image/png" }), "cover")).rejects.toMatchObject({
       status: 503,
     });
+  });
+});
+
+describe("isPreviewableImageUrl", () => {
+  it("chỉ nhận URL http/https đầy đủ", () => {
+    expect(isPreviewableImageUrl("https://res.cloudinary.com/demo/a.jpg")).toBe(true);
+    expect(isPreviewableImageUrl("h")).toBe(false);
+    expect(isPreviewableImageUrl("https:")).toBe(false);
+    expect(isPreviewableImageUrl("data:image/png;base64,x")).toBe(false);
   });
 });
 

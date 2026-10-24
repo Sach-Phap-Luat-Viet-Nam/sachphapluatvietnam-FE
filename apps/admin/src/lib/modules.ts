@@ -30,7 +30,7 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     label: "Sách",
     description: "Đầu sách, ấn bản, SKU, danh mục, tác giả, văn bản pháp luật.",
     roles: ["super_admin", "product_manager"],
-    ready: false,
+    ready: true,
   },
   {
     id: "content",
@@ -38,7 +38,7 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     label: "Nội dung",
     description: "Popup quảng cáo trên website: ảnh, link, lịch chạy và tần suất hiển thị.",
     roles: ["super_admin", "marketing"],
-    ready: false,
+    ready: true,
   },
   {
     id: "inventory",

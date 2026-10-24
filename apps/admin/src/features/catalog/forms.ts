@@ -1,4 +1,11 @@
-import { BOOK_STATUSES, BOOK_TYPES, COVER_TYPES, EDITION_STATUSES, LEGAL_DOCUMENT_TYPES, TARGET_AUDIENCES } from "./labels";
+import {
+  BOOK_STATUSES,
+  BOOK_TYPES,
+  COVER_TYPES,
+  EDITION_STATUSES,
+  LEGAL_DOCUMENT_TYPES,
+  TARGET_AUDIENCES,
+} from "./labels";
 import type { BookStatus, BookType, EditionStatus, LegalDocumentType, TargetAudience } from "./labels";
 import type {
   AdminBook,
@@ -59,9 +66,7 @@ export function bookToFormValues(book: AdminBook): BookFormValues {
     bookType: oneOf<BookType>(BOOK_TYPES, book.bookType, "code"),
     status: oneOf<BookStatus>(BOOK_STATUSES, book.status, "draft"),
     description: book.description ?? "",
-    targetAudiences: book.targetAudiences.filter((value): value is TargetAudience =>
-      isOneOf(TARGET_AUDIENCES, value),
-    ),
+    targetAudiences: book.targetAudiences.filter((value): value is TargetAudience => isOneOf(TARGET_AUDIENCES, value)),
     metaTitle: book.metaTitle ?? "",
     metaDescription: book.metaDescription ?? "",
     categoryIds: book.categories.map((category) => category.id),

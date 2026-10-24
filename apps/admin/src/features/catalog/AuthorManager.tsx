@@ -111,7 +111,12 @@ export function AuthorManager() {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setEditing(author)} aria-label={`Sửa ${author.name}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditing(author)}
+                    aria-label={`Sửa ${author.name}`}
+                  >
                     <Pencil size={16} aria-hidden="true" /> Sửa
                   </Button>
                   <ConfirmButton

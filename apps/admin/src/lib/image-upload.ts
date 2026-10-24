@@ -10,9 +10,9 @@ const uploadSignatureSchema = z.object({
   apiKey: z.string(),
   timestamp: z.union([z.number(), z.string()]).transform(String),
   folder: z.string(),
-  allowedFormats: z.union([z.string(), z.array(z.string())]).transform((value) =>
-    Array.isArray(value) ? value.join(",") : value,
-  ),
+  allowedFormats: z
+    .union([z.string(), z.array(z.string())])
+    .transform((value) => (Array.isArray(value) ? value.join(",") : value)),
   signature: z.string(),
 });
 export type UploadSignature = z.infer<typeof uploadSignatureSchema>;
@@ -65,6 +65,16 @@ export async function uploadImage(file: File, target: UploadTarget): Promise<str
     throw new ImageUploadError("Không tải được ảnh lên. Anh/chị kiểm tra định dạng ảnh rồi thử lại.");
   }
   return cloudinaryResultSchema.parse(await response.json()).secure_url;
+}
+
+/** Link ảnh xem trước được: URL `http`/`https` đầy đủ (`next/image` ném lỗi với link dở dang khi đang gõ). */
+export function isPreviewableImageUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 /** Chèn `f_auto,q_auto` để Cloudinary tự chọn định dạng và nén khi hiển thị; link khác giữ nguyên. */
