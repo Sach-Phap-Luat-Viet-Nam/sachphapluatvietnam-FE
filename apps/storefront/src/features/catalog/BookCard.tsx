@@ -62,7 +62,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
       >
         <span
           aria-hidden="true"
-          className="shelf-glow from-gold/35absolute bottom-0 left-1/2 h-4/5 w-full -translate-x-1/2 bg-radial-[closest-side] to-transparent"
+          className="shelf-glow from-gold/35 absolute bottom-0 left-1/2 h-4/5 w-full -translate-x-1/2 bg-radial-[closest-side] to-transparent"
         />
         <span
           aria-hidden="true"
