@@ -89,4 +89,17 @@ export interface PendingPaths {
       delete: Operation<NoParameters, { 204: NoContent }>;
     }
   >;
+  /** Super Admin đặt mật khẩu mới cho tài khoản dưới cấp (`ResetPasswordRequest`): mở khóa, thu hồi mọi phiên → 204. */
+  "/api/v1/admin/users/{id}/password": PathItem<
+    NoParameters,
+    { put: OperationWithBody<IdParameters, { 204: NoContent }> }
+  >;
+  /** Vô hiệu hóa / kích hoạt lại tài khoản dưới cấp → `UserResponse` (có `isActive`). */
+  "/api/v1/admin/users/{id}/deactivate": PathItem<
+    NoParameters,
+    { post: Operation<IdParameters, { 200: UnknownJson }> }
+  >;
+  "/api/v1/admin/users/{id}/activate": PathItem<NoParameters, { post: Operation<IdParameters, { 200: UnknownJson }> }>;
+  /** Đăng xuất hộ: thu hồi mọi phiên của user → `{ revokedSessions }`. */
+  "/api/v1/admin/users/{id}/logout": PathItem<NoParameters, { post: Operation<IdParameters, { 200: UnknownJson }> }>;
 }
