@@ -34,8 +34,12 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - **Thêm vào giỏ** (`AddToCartForm`, client): chọn loại bìa (nếu có nhiều SKU), số lượng 1–20, `POST /cart/items`.
   Đang xem ấn bản cũ thì mở dialog xác nhận **trước khi** gọi API (US-02): "Xem ấn bản mới" hoặc "Vẫn thêm ấn bản này".
   Thành công hiện "Đã thêm n cuốn vào giỏ" + link giỏ; lỗi hiện thông báo theo `code`.
-- **Thông tin xuất bản** (FR-21): ISBN, NXB, số QĐXB, số ĐKXB, năm, ngày phát hành, số trang, khổ, trọng lượng,
-  "cập nhật văn bản đến ngày"; danh sách văn bản pháp luật được cập nhật; link "Đọc thử" (chỉ nhận `https://`).
+- **Bố cục**: cột trái là mô hình sách 3D (`Book3D` cỡ `detail`, dùng chung với hero) nghiêng theo chuột
+  (`HeroSpotlight`), dính theo khi cuộn trên desktop, kèm link "Đọc thử" (chỉ nhận `https://`). Cột phải theo thứ tự: tên
+  sách, ấn bản, khối đặt mua, thông tin xuất bản thu gọn, giới thiệu sách, mục lục; giới thiệu nằm ngay dưới khối đặt
+  mua để khách đọc được trong màn hình đầu.
+- **Thông tin xuất bản** (FR-21), dạng lưới chữ nhỏ 2–3 cột: ISBN, NXB, số QĐXB, số ĐKXB, năm, ngày phát hành, số
+  trang, khổ, trọng lượng, "cập nhật văn bản đến ngày"; bên dưới là danh sách văn bản pháp luật được cập nhật.
 - **Mô tả và mục lục** (`formatRichText`, `features/catalog/description.ts`, chạy trên server): Admin nhập **HTML hoặc
   chữ thuần** (dữ liệu thật hiện là chữ thuần có xuống dòng). Chữ thuần được chuyển thành HTML: dòng trống tách đoạn `<p>`,
   xuống dòng đơn thành `<br>`, dòng `-----` thành `<hr>`. Sau đó lọc bằng `sanitize-html`, chỉ giữ
