@@ -62,51 +62,81 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("OrderList", () => {
-  it("liệt kê đơn với link sang chi tiết", async () => {
+  it("liệt kê đơn, cả hàng là link sang chi tiết", async () => {
     renderList();
 
     expect(await screen.findByRole("link", { name: "SLVN2610230001" })).toHaveAttribute(
       "href",
       "/don-hang/SLVN2610230001",
     );
-    const table = within(screen.getByRole("table"));
-    expect(table.getByText("Chờ xác nhận")).toBeVisible();
-    expect(table.getByText("300.000 ₫")).toBeVisible();
+    const list = within(screen.getByRole("list", { name: "Danh sách đơn hàng" }));
+    expect(list.getByText("Chờ xác nhận")).toBeVisible();
+    expect(list.getByText("300.000 ₫")).toBeVisible();
+    expect(screen.getByText("1 đơn hàng")).toBeVisible();
   });
 
-  it("gửi bộ lọc đã chuẩn hóa lên backend", async () => {
+  it("lọc ngay khi bấm nút trạng thái và thanh toán, không cần nút Lọc", async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByRole("link", { name: "SLVN2610230001" });
+    expect(screen.queryByRole("button", { name: "Lọc" })).not.toBeInTheDocument();
+
+    await user.click(
+      within(screen.getByRole("group", { name: "Trạng thái" })).getByRole("button", { name: "Chờ xác nhận" }),
+    );
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    expect(requests[1]?.get("Status")).toBe("pending_confirm");
+    expect(screen.getByRole("button", { name: "Chờ xác nhận" })).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(within(screen.getByRole("group", { name: "Thanh toán" })).getByRole("button", { name: "COD" }));
+    await vi.waitFor(() => expect(requests).toHaveLength(3));
+    expect(requests[2]?.get("PaymentMethod")).toBe("cod");
+    expect(requests[2]?.get("Status")).toBe("pending_confirm");
+    expect(requests[2]?.get("Page")).toBe("1");
+  });
+
+  it("tìm tự động sau khi ngừng gõ và chuẩn hóa số điện thoại", async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByRole("link", { name: "SLVN2610230001" });
 
     await user.type(screen.getByLabelText("Mã đơn hoặc số điện thoại"), "0901 234 567");
-    await user.selectOptions(screen.getByLabelText("Trạng thái"), "pending_confirm");
-    await user.selectOptions(screen.getByLabelText("Thanh toán"), "cod");
-    await user.type(screen.getByLabelText("Đặt từ ngày"), "01102026");
-    await user.type(screen.getByLabelText("Đến ngày"), "24102026");
-    await user.click(screen.getByRole("button", { name: "Lọc" }));
-
-    await vi.waitFor(() => expect(requests).toHaveLength(2));
-    const params = requests[1];
-    expect(params?.get("Q")).toBe("0901234567");
-    expect(params?.get("Status")).toBe("pending_confirm");
-    expect(params?.get("PaymentMethod")).toBe("cod");
-    expect(params?.get("From")).toBe("2026-10-01");
-    expect(params?.get("To")).toBe("2026-10-24");
-    expect(params?.get("Page")).toBe("1");
+    await vi.waitFor(() => expect(requests.at(-1)?.get("Q")).toBe("0901234567"));
+    // Gõ liên tục không gọi API cho từng phím.
+    expect(requests.length).toBeLessThanOrEqual(3);
   });
 
-  it("chặn khoảng ngày ngược, không gọi API", async () => {
+  it("nút chọn nhanh khoảng ngày và gõ ngày thủ công đều gửi From/To", async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByRole("link", { name: "SLVN2610230001" });
 
+    await user.click(screen.getByRole("button", { name: "Hôm nay" }));
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    const today = requests[1]?.get("From");
+    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(requests[1]?.get("To")).toBe(today);
+
+    await user.clear(screen.getByLabelText("Đặt từ ngày"));
+    await user.type(screen.getByLabelText("Đặt từ ngày"), "01102026");
+    await user.clear(screen.getByLabelText("Đến ngày"));
+    await user.type(screen.getByLabelText("Đến ngày"), "24102026");
+    await vi.waitFor(() => expect(requests.at(-1)?.get("From")).toBe("2026-10-01"));
+    expect(requests.at(-1)?.get("To")).toBe("2026-10-24");
+  });
+
+  it("khoảng ngày ngược: báo lỗi và bỏ ô sai khỏi query", async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByRole("link", { name: "SLVN2610230001" });
+
+    await user.click(screen.getByRole("button", { name: "Chọn ngày" }));
     await user.type(screen.getByLabelText("Đặt từ ngày"), "24102026");
     await user.type(screen.getByLabelText("Đến ngày"), "01102026");
-    await user.click(screen.getByRole("button", { name: "Lọc" }));
 
     expect(await screen.findByText("Ngày kết thúc phải từ ngày bắt đầu trở đi.")).toBeVisible();
-    expect(requests).toHaveLength(1);
+    await vi.waitFor(() => expect(requests.at(-1)?.get("From")).toBe("2026-10-24"));
+    expect(requests.at(-1)?.get("To")).toBeNull();
   });
 
   it("không có đơn phù hợp thì nói rõ, xóa bộ lọc để quay lại", async () => {
@@ -115,11 +145,19 @@ describe("OrderList", () => {
     await screen.findByRole("link", { name: "SLVN2610230001" });
 
     await user.type(screen.getByLabelText("Mã đơn hoặc số điện thoại"), "slvn0000000000");
-    await user.click(screen.getByRole("button", { name: "Lọc" }));
     expect(await screen.findByText("Không có đơn hàng phù hợp.")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
     expect(await screen.findByRole("link", { name: "SLVN2610230001" })).toBeVisible();
     expect(screen.getByLabelText("Mã đơn hoặc số điện thoại")).toHaveValue("");
+  });
+
+  it("làm mới gọi lại API", async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByRole("link", { name: "SLVN2610230001" });
+
+    await user.click(screen.getByRole("button", { name: "Làm mới danh sách đơn" }));
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
   });
 });

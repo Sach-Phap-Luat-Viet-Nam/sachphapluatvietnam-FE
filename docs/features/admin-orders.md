@@ -16,12 +16,15 @@ App **admin**, phần "Đơn hàng" (`lib/modules.ts`). Xem đơn: `super_admin`
 | `/don-hang`      | Danh sách đơn, bộ lọc, phân trang | `OrderList`                         |
 | `/don-hang/<mã>` | Chi tiết đơn, chuyển trạng thái   | `OrderDetail`, `OrderStatusActions` |
 
-- **Bộ lọc** (form, bấm "Lọc" mới gọi API): trạng thái (15 trạng thái), thanh toán (COD, chuyển khoản), ngày đặt từ/đến
-  (`dd/mm/yyyy`, giờ Việt Nam, tính cả hai đầu; chặn khoảng ngày ngược), mã đơn hoặc số điện thoại. Backend tìm **đúng**
-  mã/số nên FE chuẩn hóa trước khi gửi (`normalizeOrderSearch`): số điện thoại bỏ khoảng trắng và dấu chấm, mã đơn viết hoa.
-  "Xóa bộ lọc" chỉ hiện khi đang lọc.
-- **Danh sách**: mã đơn (link), khách + SĐT, nhãn trạng thái (màu theo nhóm chờ / đang xử lý / đã giao / đã đóng / hủy),
-  phương thức và tình trạng thanh toán, số cuốn, tổng tiền, ngày đặt. 20 đơn/trang.
+- **Bộ lọc tự áp** (không có nút "Lọc"): ô tìm mã đơn hoặc số điện thoại (chờ 0,4 giây sau khi ngừng gõ), nhóm nút trạng thái
+  (9 trạng thái hay dùng theo quy trình xử lý, 6 trạng thái còn lại ở ô "Trạng thái khác"), nút thanh toán (COD, chuyển
+  khoản), nút khoảng ngày nhanh (Hôm nay, 7 ngày qua, 30 ngày qua) và "Chọn ngày" để nhập từ/đến (`dd/mm/yyyy`, giờ Việt
+  Nam, tính cả hai đầu). Ô sai (ngày gõ dở, khoảng ngày ngược) hiện lỗi và chỉ bị bỏ khỏi query, các ô khác vẫn lọc
+  (`resolveOrderQuery`). Backend tìm **đúng** mã/số nên FE chuẩn hóa trước khi gửi (`normalizeOrderSearch`): số điện thoại
+  bỏ khoảng trắng và dấu chấm, mã đơn viết hoa. "Xóa bộ lọc" chỉ hiện khi đang lọc.
+- **Danh sách**: mỗi đơn là một hàng bấm được cả hàng để mở chi tiết (bảng ở màn rộng, thẻ ở điện thoại): mã đơn và ngày
+  đặt, khách + SĐT, nhãn trạng thái (màu theo nhóm chờ / đang xử lý / đã giao / đã đóng / hủy), phương thức và tình trạng
+  thanh toán, số cuốn, tổng tiền. Có tổng số đơn, nút "Làm mới" và tự làm mới mỗi phút để thấy đơn mới. 20 đơn/trang.
 - **Chi tiết**: khách (khách vãng lai hoặc "Tài khoản #id", có link sang chi tiết khách khi được vào phần Khách hàng), địa
   chỉ và ghi chú, thanh toán (hạn thanh toán khi đơn chuyển khoản đang chờ), hóa đơn công ty, sách (ấn bản · bìa · SKU ·
   ISBN), tiền lấy nguyên từ backend (tạm tính, giảm giá, phí ship, tổng), giá vốn hàng xuất (có từ khi đóng gói), dòng thời
