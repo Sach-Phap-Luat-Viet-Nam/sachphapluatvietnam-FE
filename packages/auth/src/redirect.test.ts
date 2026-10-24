@@ -14,7 +14,8 @@ describe("safeNextPath", () => {
     },
   );
 
-  it("không quay lại chính trang đăng nhập", () => {
+  it("không quay lại chính trang đăng nhập hay đăng ký", () => {
     expect(safeNextPath("/dang-nhap?next=/sach")).toBe("/");
+    expect(safeNextPath("/dang-ky?next=/sach")).toBe("/");
   });
 });

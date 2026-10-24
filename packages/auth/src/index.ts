@@ -7,9 +7,10 @@ export {
 } from "./impersonation-link";
 export { login, loginWithTwoFactor } from "./login";
 export type { LoginPortal, LoginResult } from "./login";
+export { register, toRegisterBody } from "./register";
 export { safeNextPath } from "./redirect";
-export { loginSchema, twoFactorSchema } from "./schemas";
-export type { LoginValues, TwoFactorValues } from "./schemas";
+export { loginSchema, registerSchema, twoFactorSchema } from "./schemas";
+export type { LoginValues, RegisterValues, TwoFactorValues } from "./schemas";
 export {
   authApi,
   authResponseSchema,

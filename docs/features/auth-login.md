@@ -1,8 +1,8 @@
-# Đăng nhập, phiên và đăng xuất (storefront)
+# Đăng ký, đăng nhập, phiên và đăng xuất (storefront)
 
 ## Mục đích
 
-Khách đăng nhập bằng email + mật khẩu ở `/dang-nhap`. Tài khoản đã bật xác thực 2 lớp (thường là nhân viên) nhập thêm
+Khách tạo tài khoản ở `/dang-ky` (đăng ký xong vào phiên luôn) và đăng nhập bằng email + mật khẩu ở `/dang-nhap`. Tài khoản đã bật xác thực 2 lớp (thường là nhân viên) nhập thêm
 mã 6 số. Phiên được giữ khi tải lại trang, Header hiện tên khách và nút Đăng xuất.
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
@@ -12,6 +12,16 @@ App **storefront**. Mọi request đi cùng origin qua proxy `/api/v1/*` (`src/p
 Logic phiên, `login`, schema, thông báo lỗi và `safeNextPath` nằm ở package `@slvn/auth` (`packages/auth/src`), dùng
 chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm ở `features/auth/` của từng app.
 
+- **Đăng ký** (`features/auth/RegisterForm.tsx`, route `/dang-ky`, `noindex`): họ tên, email, số điện thoại (không bắt
+  buộc), mật khẩu 8–128 ký tự và ô nhập lại mật khẩu (chỉ kiểm tra ở FE, không gửi lên). Validate bằng `registerSchema`
+  (cùng quy tắc với backend: SĐT `0xxxxxxxxx`/`+84xxxxxxxxx`), gọi `register()` của `@slvn/auth`.
+  - Body: email bỏ khoảng trắng và đổi chữ thường, SĐT để trống thì gửi `null` (`toRegisterBody`).
+  - Backend trả `201` kèm phiên (access token + cookie `sl_refresh`, phiên 12 giờ như không tích "giữ đăng nhập"):
+    `register()` gọi `startSession`, form chuyển tới `?next=` (mặc định `/`). Không cần đăng nhập lại, chưa xác thực
+    email/SĐT (chờ module Notification phía backend).
+  - Email đã có tài khoản (`EMAIL_TAKEN`, 409) báo ngay ở ô email; lỗi validation của backend đưa vào đúng ô; lỗi khác
+    hiện chung ở đầu form (5xx kèm mã tra cứu). Nút khóa trong lúc chờ và lúc chuyển trang để không đăng ký hai lần.
+  - `/dang-nhap` và `/dang-ky` có link qua lại, giữ nguyên `?next=`. `safeNextPath` không quay lại hai trang này.
 - **Đăng nhập** (`features/auth/LoginForm.tsx`): validate bằng Zod, gọi `/auth/login`.
   - `requiresTwoFactor = false`: lưu phiên, chuyển tới `?next=` (chỉ nhận path nội bộ, xem `packages/auth/src/redirect.ts`), mặc định `/`.
   - `requiresTwoFactor = true`: chuyển sang bước nhập mã (`TwoFactorForm.tsx`), gọi `/auth/login/2fa` với
@@ -38,6 +48,7 @@ chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm �
 
 | Method | Route                    | Dùng cho                         | Mã lỗi xử lý riêng                                      |
 | ------ | ------------------------ | -------------------------------- | ------------------------------------------------------- |
+| POST   | `/api/v1/auth/register`  | Đăng ký tài khoản khách hàng     | `EMAIL_TAKEN` (ở ô email), lỗi theo field               |
 | POST   | `/api/v1/auth/login`     | Đăng nhập email + mật khẩu       | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, lỗi theo field |
 | POST   | `/api/v1/auth/login/2fa` | Bước nhập mã 6 số                | `OTP_INVALID` (ở ô nhập), `TWO_FACTOR_TOKEN_INVALID`    |
 | POST   | `/api/v1/auth/refresh`   | Khôi phục phiên, refresh khi 401 | `INVALID_REFRESH_TOKEN` (401) → chưa đăng nhập          |
@@ -60,5 +71,6 @@ Không thêm biến mới. Dùng `API_BASE_URL` (và `PROXY_SECRET` trên Vercel
 - Chưa đồng bộ đăng xuất giữa các tab: tab khác vẫn hiện tên đến khi tải lại trang hoặc gặp 401.
 - Tài khoản nhân viên chưa bật 2FA (`requiresTwoFactorSetup`) vẫn đăng nhập được ở storefront; màn bật 2FA ở app
   admin (`/xac-thuc-hai-lop`).
-- Chưa có trang đăng ký, quên mật khẩu, hồ sơ; đăng nhập hộ xem `admin-users.md`.
+- Chưa có quên mật khẩu; chưa xác thực email/SĐT sau khi đăng ký (backend chưa có). Đăng nhập hộ xem `admin-users.md`.
+- `/auth/*` giới hạn 10 request/phút/IP: nhiều người đăng ký cùng lúc sau một IP (văn phòng, wifi chung) có thể bị 429.
 - Trang `/dang-nhap` chưa tự chuyển đi khi khách đã đăng nhập.

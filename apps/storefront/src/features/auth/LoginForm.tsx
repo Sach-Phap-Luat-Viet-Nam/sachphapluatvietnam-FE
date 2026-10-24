@@ -133,6 +133,20 @@ export function LoginForm() {
           )}
         </form>
       )}
+      <p className="text-mist text-[15px]">
+        Chưa có tài khoản?{" "}
+        <Link
+          href="/dang-ky"
+          onClick={(event) => {
+            // Giữ `?next=` để đăng ký xong vẫn quay lại đúng trang; không có JS thì link thường vẫn hoạt động.
+            event.preventDefault();
+            router.push(`/dang-ky${window.location.search}`);
+          }}
+          className="text-gold link-underline"
+        >
+          Đăng ký
+        </Link>
+      </p>
       <div className="text-dim flex items-center gap-3.5 text-[13px]">
         <span className="bg-ivory/18 h-px flex-1" />
         hoặc

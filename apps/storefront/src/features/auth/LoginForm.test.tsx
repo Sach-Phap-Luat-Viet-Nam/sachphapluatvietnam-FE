@@ -6,8 +6,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { getSessionState } from "@slvn/auth";
 import { LoginForm } from "./LoginForm";
 
-const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+const { replace, push } = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, push }) }));
 
 const ORIGIN = window.location.origin;
 const server = setupServer();
@@ -43,6 +43,7 @@ beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
   replace.mockReset();
+  push.mockReset();
   window.history.replaceState(null, "", "/");
 });
 afterAll(() => server.close());
@@ -175,5 +176,15 @@ describe("LoginForm", () => {
       "href",
       "/sach",
     );
+  });
+
+  it("link Đăng ký giữ ?next=", async () => {
+    window.history.replaceState(null, "", "/dang-nhap?next=%2Fgio-hang");
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.click(screen.getByRole("link", { name: "Đăng ký" }));
+
+    expect(push).toHaveBeenCalledWith("/dang-ky?next=%2Fgio-hang");
   });
 });
