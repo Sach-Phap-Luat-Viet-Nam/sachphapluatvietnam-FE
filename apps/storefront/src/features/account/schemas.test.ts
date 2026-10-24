@@ -15,6 +15,8 @@ const profile = {
   phoneNumber: null,
   birthDate: null,
   occupation: "robot",
+  defaultAddress: null,
+  invoiceInfo: null,
 };
 
 describe("profile form", () => {

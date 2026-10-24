@@ -203,6 +203,7 @@ describe("Checkout", () => {
       ward: "Phường Cầu Giấy",
       streetAddress: "1 Xuân Thủy",
       isDefault: true,
+      updatedAt: "2026-10-20T03:00:00Z",
     };
     const office = { ...home, id: 2, ward: "Phường Bến Nghé", province: "TP. Hồ Chí Minh", isDefault: false };
     server.use(
@@ -215,6 +216,8 @@ describe("Checkout", () => {
           phoneNumber: "0901234567",
           birthDate: null,
           occupation: null,
+          defaultAddress: home,
+          invoiceInfo: null,
         }),
       ),
       ...addressHandlers([home, office]),

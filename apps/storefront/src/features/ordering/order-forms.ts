@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { PHONE_MESSAGE, isValidPhone, normalizePhone } from "@/lib/phone";
+import { TAX_CODE_MESSAGE, isValidTaxCode } from "@/lib/tax-code";
 
 export { isValidPhone, normalizePhone };
 
 export const PAYMENT_METHODS = ["cod", "bank_transfer"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
-
-/** Mã số thuế 10 số, chi nhánh thêm `-xxx`. */
-const TAX_CODE_PATTERN = /^\d{10}(-\d{3})?$/;
 
 const EMAIL_MESSAGE = "Email chưa đúng định dạng.";
 
@@ -58,9 +56,7 @@ export const checkoutSchema = z
     if (!companyName) issue("companyName", "Vui lòng nhập tên công ty.");
     else if (companyName.length > 255) issue("companyName", tooLong(255));
 
-    if (!TAX_CODE_PATTERN.test(invoice.taxCode.trim())) {
-      issue("taxCode", "Mã số thuế gồm 10 số, chi nhánh thêm -xxx (ví dụ 0101234567-001).");
-    }
+    if (!isValidTaxCode(invoice.taxCode)) issue("taxCode", TAX_CODE_MESSAGE);
 
     const address = invoice.address.trim();
     if (!address) issue("address", "Vui lòng nhập địa chỉ công ty.");

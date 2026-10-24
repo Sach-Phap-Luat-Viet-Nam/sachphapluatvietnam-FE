@@ -7,7 +7,7 @@ import { cn } from "@slvn/ui";
 import { FORM_ERROR } from "@/components/form-styles";
 import { MAX_ADDRESSES, addressLine } from "@/lib/account-api";
 import type { Address, Profile } from "@/lib/account-api";
-import { useAddresses, useDeleteAddress, useSaveAddress } from "@/lib/use-account";
+import { useAddresses, useDeleteAddress, useSetDefaultAddress } from "@/lib/use-account";
 import { AddressForm } from "./AddressForm";
 
 const LINK_BUTTON = "link-underline text-gold flex min-h-11 items-center text-sm disabled:opacity-60";
@@ -16,11 +16,11 @@ const LINK_BUTTON = "link-underline text-gold flex min-h-11 items-center text-sm
 type Editing = "new" | number | null;
 
 function AddressCard({ address, onEdit }: { address: Address; onEdit: () => void }) {
-  const save = useSaveAddress();
+  const setDefault = useSetDefaultAddress();
   const remove = useDeleteAddress();
   const [confirming, setConfirming] = useState(false);
-  const error = save.error ?? remove.error;
-  const { id, ...body } = address;
+  const error = setDefault.error ?? remove.error;
+  const { id } = address;
 
   return (
     <li className="border-gold/20 flex flex-col gap-2 border-b py-4">
@@ -37,11 +37,11 @@ function AddressCard({ address, onEdit }: { address: Address; onEdit: () => void
         {!address.isDefault && (
           <button
             type="button"
-            onClick={() => save.mutate({ id, ...body, isDefault: true })}
-            disabled={save.isPending}
+            onClick={() => setDefault.mutate(id)}
+            disabled={setDefault.isPending}
             className={LINK_BUTTON}
           >
-            {save.isPending ? "Đang đặt…" : "Đặt làm mặc định"}
+            {setDefault.isPending ? "Đang đặt…" : "Đặt làm mặc định"}
           </button>
         )}
         {confirming ? (
