@@ -9,6 +9,7 @@ describe("adminErrorMessage", () => {
   it("dùng câu chữ theo code, mã lạ thì dùng title của backend", () => {
     expect(adminErrorMessage(apiError("SLUG_DUPLICATE"))).toMatch("Slug này đã được dùng");
     expect(adminErrorMessage(apiError("SOMETHING_NEW"))).toBe("title SOMETHING_NEW");
+    expect(adminErrorMessage(apiError("CANNOT_MANAGE_USER", 422))).toMatch("chính mình");
   });
 
   it("ưu tiên câu chữ truyền vào", () => {

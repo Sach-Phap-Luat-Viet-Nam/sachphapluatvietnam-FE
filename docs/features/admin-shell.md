@@ -37,7 +37,7 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   | Nội dung  | `super_admin`, `marketing`                                       | Đã có: popup (`admin-popup.md`) |
   | Kho       | `super_admin`, `warehouse_keeper`                                | Sắp có                          |
   | Đơn hàng  | `super_admin`, `order_manager`, `customer_service`, `accountant` | Sắp có                          |
-  | Nhân viên | `super_admin`                                                    | Sắp có                          |
+  | Nhân viên | `super_admin`                                                    | Đã có (`admin-users.md`)        |
 
   Phần chưa làm hiện nhãn "Sắp có" và không có link, tránh dẫn tới trang 404. Làm xong màn nào thì đổi `ready: true`.
   Gõ thẳng URL của phần không được giao thì `components/ModuleGate.tsx` (đặt ở `layout.tsx` của từng phần) hiện "Không

@@ -60,9 +60,9 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     id: "users",
     href: "/nhan-vien",
     label: "Nhân viên",
-    description: "Tài khoản nhân viên, phân quyền và đăng nhập hộ.",
+    description: "Tài khoản nhân viên: thêm mới, phân quyền, đặt mật khẩu, vô hiệu hóa và đăng xuất hộ.",
     roles: ["super_admin"],
-    ready: false,
+    ready: true,
   },
 ];
 

@@ -85,7 +85,12 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - Form React Hook Form + Zod (`features/ordering/order-forms.ts`): họ tên, số điện thoại (`0xxxxxxxxx`/`+84xxxxxxxxx`,
   cho gõ khoảng trắng/dấu chấm), email (không bắt buộc), tỉnh/thành, phường/xã, số nhà, phương thức thanh toán, "Xuất
   hóa đơn công ty" (tên công ty, MST 10 số hoặc `-xxx`, địa chỉ, email), ghi chú. Tên field trùng key lỗi của backend
-  (`shippingAddress.ward`, `invoiceInfo.taxCode`) nên lỗi `VALIDATION_ERROR` hiện đúng ô.
+  (`shippingAddress.ward`, `invoiceInfo.taxCode`) nên lỗi `VALIDATION_ERROR` hiện đúng ô. Mã số thuế kiểm tra bằng
+  `lib/tax-code.ts`, dùng chung với trang tài khoản.
+- **Thành viên** (xem `docs/features/storefront-account.md`): điền sẵn họ tên, số điện thoại, email từ hồ sơ (chỉ vào ô
+  còn trống). Có sổ địa chỉ thì hiện danh sách "Địa chỉ đã lưu" để chọn, địa chỉ mặc định chọn sẵn; chọn "Địa chỉ khác"
+  thì nhập mới và được tích "Lưu địa chỉ này vào sổ địa chỉ" (sổ chưa đủ 10). Địa chỉ được lưu sau khi đặt đơn thành
+  công; lưu lỗi chỉ báo nhẹ trên màn cảm ơn, không ảnh hưởng đơn.
 - **Idempotency-Key**: `crypto.randomUUID()` sinh một lần mỗi lần vào trang, giữ nguyên khi bấm lại. Nút bị khóa trong
   lúc gửi. Backend trả `IDEMPOTENCY_KEY_REUSED` → sinh key mới và gửi lại **một lần**.
 - Lỗi do giỏ đã đổi (`CART_EMPTY`, `SKU_NOT_AVAILABLE`, `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`): hiện thông báo + link
@@ -176,8 +181,9 @@ giỏ, thanh toán, đơn hàng. Bật giảm chuyển động thì chỉ còn c
 - Chưa có màn quản lý đơn ở Admin. Khách vãng lai chưa tự hủy được đơn (backend chỉ cho hủy với Bearer).
 - Chưa thử được "Đơn của tôi" với backend thật (cần tài khoản khách và backend có Redis/CSDL sẵn sàng); test dùng MSW và
   Playwright giả lập API.
-- Tỉnh/thành, phường/xã là ô nhập tự do (chưa có danh mục địa giới 2 cấp); chưa có sổ địa chỉ, chưa tự điền thông tin
-  của thành viên đã đăng nhập.
+- Tỉnh/thành, phường/xã là ô nhập tự do (chưa có danh mục địa giới 2 cấp).
+- Chưa điền sẵn phần "Xuất hóa đơn công ty" từ `invoiceInfo` của hồ sơ, chưa có checkbox lưu thông tin hóa đơn
+  (`PUT /me/invoice-info`).
 - Chưa có mã giảm giá (backend chưa có `/cart/apply-coupon`), pre-order, cổng thanh toán online.
 - Chưa có số hotline CSKH để hiện ở chỗ "liên hệ CSKH" (báo giá sỉ, hủy đơn).
 - `regularSalePrice`, `saleEndsAt` chưa có trong `docs/api_reference.md` (lấy theo response mẫu backend gửi 24/10/2026);
