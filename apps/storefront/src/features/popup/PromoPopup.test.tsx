@@ -46,7 +46,7 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("PromoPopup", () => {
-  it("mở popup khi ảnh tải xong, có link và nút đóng", async () => {
+  it("mở popup khi ảnh tải xong, bấm ảnh là mở link, có nút đóng", async () => {
     server.use(activePopup(POPUP));
     const user = userEvent.setup();
     render(<PromoPopup />);
@@ -54,7 +54,7 @@ describe("PromoPopup", () => {
     await loadImage();
     const dialog = screen.getByRole("dialog", { name: "Sale sách luật mùa thi" });
     expect(dialog).toHaveAttribute("open");
-    expect(screen.getByRole("link", { name: "Xem chi tiết" })).toHaveAttribute("href", "/khuyen-mai");
+    expect(screen.getByRole("link", { name: "Sale sách luật mùa thi" })).toHaveAttribute("href", "/khuyen-mai");
 
     await user.click(screen.getByRole("button", { name: "Đóng quảng cáo" }));
     expect(dialog).not.toHaveAttribute("open");
@@ -84,7 +84,7 @@ describe("PromoPopup", () => {
     render(<PromoPopup />);
 
     await loadImage();
-    const cta = screen.getByRole("link", { name: "Xem chi tiết" });
+    const cta = screen.getByRole("link", { name: "Sale sách luật mùa thi" });
     expect(cta).toHaveAttribute("target", "_blank");
     expect(cta).toHaveAttribute("rel", "noopener noreferrer");
   });
