@@ -19,6 +19,10 @@ nhất và dẫn khách vào tủ sách. Thiết kế "Thư viện đêm" trên 
    không có dữ liệu. Dãy lặp để vòng chạy liền mạch, dãy thứ hai ẩn với trình đọc màn hình.
 3. **Thanh danh mục** đánh số, dẫn tới `/sach?category=<slug>`.
 4. **Mới phát hành**: 4 sách mới nhất dùng `BookCard` của tủ sách; trống thì báo "Tủ sách đang được cập nhật".
+   - Desktop (`lg`): lưới 4 cột. Mobile/tablet: kệ vuốt ngang (scroll-snap), mỗi thẻ rộng 68% (40% trên tablet) để lộ
+     một phần cuốn kế tiếp, gợi ý vuốt.
+   - Tên sách tối đa 3 dòng, giá luôn ở đáy thẻ để các thẻ cùng hàng thẳng nhau (áp dụng cả trang `/sach`).
+   - Link "Xem tất cả sách mới" dẫn tới `/sach?sort=newest`.
 5. Dải cam kết (ISBN/QĐXB, "Cập nhật đến", phí ship).
 
 Trang dựng tĩnh, làm mới sau 60 giây (ISR). Backend lỗi lúc dựng thì vẫn hiện hero (bìa chung "Tủ sách pháp luật"),
