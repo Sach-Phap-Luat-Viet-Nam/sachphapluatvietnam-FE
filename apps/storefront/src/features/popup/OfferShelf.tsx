@@ -32,19 +32,14 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
   return (
     <section aria-labelledby="running-offers" className="bg-ink-deep border-gold/25 border-y">
       <Container className="flex flex-col gap-8 py-14 sm:gap-12 sm:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-          <div className="flex flex-col gap-4">
-            <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em]">
-              <span className="bg-gold h-px w-10" />
-              ƯU ĐÃI ĐANG CHẠY
-            </p>
-            <h2 id="running-offers" className="font-editorial text-[34px] leading-[1.05] font-bold sm:text-[44px]">
-              Chương trình <span className="text-gold font-medium italic">đang diễn ra</span>
-            </h2>
-          </div>
-          <p className="text-sand max-w-sm text-[15px] leading-7">
-            Lỡ tắt quảng cáo khi mới vào web? Bấm vào từng chương trình để xem lại nội dung đầy đủ.
+        <div className="flex flex-col gap-4">
+          <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em]">
+            <span className="bg-gold h-px w-10" />
+            ƯU ĐÃI ĐANG CHẠY
           </p>
+          <h2 id="running-offers" className="font-editorial text-[34px] leading-[1.05] font-bold sm:text-[44px]">
+            Chương trình <span className="text-gold font-medium italic">đang diễn ra</span>
+          </h2>
         </div>
 
         {/* Điện thoại: vuốt ngang, lộ một phần thẻ kế tiếp; desktop: lưới 3 cột (backend trả tối đa 3 popup). */}
@@ -66,9 +61,10 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                     className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </span>
-                <span className="flex flex-col gap-2 px-5 pt-5 pb-5.5">
+                {/* Các thẻ trong hàng cao bằng nhau; chữ "Xem lại nội dung" luôn nằm sát đáy dù tiêu đề dài ngắn khác nhau. */}
+                <span className="flex flex-1 flex-col gap-4 px-5 pt-5 pb-5.5">
                   <span className="font-editorial text-xl leading-snug font-bold">{popup.title}</span>
-                  <span className="text-gold-pale mt-1 flex items-center gap-2 text-sm font-medium">
+                  <span className="text-gold-pale mt-auto flex items-center gap-2 text-sm font-medium">
                     Xem lại nội dung
                     <ArrowRight size={16} strokeWidth={1.6} aria-hidden="true" />
                   </span>
@@ -103,14 +99,17 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
               unoptimized
               className="block h-auto max-h-[75dvh] w-auto max-w-[calc(100vw-2rem)] object-contain lg:max-w-[min(calc(100vw-4rem),64rem)] lg:min-w-[36rem]"
             />
-            <div className="border-gold/25 flex flex-wrap items-center justify-between gap-4 border-t px-5 py-4">
-              <span className="font-editorial text-lg font-bold">{selected.title}</span>
+            {/* `w-0 min-w-full`: thanh này không góp vào bề rộng của hộp thoại (do ảnh quyết định) nên tiêu đề dài tự xuống dòng. */}
+            <div className="border-gold/25 flex w-0 min-w-full flex-col gap-4 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-editorial min-w-0 text-lg leading-snug font-bold [overflow-wrap:anywhere]">
+                {selected.title}
+              </span>
               {link && (
                 <Link
                   href={link.href}
                   onClick={() => dialog.current?.close()}
                   {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="btn-sweep bg-gold text-ink flex h-12 items-center gap-2.5 px-6 font-semibold"
+                  className="btn-sweep bg-gold text-ink flex h-12 shrink-0 items-center justify-center gap-2.5 px-6 font-semibold"
                 >
                   Xem chương trình
                   <ArrowRight size={18} aria-hidden="true" />

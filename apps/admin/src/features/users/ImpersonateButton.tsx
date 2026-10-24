@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { LogIn } from "lucide-react";
+import type { ButtonVariant } from "@slvn/ui";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { adminErrorMessage } from "@/lib/admin-errors";
 import { openImpersonation } from "./impersonation";
@@ -14,10 +15,12 @@ const ERROR_OVERRIDES = {
 export interface ImpersonateButtonProps {
   account: { id: number; email: string; fullName: string; roles: readonly string[] };
   onResult: (result: { ok: true; message: string } | { ok: false; message: string }) => void;
+  /** Kiểu nút ban đầu; mặc định `primary` vì đây là thao tác hỗ trợ chính. */
+  variant?: ButtonVariant;
 }
 
 /** Nút "Đăng nhập hộ" có bước xác nhận; mở tab mới ở app đích (khách → Storefront, nhân viên → Admin). */
-export function ImpersonateButton({ account, onResult }: ImpersonateButtonProps) {
+export function ImpersonateButton({ account, onResult, variant = "primary" }: ImpersonateButtonProps) {
   const impersonation = useMutation({
     mutationFn: () => openImpersonation(account),
     onSuccess: () => onResult({ ok: true, message: `Đã mở tab đăng nhập hộ ${account.email}.` }),
@@ -36,6 +39,7 @@ export function ImpersonateButton({ account, onResult }: ImpersonateButtonProps)
       confirmLabel="Đăng nhập hộ"
       onConfirm={() => impersonation.mutate()}
       pending={impersonation.isPending}
+      variant={variant}
     >
       <LogIn size={16} aria-hidden="true" /> Đăng nhập hộ
     </ConfirmButton>

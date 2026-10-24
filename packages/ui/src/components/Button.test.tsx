@@ -38,4 +38,11 @@ describe("buttonClassName", () => {
     expect(buttonClassName({ className: "px-8" })).toContain("px-8");
     expect(buttonClassName({ className: "px-8" })).not.toContain("px-4");
   });
+
+  it("nút viền cho thao tác nguy hiểm và tích cực dùng màu danger và success", () => {
+    expect(buttonClassName({ variant: "danger-outline" })).toContain("text-danger");
+    expect(buttonClassName({ variant: "danger-outline" })).toContain("border-danger/50");
+    expect(buttonClassName({ variant: "success-outline" })).toContain("text-success");
+    expect(buttonClassName({ variant: "success-outline" })).toContain("border-success/50");
+  });
 });

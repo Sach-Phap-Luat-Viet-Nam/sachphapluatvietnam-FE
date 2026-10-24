@@ -2,10 +2,11 @@
 
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DateTimeInput } from "@/components/DateTimeInput";
 import { Field, fieldA11y } from "@/components/Field";
 import { FormActions } from "@/components/FormActions";
 import { ImageField } from "@/components/ImageField";
-import { CHECKBOX, INPUT, LABEL } from "@/components/form-styles";
+import { CHECKBOX, INPUT, LABEL, TEXTAREA } from "@/components/form-styles";
 import { showServerError } from "@/lib/admin-errors";
 import { DISPLAY_FREQUENCIES, DISPLAY_FREQUENCY_LABELS } from "./labels";
 import { toPopupBody } from "./popup-form";
@@ -60,11 +61,11 @@ export function PopupForm({ defaultValues, submitLabel, onSave, onCancel }: Popu
         error={errors.title?.message}
         hint="Cũng là mô tả ảnh cho người dùng trình đọc màn hình. Tối đa 255 ký tự."
       >
-        <input
-          type="text"
+        <textarea
+          rows={3}
           {...register("title")}
           {...fieldA11y("popup-title", errors.title?.message, true)}
-          className={INPUT}
+          className={TEXTAREA}
         />
       </Field>
 
@@ -101,12 +102,27 @@ export function PopupForm({ defaultValues, submitLabel, onSave, onCancel }: Popu
       </Field>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Field id="popup-starts" label="Bắt đầu (giờ Việt Nam)" error={errors.startsAt?.message}>
-          <input
-            type="datetime-local"
-            {...register("startsAt")}
-            {...fieldA11y("popup-starts", errors.startsAt?.message)}
-            className={INPUT}
+        <Field
+          id="popup-starts"
+          label="Bắt đầu (giờ Việt Nam)"
+          error={errors.startsAt?.message}
+          hint="Dạng ngày/tháng/năm giờ:phút, ví dụ 01/11/2026 08:00."
+        >
+          <Controller
+            control={control}
+            name="startsAt"
+            render={({ field }) => (
+              <DateTimeInput
+                id="popup-starts"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                invalid={Boolean(errors.startsAt)}
+                describedBy={["popup-starts-hint", errors.startsAt ? "popup-starts-error" : ""]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
+            )}
           />
         </Field>
         <Field
@@ -114,13 +130,21 @@ export function PopupForm({ defaultValues, submitLabel, onSave, onCancel }: Popu
           label="Kết thúc (giờ Việt Nam)"
           optional
           error={errors.endsAt?.message}
-          hint="Để trống: chạy đến khi tắt."
+          hint="Dạng ngày/tháng/năm giờ:phút, ví dụ 30/11/2026 23:59. Để trống: chạy đến khi tắt."
         >
-          <input
-            type="datetime-local"
-            {...register("endsAt")}
-            {...fieldA11y("popup-ends", errors.endsAt?.message, true)}
-            className={INPUT}
+          <Controller
+            control={control}
+            name="endsAt"
+            render={({ field }) => (
+              <DateTimeInput
+                id="popup-ends"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                invalid={Boolean(errors.endsAt)}
+                describedBy={["popup-ends-hint", errors.endsAt ? "popup-ends-error" : ""].filter(Boolean).join(" ")}
+              />
+            )}
           />
         </Field>
         <Field

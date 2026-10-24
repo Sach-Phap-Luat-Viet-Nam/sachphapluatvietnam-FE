@@ -18,8 +18,14 @@ Gõ thẳng URL khi không có vai trò thì `components/ModuleGate.tsx` hiện 
 
 - **Ảnh**: chọn file thì upload lên Cloudinary bằng chữ ký `popup-signature` (`lib/image-upload.ts`), hoặc dán link
   http/https.
-- **Lịch chạy** nhập bằng ô `datetime-local` theo **giờ Việt Nam**: gửi kèm offset `+07:00`, backend trả UTC rồi FE đổi
-  lại giờ Việt Nam (`popup-form.ts`). Kết thúc để trống = chạy đến khi tắt; có thì phải sau thời điểm bắt đầu. Popup mới
+- **Tiêu đề** là ô nhiều dòng (3 dòng, kéo giãn được) vì tiêu đề thường dài; xuống dòng được đổi thành khoảng trắng khi
+  gửi (tiêu đề là mô tả ảnh một dòng). Tối đa 255 ký tự.
+- **Lịch chạy** nhập theo **giờ Việt Nam** ở định dạng **`dd/mm/yyyy hh:mm`** (24 giờ). Ô `<input type="datetime-local">`
+  của trình duyệt hiện theo ngôn ngữ của máy (`mm/dd/yyyy` ở máy tiếng Anh) và không đổi được, nên dùng ô chữ riêng
+  (`components/DateTimeInput.tsx`, logic ở `lib/vn-datetime.ts`): gõ số liền thì tự thêm `/`, khoảng trắng và `:`
+  (`010120260800` → `01/01/2026 08:00`), kèm nút lịch mở bộ chọn của trình duyệt. Ngày giờ không có thật (31/02, 25:00)
+  hoặc gõ dở thì báo lỗi dưới ô. Giá trị trong form vẫn là `YYYY-MM-DDTHH:mm`, gửi kèm offset `+07:00`, backend trả UTC rồi
+  FE đổi lại giờ Việt Nam (`popup-form.ts`). Kết thúc để trống = chạy đến khi tắt; có thì phải sau thời điểm bắt đầu. Popup mới
   mặc định bắt đầu từ đầu giờ kế tiếp, đang bật, "Một lần mỗi ngày".
 - **Link** chỉ nhận đường dẫn trong site (`/khuyen-mai`) hoặc URL `http`/`https`; chặn `javascript:`, `data:`, `//host`,
   `/\host` ngay trên form (cùng quy tắc với backend).
@@ -50,7 +56,8 @@ Không có biến mới. Upload ảnh cần backend đã cấu hình Cloudinary 
 ## Hạn chế / việc còn lại
 
 - **Chưa thử với backend thật**, chỉ kiểm tra bằng Vitest + MSW.
-- Ô `datetime-local` chỉ tới phút: kết thúc lúc `23:59` thay vì `23:59:59`.
+- Ô ngày giờ chỉ tới phút: kết thúc lúc `23:59` thay vì `23:59:59`.
+- Mới popup dùng ô `DateTimeInput`; các màn khác có ô ngày giờ (nếu có) vẫn dùng ô của trình duyệt.
 - Chưa có xem trước popup như trên website, chưa đếm lượt hiển thị/lượt bấm (backend chưa có).
 - Chưa xóa ảnh cũ trên Cloudinary khi đổi/xóa popup.
 - Hàm kiểm tra link an toàn đang có hai bản, ở admin (`features/popup/schemas.ts`) và storefront

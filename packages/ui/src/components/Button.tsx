@@ -2,7 +2,8 @@ import type { ButtonHTMLAttributes } from "react";
 
 import { cn } from "../cn";
 
-export type ButtonVariant = "primary" | "accent" | "outline" | "ghost" | "danger";
+export type ButtonVariant =
+  "primary" | "accent" | "outline" | "ghost" | "danger" | "danger-outline" | "success-outline";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -11,6 +12,9 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   outline: "border border-border bg-background text-foreground hover:bg-surface",
   ghost: "text-foreground hover:bg-surface",
   danger: "bg-danger text-danger-foreground hover:bg-danger-hover",
+  // Nút viền cho thao tác nguy hiểm / tích cực nhưng không nên nổi bằng nút chính (nhiều dòng trong một danh sách).
+  "danger-outline": "border border-danger/50 bg-background text-danger hover:bg-danger/10",
+  "success-outline": "border border-success/50 bg-background text-success hover:bg-success/10",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

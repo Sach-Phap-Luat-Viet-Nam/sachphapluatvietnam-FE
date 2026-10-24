@@ -57,7 +57,8 @@ export function popupToFormValues(popup: AdminPopup): PopupFormValues {
 export function toPopupBody(values: PopupFormValues) {
   const linkUrl = values.linkUrl.trim();
   return {
-    title: values.title.trim(),
+    // Tiêu đề nhập trong ô nhiều dòng nhưng là mô tả ảnh một dòng: xuống dòng đổi thành khoảng trắng.
+    title: values.title.replace(/\s*\n\s*/g, " ").trim(),
     imageUrl: values.imageUrl.trim(),
     linkUrl: linkUrl === "" ? null : linkUrl,
     startsAt: fromVnDateTimeInput(values.startsAt),
