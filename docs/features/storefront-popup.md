@@ -29,15 +29,33 @@ App **storefront**, mọi trang (`PromoPopup` đặt trong `app/layout.tsx`).
    popup chỉ còn ảnh.
 6. `title` là alt của ảnh và tên của dialog cho trình đọc màn hình.
 
+### Xem lại ưu đãi ở trang chủ (`OfferShelf`)
+
+Khách lỡ tắt popup lúc mới vào web thì xem lại được ở khu **"Ưu đãi đang chạy"** trên trang chủ, nằm giữa dải danh mục
+và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ nguyên, không đổi.
+
+- **Dữ liệu**: Server Component gọi `getRunningPopups()` (`features/popup/server.ts`, `GET /popups/running`, tối đa 3
+  popup theo ưu tiên) cùng lúc với sách và danh mục, nên khu này nằm trong HTML dựng sẵn (làm mới 60 giây như trang
+  chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
+- **Giao diện** (`features/popup/OfferShelf.tsx`): desktop là lưới 3 thẻ; điện thoại và tablet là hàng vuốt ngang, lộ một
+  phần thẻ kế tiếp. Mỗi thẻ gồm ảnh popup (khung 16:10, cắt từ phía trên, `object-cover object-top`), tên chương trình
+  và "Xem lại nội dung". Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+- **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
+  nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
+  bật là có nút riêng thay vì bấm vào ảnh.
+- **Không áp `displayFrequency`** và **không ghi dấu "đã xem"**: bấm xem lại không làm popup tự bật biến mất hay hiện lại.
+
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
-| Method | Route                   | Dùng cho        | Xử lý                                                             |
-| ------ | ----------------------- | --------------- | ----------------------------------------------------------------- |
-| GET    | `/api/v1/popups/active` | Popup đang chạy | 200 → parse Zod `popupSchema`; 204 → không hiện; lỗi → không hiện |
+| Method | Route                    | Dùng cho                           | Xử lý                                                             |
+| ------ | ------------------------ | ---------------------------------- | ----------------------------------------------------------------- |
+| GET    | `/api/v1/popups/active`  | Popup đang chạy                    | 200 → parse Zod `popupSchema`; 204 → không hiện; lỗi → không hiện |
+| GET    | `/api/v1/popups/running` | Khu "Ưu đãi đang chạy" ở trang chủ | 200 → mảng `popupSchema` (tối đa 3, có thể rỗng); lỗi → ẩn khu    |
 
-- **OpenAPI trong repo chưa có route này** (chưa sinh lại được: Render tắt `/openapi/v1.json`, backend local không
-  chạy). Route được khai báo tạm trong `packages/api-client/src/pending-paths.ts` với response `unknown`, response parse
-  bằng Zod theo `docs/features/popup.md`.
+- Hai route đã có trong OpenAPI sinh ra (`pnpm api:fetch && pnpm api:generate`), response vẫn parse bằng Zod
+  (`popupSchema`) theo `docs/features/popup.md` vì type sinh ra để số là `number | string`.
+- **Cần backend có `GET /popups/running`** (commit `feat(content): add GET /popups/running`). Backend cũ trả 404 thì khu
+  này tự ẩn, trang chủ vẫn bình thường.
 
 ## Cấu hình cần thiết (biến môi trường)
 
@@ -45,9 +63,12 @@ Không thêm biến mới. Dùng proxy `/api/v1` của storefront (`API_BASE_URL
 
 ## Hạn chế / việc còn lại
 
-- Khi chạy được `pnpm api:fetch && pnpm api:generate` có route popup: xóa khai báo trong `pending-paths.ts`.
 - Chưa có màn quản lý popup ở app admin (danh sách, tạo/sửa/xóa, upload ảnh Cloudinary, menu cho `marketing`).
 - Ảnh popup chưa tối ưu qua `next/image` (`unoptimized`, chưa khai báo `images.remotePatterns` cho Cloudinary).
 - Ảnh popup lớn có thể bị tính là LCP của trang (hiện sau khi tải trang); theo dõi Core Web Vitals khi bật popup thật.
 - Dấu đã xem của popup cũ (`popup:{id}:{updatedAt}` cũ) không tự xóa khỏi `localStorage`.
 - Chưa đếm lượt hiển thị/lượt bấm (backend chưa có API).
+- Ảnh popup dạng poster bị cắt ở thẻ (chỉ thấy phần trên); nội dung đầy đủ xem khi bấm vào thẻ. Muốn thẻ hiện nguyên
+  ảnh thì đổi `object-cover` thành `object-contain` ở `OfferShelf.tsx`, đổi lại là ảnh nhỏ hơn trong khung.
+- Khu này chỉ có ở trang chủ (chưa có ở các trang khác).
+- Chạy quá 3 popup cùng lúc thì khu này chỉ hiện 3 popup ưu tiên cao nhất.

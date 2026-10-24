@@ -15,6 +15,8 @@ import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { LawTicker } from "@/features/home/LawTicker";
 import { tickerItems } from "@/features/home/home";
 import { QuickAddButton } from "@/features/ordering/QuickAddButton";
+import { OfferShelf } from "@/features/popup/OfferShelf";
+import { getRunningPopups } from "@/features/popup/server";
 
 const NEW_BOOKS_LIMIT = 4;
 
@@ -46,7 +48,7 @@ async function loadHomeData(): Promise<{ books: BookSummary[]; categories: Categ
 }
 
 export default async function HomePage() {
-  const { books, categories } = await loadHomeData();
+  const [{ books, categories }, offers] = await Promise.all([loadHomeData(), getRunningPopups()]);
   const featured = books[0];
 
   return (
@@ -131,6 +133,8 @@ export default async function HomePage() {
           href: `/sach?category=${encodeURIComponent(category.slug)}`,
         }))}
       />
+
+      <OfferShelf popups={offers} />
 
       <section aria-labelledby="new-books" className="shelf-lamp">
         <Container className="flex flex-col gap-8 py-20 sm:gap-14 sm:py-28">

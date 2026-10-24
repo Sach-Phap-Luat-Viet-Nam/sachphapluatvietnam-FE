@@ -2254,6 +2254,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/popups/running": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PopupResponse"][];
+                        "application/json": components["schemas"]["PopupResponse"][];
+                        "text/json": components["schemas"]["PopupResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/popups": {
         parameters: {
             query?: never;
