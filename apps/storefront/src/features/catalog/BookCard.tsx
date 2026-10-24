@@ -42,12 +42,12 @@ export function BookCard({ book }: BookCardProps) {
   const open = () => dialog.current?.showModal();
 
   return (
-    <article className="shelf-card motion-reveal flex min-w-0 flex-col">
+    <article className="shelf-card motion-reveal flex h-full min-w-0 flex-col">
       <button
         type="button"
         onClick={open}
         aria-label={`Xem nhanh ${book.title}`}
-        className="border-gold/50 relative flex h-56 items-end justify-center border-b shadow-[0_14px_18px_-16px_rgb(0_0_0/0.9)] sm:h-76"
+        className="border-gold/50 relative flex h-50 items-end justify-center border-b shadow-[0_14px_18px_-16px_rgb(0_0_0/0.9)] sm:h-68"
       >
         <span className={cn("shelf-book block", dimmed && "opacity-55")}>
           <BookCover book={book} />
@@ -68,7 +68,8 @@ export function BookCard({ book }: BookCardProps) {
       </button>
       <p className="text-gold mt-4 text-[11px] tracking-[0.24em] uppercase">{bookTypeLabel(book.bookType)}</p>
       <h3 className="font-editorial mt-1 text-lg leading-snug font-bold sm:text-[22px]">
-        <button type="button" onClick={open} className="hover:text-gold text-left transition-colors">
+        {/* Tên dài cắt ở 3 dòng để các thẻ cùng hàng thẳng nhau; tên đầy đủ có trong Xem nhanh. */}
+        <button type="button" onClick={open} className="hover:text-gold line-clamp-3 text-left transition-colors">
           {book.title}
         </button>
       </h3>
@@ -79,7 +80,8 @@ export function BookCard({ book }: BookCardProps) {
           {book.updatedToText}
         </p>
       )}
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+      {/* Giá luôn ở đáy thẻ để thẳng hàng giữa các thẻ có tên dài ngắn khác nhau. */}
+      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1 pt-3">
         <BookPrice book={book} />
         {status.tone !== "ok" && <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
       </div>
