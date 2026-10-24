@@ -113,6 +113,13 @@
     );
     animation: lamp-glow 7s ease-in-out infinite;
   }
+  /*
+   * Hiện dần sách bằng lớp bọc ngoài khối 3D: opacity < 1 (kể cả animation opacity còn giữ nhờ fill-mode) trên phần
+   * tử preserve-3d khiến trình duyệt ép phẳng, làm mất gáy và mép giấy.
+   */
+  .book-reveal {
+    animation: fade-in 0.9s ease-out 0.35s both;
+  }
   .book-stage {
     transform-style: preserve-3d;
     transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
@@ -395,8 +402,12 @@
 }
 @keyframes book-open {
   from {
-    opacity: 0;
     transform: rotateY(95deg) rotateX(8deg) translateZ(-200px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }
 @keyframes book-float {
