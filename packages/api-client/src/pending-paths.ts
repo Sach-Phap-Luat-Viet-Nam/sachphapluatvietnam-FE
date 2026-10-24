@@ -80,10 +80,7 @@ export interface PendingPaths {
     }
   >;
   /** Đặt làm địa chỉ mặc định → cả sổ địa chỉ. */
-  "/api/v1/me/addresses/{id}/default": PathItem<
-    NoParameters,
-    { post: Operation<IdParameters, { 200: UnknownJson }> }
-  >;
+  "/api/v1/me/addresses/{id}/default": PathItem<NoParameters, { post: Operation<IdParameters, { 200: UnknownJson }> }>;
   /** Lưu (`UpsertInvoiceInfoRequest` → `InvoiceInfoResponse`) hoặc xóa (204) thông tin xuất hóa đơn. */
   "/api/v1/me/invoice-info": PathItem<
     NoParameters,
