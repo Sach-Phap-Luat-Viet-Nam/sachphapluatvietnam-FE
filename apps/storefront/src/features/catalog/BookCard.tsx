@@ -17,13 +17,15 @@ const TONE_CLASSES: Record<AvailabilityTone, string> = {
 
 export interface BookCardProps {
   book: BookSummary;
+  /** Số thứ tự hiển thị cạnh loại sách (`01`, `02`, …), dùng khi thẻ nằm trong một dãy có thứ tự. */
+  index?: number;
 }
 
-function BookPrice({ book }: BookCardProps) {
+function BookPrice({ book }: Pick<BookCardProps, "book">) {
   if (book.salePrice === null) return null;
   return (
     <span className="flex flex-wrap items-baseline gap-x-2">
-      <span className="text-lg font-semibold">{formatPrice(book.salePrice)}</span>
+      <span className="text-gold-pale text-xl font-semibold">{formatPrice(book.salePrice)}</span>
       {book.listPrice !== null && book.listPrice > book.salePrice && (
         <span className="text-mist text-sm line-through">{formatPrice(book.listPrice)}</span>
       )}
@@ -31,7 +33,7 @@ function BookPrice({ book }: BookCardProps) {
   );
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, index }: BookCardProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const discount = formatDiscount(book.discountPercent);
   const status = availability(book);
@@ -47,9 +49,17 @@ export function BookCard({ book }: BookCardProps) {
         type="button"
         onClick={open}
         aria-label={`Xem nhanh ${book.title}`}
-        className="border-gold/50 relative flex h-50 items-end justify-center border-b shadow-[0_14px_18px_-16px_rgb(0_0_0/0.9)] sm:h-68"
+        className="relative flex h-50 items-end justify-center shadow-[0_14px_18px_-16px_rgb(0_0_0/0.9)] sm:h-68"
       >
-        <span className={cn("shelf-book block", dimmed && "opacity-55")}>
+        <span
+          aria-hidden="true"
+          className="shelf-glow from-gold/35absolute bottom-0 left-1/2 h-4/5 w-full -translate-x-1/2 bg-radial-[closest-side] to-transparent"
+        />
+        <span
+          aria-hidden="true"
+          className="via-gold/80 absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent to-transparent"
+        />
+        <span className={cn("shelf-book relative block", dimmed && "opacity-55")}>
           <BookCover book={book} />
         </span>
         <span className="quick-tag bg-gold text-ink absolute bottom-4 px-3.5 py-2 text-sm font-semibold">
@@ -66,24 +76,36 @@ export function BookCard({ book }: BookCardProps) {
           </span>
         )}
       </button>
-      <p className="text-gold mt-4 text-[11px] tracking-[0.24em] uppercase">{bookTypeLabel(book.bookType)}</p>
-      <h3 className="font-editorial mt-1 text-lg leading-snug font-bold sm:text-[22px]">
+      <p className="text-gold-pale mt-5 flex items-center gap-3 text-xs font-medium tracking-[0.16em] uppercase">
+        {index !== undefined && (
+          <>
+            <span className="font-editorial text-gold text-lg leading-none tracking-normal italic">
+              {String(index).padStart(2, "0")}
+            </span>
+            <span aria-hidden="true" className="bg-gold/50 h-px w-5" />
+          </>
+        )}
+        {bookTypeLabel(book.bookType)}
+      </p>
+      <h3 className="font-editorial mt-2.5 text-xl leading-[1.4] font-semibold sm:text-[21px]">
         {/* Tên dài cắt ở 3 dòng để các thẻ cùng hàng thẳng nhau; tên đầy đủ có trong Xem nhanh. */}
         <button type="button" onClick={open} className="hover:text-gold line-clamp-3 text-left transition-colors">
           {book.title}
         </button>
       </h3>
-      {edition && <p className="text-mist mt-1 text-sm">{edition}</p>}
+      {edition && <p className="text-mist mt-1.5 text-sm">{edition}</p>}
       {book.updatedToText && (
-        <p className="text-sand mt-2 flex gap-2 text-sm">
+        <p className="text-sand mt-2.5 flex gap-2 text-sm leading-6">
           <Check size={15} strokeWidth={2} className="text-gold mt-1 shrink-0" />
           {book.updatedToText}
         </p>
       )}
       {/* Giá luôn ở đáy thẻ để thẳng hàng giữa các thẻ có tên dài ngắn khác nhau. */}
-      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1 pt-3">
-        <BookPrice book={book} />
-        {status.tone !== "ok" && <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
+      <div className="mt-auto pt-4">
+        <div className="border-ivory/10 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-t pt-4">
+          <BookPrice book={book} />
+          {status.tone !== "ok" && <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
+        </div>
       </div>
 
       <dialog
