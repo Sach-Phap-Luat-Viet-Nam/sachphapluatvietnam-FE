@@ -4,24 +4,7 @@ import sanitizeHtml from "sanitize-html";
 
 /** Thẻ được giữ trong mô tả, mục lục (Admin nhập); mọi thẻ, thuộc tính khác bị bỏ. */
 const RICH_TEXT_OPTIONS: sanitizeHtml.IOptions = {
-  allowedTags: [
-    "p",
-    "br",
-    "hr",
-    "strong",
-    "b",
-    "em",
-    "i",
-    "u",
-    "ul",
-    "ol",
-    "li",
-    "h2",
-    "h3",
-    "h4",
-    "blockquote",
-    "a",
-  ],
+  allowedTags: ["p", "br", "hr", "strong", "b", "em", "i", "u", "ul", "ol", "li", "h2", "h3", "h4", "blockquote", "a"],
   allowedAttributes: { a: ["href", "rel", "target"] },
   allowedSchemes: ["http", "https", "mailto"],
   allowProtocolRelative: false,
