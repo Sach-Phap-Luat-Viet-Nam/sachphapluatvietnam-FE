@@ -3,7 +3,7 @@
 ## Mục đích
 
 Giao diện storefront tiếng Việt, responsive, theo thiết kế **"Thư viện đêm"** (hướng A trên Claude Design): nền mực navy,
-chữ ngà, nhấn vàng và đỏ đô, tiêu đề Playfair Display, chữ thường Be Vietnam Pro (cả hai có bộ glyph tiếng Việt).
+chữ ngà, nhấn vàng và đỏ đô, tiêu đề Lora (thay Playfair Display vì nét mảnh khó đọc ở cỡ nhỏ), chữ thường Be Vietnam Pro (cả hai có bộ glyph tiếng Việt).
 Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`; đăng nhập: `auth-login.md`.
 
 ## Luồng xử lý

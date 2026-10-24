@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
+import { Be_Vietnam_Pro, Lora } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SessionEndedNotice } from "@/components/SessionEndedNotice";
@@ -19,11 +19,12 @@ const sans = Be_Vietnam_Pro({
   variable: "--font-be-vietnam-pro",
 });
 
-// Font tiêu đề phải có bộ glyph tiếng Việt (Georgia thiếu, dấu bị lệch hoặc lẫn font).
-const editorial = Playfair_Display({
+// Font tiêu đề phải có bộ glyph tiếng Việt (Georgia thiếu, dấu bị lệch hoặc lẫn font). Không dùng Playfair Display:
+// nét mảnh quá tương phản, cỡ nhỏ trên nền tối khó đọc và dấu chồng chữ dày đặc.
+const editorial = Lora({
   subsets: ["vietnamese", "latin"],
   style: ["normal", "italic"],
-  variable: "--font-playfair",
+  variable: "--font-lora",
 });
 
 export const metadata: Metadata = {

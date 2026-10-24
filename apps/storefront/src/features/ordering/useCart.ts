@@ -20,11 +20,19 @@ export function useCart() {
   return useQuery({ queryKey: key, queryFn: fetchCart, enabled: ready, staleTime: 30_000 });
 }
 
-/** Mọi API giỏ trả lại toàn bộ giỏ: thay cache bằng response. Lỗi (hết hàng, ngừng bán) thì tải lại giỏ. */
+/** Key chung của mọi thao tác sửa giỏ, dùng với `useIsMutating` để biết giỏ đang được cập nhật. */
+export const CART_MUTATION_KEY = ["cart"] as const;
+
+/**
+ * Mọi API giỏ trả lại toàn bộ giỏ: thay cache bằng response. Lỗi (hết hàng, ngừng bán) thì tải lại giỏ.
+ * Chung `scope` nên các thao tác chạy lần lượt: response của lần sửa trước không về sau và ghi đè lần sửa mới hơn.
+ */
 function useCartMutation<Variables>(mutationFn: (variables: Variables) => Promise<Cart>) {
   const queryClient = useQueryClient();
   const { key } = useCartKey();
   return useMutation({
+    mutationKey: CART_MUTATION_KEY,
+    scope: { id: "cart" },
     mutationFn,
     onSuccess: (cart) => queryClient.setQueryData(key, cart),
     onError: () => queryClient.invalidateQueries({ queryKey: key }),

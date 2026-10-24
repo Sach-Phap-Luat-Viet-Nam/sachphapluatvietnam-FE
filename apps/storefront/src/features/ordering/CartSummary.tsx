@@ -1,19 +1,24 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { quoteShipping } from "./api";
 import { freeShippingGap } from "./cart";
 import type { Cart } from "./schemas";
 
-/** Phí ship dự kiến theo tạm tính (BR-14). */
+/**
+ * Phí ship dự kiến theo tạm tính (BR-14). Tạm tính đổi thì giữ phí cũ trong lúc chờ báo giá mới, để dòng phí không
+ * biến mất rồi hiện lại mỗi lần sửa số lượng.
+ */
 function useShippingQuote(subtotal: number) {
   return useQuery({
     queryKey: ["shipping-quote", subtotal],
     queryFn: () => quoteShipping(subtotal),
     enabled: subtotal > 0,
     staleTime: 5 * 60_000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -21,20 +26,28 @@ export interface CartSummaryProps {
   cart: Cart;
   /** Nội dung đặt dưới tổng tiền, ví dụ nút "Đặt hàng". */
   action?: ReactNode;
+  /** Giỏ đang được cập nhật: số tiền đang hiện có thể sắp đổi. */
+  updating?: boolean;
 }
 
 /**
  * Tạm tính, phí ship và tổng **dự kiến** để khách xem trước; số tiền chốt là của đơn backend tạo. Không lấy được phí
  * ship thì chỉ ẩn dòng phí, không chặn đặt hàng.
  */
-export function CartSummary({ cart, action }: CartSummaryProps) {
+export function CartSummary({ cart, action, updating = false }: CartSummaryProps) {
   const quote = useShippingQuote(cart.subtotal);
   const gap = quote.data ? freeShippingGap(cart.subtotal, quote.data) : null;
 
   return (
     <div className="border-gold/30 bg-panel flex flex-col gap-4 border px-6 py-7">
       <h2 className="font-editorial text-2xl font-bold">Tóm tắt đơn hàng</h2>
-      <dl className="flex flex-col gap-2.5 text-[15px]">
+      <dl
+        aria-busy={updating || quote.isPlaceholderData}
+        className={cn(
+          "flex flex-col gap-2.5 text-[15px] transition-opacity",
+          (updating || quote.isPlaceholderData) && "opacity-50",
+        )}
+      >
         <div className="flex justify-between gap-4">
           <dt className="text-sand">Tạm tính ({cart.totalQuantity} cuốn)</dt>
           <dd>{formatPrice(cart.subtotal)}</dd>

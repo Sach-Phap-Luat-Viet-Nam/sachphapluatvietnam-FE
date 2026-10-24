@@ -48,8 +48,8 @@
   --color-accent-foreground: #f3ede1;
   --color-danger: #f19a8f;
 
-  /* `--font-playfair` do next/font đặt ở thẻ <html> (layout.tsx). */
-  --font-editorial: var(--font-playfair, "Playfair Display"), "Times New Roman", serif;
+  /* `--font-lora` do next/font đặt ở thẻ <html> (layout.tsx). */
+  --font-editorial: var(--font-lora, "Lora"), "Times New Roman", serif;
 }
 
 :root {
@@ -109,7 +109,7 @@
   ::selection {
     @apply bg-gold text-ink;
   }
-  /* Playfair mặc định dùng số old-style (cao thấp lệch nhau); mã đơn, giá tiền, ngày cần số thẳng hàng. */
+  /* Mã đơn, giá tiền, ngày cần số thẳng hàng (không dùng số old-style cao thấp lệch nhau). */
   .font-editorial {
     font-variant-numeric: lining-nums;
   }

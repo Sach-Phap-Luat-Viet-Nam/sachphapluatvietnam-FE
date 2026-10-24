@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useIsMutating } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
@@ -12,23 +14,62 @@ import { CartLineCover } from "./CartLineCover";
 import { CartSummary } from "./CartSummary";
 import { orderingErrorMessage } from "./errors";
 import type { CartItem } from "./schemas";
-import { useCart, useRemoveCartItem, useSetCartQuantity } from "./useCart";
+import { CART_MUTATION_KEY, useCart, useRemoveCartItem, useSetCartQuantity } from "./useCart";
+
+/** Chờ khách bấm +/− xong mới gửi số lượng cuối, thay vì mỗi lần bấm một lượt gọi API. */
+const QUANTITY_DEBOUNCE_MS = 400;
 
 function CartLine({ item }: { item: CartItem }) {
   const setQuantity = useSetCartQuantity();
   const remove = useRemoveCartItem();
-  const busy = setQuantity.isPending || remove.isPending;
+  // Số khách vừa chọn, hiện ngay khi bấm; về null khi giỏ backend trả về đã khớp.
+  const [draft, setDraft] = useState<number | null>(null);
+  const pending = useRef<{ timer: ReturnType<typeof setTimeout>; quantity: number } | null>(null);
+  const { mutate } = setQuantity;
+  const { skuId } = item;
+
+  const quantity = draft ?? item.quantity;
+  const syncing = draft !== null || setQuantity.isPending;
   const issue = lineIssue(item);
   const error = setQuantity.error ?? remove.error;
   const details = [item.editionName, coverTypeLabel(item.coverType)].filter(Boolean).join(" · ");
 
-  const change = (quantity: number) => {
+  // Rời trang khi chưa hết thời gian chờ thì vẫn gửi số lượng khách đã chọn.
+  useEffect(
+    () => () => {
+      const unsent = pending.current;
+      if (!unsent) return;
+      clearTimeout(unsent.timer);
+      mutate({ skuId, quantity: unsent.quantity });
+    },
+    [mutate, skuId],
+  );
+
+  const change = (next: number) => {
     remove.reset();
-    setQuantity.mutate({ skuId: item.skuId, quantity });
+    setDraft(next);
+    if (pending.current) clearTimeout(pending.current.timer);
+    const timer = setTimeout(() => {
+      pending.current = null;
+      mutate(
+        { skuId, quantity: next },
+        // Khách đã bấm tiếp trong lúc chờ thì giữ số mới hơn; lỗi thì về số của giỏ vừa tải lại.
+        { onSettled: () => setDraft((current) => (current === next ? null : current)) },
+      );
+    }, QUANTITY_DEBOUNCE_MS);
+    pending.current = { timer, quantity: next };
+  };
+
+  const removeLine = () => {
+    if (pending.current) clearTimeout(pending.current.timer);
+    pending.current = null;
+    setDraft(null);
+    setQuantity.reset();
+    remove.mutate(skuId);
   };
 
   return (
-    <li className={cn("border-gold/20 flex gap-4 border-b py-6 sm:gap-6", busy && "opacity-70")}>
+    <li className={cn("border-gold/20 flex gap-4 border-b py-6 sm:gap-6", remove.isPending && "opacity-70")}>
       <CartLineCover title={item.bookTitle} coverImageUrl={item.coverImageUrl} skuId={item.skuId} />
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1">
@@ -40,7 +81,13 @@ function CartLine({ item }: { item: CartItem }) {
             </h3>
             {details && <p className="text-mist mt-1 text-sm">{details}</p>}
           </div>
-          <p className="text-gold-pale text-lg font-semibold">{formatPrice(item.lineTotal)}</p>
+          {/* Thành tiền luôn lấy từ backend; mờ đi trong lúc chờ giỏ mới. */}
+          <p
+            aria-busy={syncing}
+            className={cn("text-gold-pale text-lg font-semibold transition-opacity", syncing && "opacity-50")}
+          >
+            {formatPrice(item.lineTotal)}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -48,20 +95,20 @@ function CartLine({ item }: { item: CartItem }) {
             <button
               type="button"
               aria-label={`Giảm số lượng ${item.bookTitle}`}
-              onClick={() => change(item.quantity - 1)}
-              disabled={busy || item.quantity <= 1}
+              onClick={() => change(quantity - 1)}
+              disabled={remove.isPending || quantity <= 1}
               className="hover:text-gold flex w-11 items-center justify-center disabled:opacity-40"
             >
               <Minus size={16} />
             </button>
             <span aria-live="polite" className="flex w-10 items-center justify-center">
-              {item.quantity}
+              {quantity}
             </span>
             <button
               type="button"
               aria-label={`Tăng số lượng ${item.bookTitle}`}
-              onClick={() => change(item.quantity + 1)}
-              disabled={busy || item.quantity >= MAX_QUANTITY_PER_SKU || !item.isSellable}
+              onClick={() => change(quantity + 1)}
+              disabled={remove.isPending || quantity >= MAX_QUANTITY_PER_SKU || !item.isSellable}
               className="hover:text-gold flex w-11 items-center justify-center disabled:opacity-40"
             >
               <Plus size={16} />
@@ -75,11 +122,8 @@ function CartLine({ item }: { item: CartItem }) {
           </span>
           <button
             type="button"
-            onClick={() => {
-              setQuantity.reset();
-              remove.mutate(item.skuId);
-            }}
-            disabled={busy}
+            onClick={removeLine}
+            disabled={remove.isPending}
             aria-label={`Xóa ${item.bookTitle} khỏi giỏ`}
             className="link-underline text-mist hover:text-gold ml-auto flex min-h-11 items-center gap-2 text-sm disabled:opacity-60"
           >
@@ -122,6 +166,7 @@ function CartLine({ item }: { item: CartItem }) {
 /** Trang giỏ hàng: sửa số lượng, xóa dòng, xem tổng tiền và sang bước thanh toán. */
 export function CartView() {
   const { data: cart, error, isError, refetch, isFetching } = useCart();
+  const updating = useIsMutating({ mutationKey: CART_MUTATION_KEY }) > 0;
 
   if (isError) {
     return (
@@ -172,9 +217,15 @@ export function CartView() {
       </section>
       <CartSummary
         cart={cart}
+        updating={updating}
         action={
           blocker ? (
             <p className="text-upcoming text-sm leading-6">{blocker}</p>
+          ) : updating ? (
+            // Chờ giỏ lưu xong mới cho sang thanh toán, để đơn tạo theo đúng số lượng khách vừa chọn.
+            <button type="button" disabled className={cn(SUBMIT, "mt-1")}>
+              Đang cập nhật giỏ…
+            </button>
           ) : (
             <Link href="/thanh-toan" className={cn(SUBMIT, "mt-1")}>
               Đặt hàng <ArrowRight size={18} />

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -91,11 +91,36 @@ describe("CartView", () => {
 
     await user.click(await screen.findByRole("button", { name: "Tăng số lượng Bộ luật Dân sự 2026" }));
     const quantity = screen.getByRole("group", { name: "Số lượng" });
-    expect(await within(quantity).findByText("3")).toBeVisible();
-    expect(patched).toEqual({ quantity: 3 });
+    expect(within(quantity).getByText("3")).toBeVisible();
+    await waitFor(() => expect(patched).toEqual({ quantity: 3 }));
+    expect(await screen.findByRole("link", { name: "Đặt hàng" })).toBeVisible();
+    expect(screen.getByText("300.000 ₫", { selector: "li p" })).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Xóa Bộ luật Dân sự 2026 khỏi giỏ" }));
     expect(await screen.findByRole("heading", { name: "Giỏ sách đang trống" })).toBeVisible();
+  });
+
+  it("shows rapid clicks at once and sends only the final quantity", async () => {
+    const sent: unknown[] = [];
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(cartOf([item()]))),
+      http.patch(`${ORIGIN}/api/v1/cart/items/100`, async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json(cartOf([item({ quantity: 5, lineTotal: 500000 })]));
+      }),
+      quote(),
+    );
+    const user = userEvent.setup();
+    renderCart();
+
+    const increase = await screen.findByRole("button", { name: "Tăng số lượng Bộ luật Dân sự 2026" });
+    await user.click(increase);
+    await user.click(increase);
+    await user.click(increase);
+    expect(within(screen.getByRole("group", { name: "Số lượng" })).getByText("5")).toBeVisible();
+
+    await waitFor(() => expect(sent).toEqual([{ quantity: 5 }]));
+    expect(await screen.findByText("500.000 ₫", { selector: "li p" })).toBeVisible();
   });
 
   it("blocks checkout while a line is discontinued or short of stock", async () => {

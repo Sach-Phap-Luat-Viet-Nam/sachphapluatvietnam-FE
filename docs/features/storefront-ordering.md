@@ -70,15 +70,20 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - Dữ liệu giỏ phía client dùng **TanStack Query** (`features/ordering/useCart.ts`, `QueryProvider` trong `layout.tsx`).
   Key `["cart", <người dùng>]`: chờ khôi phục phiên xong mới tải; đăng nhập/đăng xuất đổi key nên giỏ tải lại. Lần tải
   đầu sau đăng nhập gửi cả Bearer và cookie `sl_cart`, backend tự gộp giỏ khách vào giỏ tài khoản.
-- Mọi API giỏ trả lại cả giỏ → thay cache bằng response. Lỗi khi thêm/sửa thì tải lại giỏ.
+- Mọi API giỏ trả lại cả giỏ → thay cache bằng response. Lỗi khi thêm/sửa thì tải lại giỏ. Các thao tác sửa giỏ chung
+  `scope` nên chạy lần lượt (response cũ không ghi đè lần sửa mới hơn) và chung `mutationKey` `["cart"]`.
 - **Header** (`CartLink`): icon giỏ + số cuốn (`totalQuantity`), không hiện số khi chưa tải được giỏ.
 - **`/gio-hang`** (`CartView`): mỗi dòng có bìa, tên (link về trang sách), ấn bản · loại bìa, đơn giá, nút −/+ (tối đa
   20), Xóa, thành tiền. Cảnh báo theo dòng: ngừng bán (`isSellable = false`), thiếu hàng (`quantity > availableQuantity`),
   đã có ấn bản mới (`isLatestEdition = false`).
+- **Sửa số lượng**: bấm −/+ thì số mới hiện ngay, nút không bị khóa; chờ 400 ms sau lần bấm cuối mới gửi **một**
+  `PATCH` với số cuối cùng. Thành tiền và tổng vẫn lấy từ backend, mờ đi trong lúc chờ giỏ mới. Rời trang khi chưa hết
+  thời gian chờ thì vẫn gửi. Lỗi thì số lượng về theo giỏ tải lại.
 - **Tóm tắt** (`CartSummary`): tạm tính, phí ship từ `POST /shipping/quote`, **tổng dự kiến** (chỉ để xem, không gửi
-  lên), "Mua thêm … để được miễn phí vận chuyển". Không lấy được phí ship thì ẩn dòng phí, không chặn đặt hàng.
+  lên), "Mua thêm … để được miễn phí vận chuyển". Không lấy được phí ship thì ẩn dòng phí, không chặn đặt hàng. Tạm
+  tính đổi thì giữ phí cũ (mờ) trong lúc chờ báo giá mới.
 - Nút "Đặt hàng" chỉ hiện khi giỏ không trống, không có dòng ngừng bán hoặc thiếu hàng (`checkoutBlocker`); ngược lại
-  hiện lý do.
+  hiện lý do. Trong lúc giỏ đang lưu thì thay bằng nút khóa "Đang cập nhật giỏ…".
 
 ### Đặt hàng `/thanh-toan`
 
