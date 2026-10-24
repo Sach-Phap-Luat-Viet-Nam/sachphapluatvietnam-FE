@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, X } from "lucide-react";
 import { cn } from "@slvn/ui";
@@ -21,6 +22,10 @@ export interface BookCardProps {
   book: BookSummary;
   /** Số thứ tự hiển thị cạnh loại sách (`01`, `02`, …), dùng khi thẻ nằm trong một dãy có thứ tự. */
   index?: number;
+  /** Nút thêm nhanh vào giỏ ở đáy thẻ (trang truyền vào từ feature ordering); chỉ hiện khi sách còn hàng. */
+  cartAction?: ReactNode;
+  /** Nút thêm vào giỏ trong hộp Xem nhanh. */
+  dialogCartAction?: ReactNode;
 }
 
 function BookPrice({ book }: Pick<BookCardProps, "book">) {
@@ -35,7 +40,7 @@ function BookPrice({ book }: Pick<BookCardProps, "book">) {
   );
 }
 
-export function BookCard({ book, index }: BookCardProps) {
+export function BookCard({ book, index, cartAction, dialogCartAction }: BookCardProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const discount = formatDiscount(book.discountPercent);
   const saleEnds = formatDateTime(book.saleEndsAt);
@@ -45,6 +50,7 @@ export function BookCard({ book, index }: BookCardProps) {
   const dimmed = !book.inStock && !isUpcoming;
   const edition = [book.editionName, book.publishYear].filter((value) => value !== null && value !== "").join(" · ");
   const open = () => dialog.current?.showModal();
+  const buyable = status.tone === "ok";
 
   return (
     <article className="shelf-card motion-reveal flex h-full min-w-0 flex-col">
@@ -105,9 +111,9 @@ export function BookCard({ book, index }: BookCardProps) {
       )}
       {/* Giá luôn ở đáy thẻ để thẳng hàng giữa các thẻ có tên dài ngắn khác nhau. */}
       <div className="mt-auto pt-4">
-        <div className="border-ivory/10 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-t pt-4">
+        <div className="border-ivory/10 relative flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-t pt-4">
           <BookPrice book={book} />
-          {status.tone !== "ok" && <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
+          {buyable ? cartAction : <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>}
         </div>
       </div>
 
@@ -146,12 +152,24 @@ export function BookCard({ book, index }: BookCardProps) {
               <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>
             </div>
             {saleEnds && <p className="text-upcoming mt-2 text-sm">Giá ưu đãi đến {saleEnds}</p>}
-            <Link
-              href={bookPath(book.slug)}
-              className="btn-sweep bg-gold text-ink mt-6 flex min-h-12 items-center justify-center gap-2.5 px-6 font-semibold"
-            >
-              {status.tone === "ok" ? "Xem chi tiết và đặt mua" : "Xem chi tiết"} <ArrowRight size={17} />
-            </Link>
+            {buyable && dialogCartAction ? (
+              <div className="mt-6 flex flex-col gap-1">
+                {dialogCartAction}
+                <Link
+                  href={bookPath(book.slug)}
+                  className="link-underline text-gold flex min-h-11 w-fit items-center gap-2"
+                >
+                  Xem chi tiết sách <ArrowRight size={16} />
+                </Link>
+              </div>
+            ) : (
+              <Link
+                href={bookPath(book.slug)}
+                className="btn-sweep bg-gold text-ink mt-6 flex min-h-12 items-center justify-center gap-2.5 px-6 font-semibold"
+              >
+                {buyable ? "Xem chi tiết và đặt mua" : "Xem chi tiết"} <ArrowRight size={17} />
+              </Link>
+            )}
           </div>
         </div>
       </dialog>

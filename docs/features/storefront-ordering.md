@@ -54,6 +54,17 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   `Book`+`Product`/`Offer` (mỗi SKU một offer, `InStock`/`OutOfStock`/`Discontinued`) và `BreadcrumbList` (NFR-31),
   ký tự `<` được đổi thành mã thoát Unicode (`serializeJsonLd`) để dữ liệu không đóng được thẻ `<script>`.
 
+### Thêm nhanh từ thẻ sách
+
+- Thẻ sách ở tủ sách và trang chủ có nút giỏ (icon) ở dòng giá; hộp "Xem nhanh" có nút "Thêm vào giỏ". Chỉ hiện khi sách
+  đang bán và còn hàng. `BookCard` (catalog) nhận nút qua prop `cartAction`/`dialogCartAction`, trang truyền
+  `QuickAddButton` (ordering) vào, nên hai feature không import lẫn nhau.
+- `GET /books` không có SKU nên khi bấm, `QuickAddButton` gọi `GET /books/{slug}` từ trình duyệt và chọn SKU của ấn bản
+  mới nhất đang bán, còn hàng, **giá rẻ nhất** (đúng giá thẻ đang hiện), rồi `POST /cart/items` 1 cuốn
+  (`pickQuickAddSku`, `features/ordering/quick-add.ts`). Không còn SKU mua được thì mở trang chi tiết.
+- Phản hồi: nút chuyển sang dấu tích, thông báo "Đã thêm 1 cuốn (bìa …) vào giỏ. Xem giỏ" nổi phía trên dòng giá
+  (không xê dịch lưới) trong 3,5 giây; số trên icon giỏ ở header cập nhật ngay. Lỗi hiện theo `code`.
+
 ### Giỏ hàng
 
 - Dữ liệu giỏ phía client dùng **TanStack Query** (`features/ordering/useCart.ts`, `QueryProvider` trong `layout.tsx`).

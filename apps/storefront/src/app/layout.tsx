@@ -4,6 +4,7 @@ import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { QueryProvider } from "@/components/QueryProvider";
+import { ZaloContact } from "@/components/ZaloContact";
 import { PromoPopup } from "@/features/popup/PromoPopup";
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {children}
           <Footer />
           <PromoPopup />
+          <ZaloContact />
         </QueryProvider>
       </body>
     </html>

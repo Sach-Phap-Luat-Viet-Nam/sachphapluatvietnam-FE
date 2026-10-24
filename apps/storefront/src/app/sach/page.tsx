@@ -20,6 +20,7 @@ import {
   toBooksQuery,
 } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
+import { QuickAddButton } from "@/features/ordering/QuickAddButton";
 
 export function generateMetadata(): Metadata {
   return {
@@ -151,7 +152,12 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
           {books.items.length ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 pt-2 sm:gap-x-8 sm:gap-y-14 xl:grid-cols-3">
               {books.items.map((book) => (
-                <BookCard key={book.id} book={book} />
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  cartAction={<QuickAddButton slug={book.slug} title={book.title} />}
+                  dialogCartAction={<QuickAddButton slug={book.slug} title={book.title} variant="full" />}
+                />
               ))}
             </div>
           ) : (

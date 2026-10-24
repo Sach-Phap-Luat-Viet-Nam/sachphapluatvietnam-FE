@@ -3,6 +3,8 @@ import { browserApi } from "@slvn/auth";
 import { cartSchema, orderPageSchema, orderSchema, shippingQuoteSchema } from "./schemas";
 import type { Cart, Order, OrderPage, ShippingQuote } from "./schemas";
 import type { CreateOrderBody } from "./order-forms";
+import { quickAddBookSchema } from "./quick-add";
+import type { QuickAddBook } from "./quick-add";
 
 // Gọi từ trình duyệt qua proxy `/api/v1` để gửi kèm cookie giỏ khách `sl_cart`. `browserApi` gắn Bearer khi đã
 // đăng nhập: giỏ theo tài khoản, đơn gắn với tài khoản, và backend tự gộp giỏ khách vào giỏ tài khoản.
@@ -27,6 +29,12 @@ export async function setCartItemQuantity(skuId: number, quantity: number): Prom
 export async function removeCartItem(skuId: number): Promise<Cart> {
   const data = await unwrap(browserApi().DELETE("/api/v1/cart/items/{skuId}", { params: { path: { skuId } } }));
   return cartSchema.parse(data);
+}
+
+/** Ấn bản và SKU của một sách (API công khai), dùng cho nút thêm nhanh trên thẻ sách. */
+export async function fetchQuickAddBook(slug: string): Promise<QuickAddBook> {
+  const data = await unwrap(browserApi().GET("/api/v1/books/{slug}", { params: { path: { slug } } }));
+  return quickAddBookSchema.parse(data);
 }
 
 /** Phí ship dự kiến theo tạm tính; con số chốt là `shippingFee` của đơn vừa tạo. */

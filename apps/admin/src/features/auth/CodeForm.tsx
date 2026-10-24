@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isApiError } from "@slvn/api-client";
 import { authErrorMessage, fieldErrors, twoFactorSchema } from "@slvn/auth";
 import type { TwoFactorValues } from "@slvn/auth";
-import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
+import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 
 export interface CodeFormProps {
   submitLabel: string;

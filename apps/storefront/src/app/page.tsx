@@ -14,6 +14,7 @@ import { HeroFanBook } from "@/features/home/HeroFanBook";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { LawTicker } from "@/features/home/LawTicker";
 import { tickerItems } from "@/features/home/home";
+import { QuickAddButton } from "@/features/ordering/QuickAddButton";
 
 const NEW_BOOKS_LIMIT = 4;
 
@@ -160,7 +161,12 @@ export default async function HomePage() {
             <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:none] gap-5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
               {books.map((book, index) => (
                 <li key={book.id} className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
-                  <BookCard book={book} index={index + 1} />
+                  <BookCard
+                    book={book}
+                    index={index + 1}
+                    cartAction={<QuickAddButton slug={book.slug} title={book.title} />}
+                    dialogCartAction={<QuickAddButton slug={book.slug} title={book.title} variant="full" />}
+                  />
                 </li>
               ))}
             </ul>

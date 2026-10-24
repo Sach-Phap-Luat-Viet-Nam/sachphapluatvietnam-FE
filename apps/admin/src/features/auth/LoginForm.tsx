@@ -17,7 +17,7 @@ import {
 } from "@slvn/auth";
 import type { LoginValues, SessionUser } from "@slvn/auth";
 import { CodeForm } from "./CodeForm";
-import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "./form-styles";
+import { FIELD_ERROR, FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { signInDestination } from "./sign-in";
 
 const LOGIN_FIELDS = ["email", "password"] as const;

@@ -12,6 +12,9 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
   trong app này; theme chung của package vẫn sáng cho admin. Font nạp bằng `next/font` ở `layout.tsx`.
 - **Header**: logo, ô tìm kiếm (form GET tới `/sach`), icon giỏ hàng kèm số cuốn (`storefront-ordering.md`), link Đăng
   nhập (đã đăng nhập thì hiện tên và nút Đăng xuất).
+- **Tư vấn qua Zalo** (`components/ZaloContact.tsx`, đặt trong `layout.tsx`): nút tròn màu Zalo nổi góc phải dưới mọi
+  trang, link `https://zalo.me/0984739739` (Mr Thành) mở tab mới; từ tablet hiện thêm nhãn tên và số điện thoại. Đổi số
+  ở hằng `ZALO_PHONE` trong file này.
 - **Footer**: chỉ link tới trang đã có và thông tin giao hàng/thanh toán có thật (BR-14); chưa có hotline, địa chỉ.
   Link "Đăng nhập" (`FooterLoginLink`) ẩn khi khách đã đăng nhập; trong lúc đang kiểm tra phiên vẫn hiện.
 - **`/sach`** render trên server, phân trang **24 sách/trang**:

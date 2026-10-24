@@ -59,6 +59,23 @@ describe("BookCard", () => {
     expect(dialog).toHaveTextContent(book.updatedToText ?? "");
   });
 
+  it("shows the cart actions only for books that can be bought", async () => {
+    const actions = {
+      cartAction: <button type="button">Thêm nhanh</button>,
+      dialogCartAction: <button type="button">Thêm vào giỏ trong hộp</button>,
+    };
+    const { unmount } = render(<BookCard book={book} {...actions} />);
+    expect(screen.getByRole("button", { name: "Thêm nhanh" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: book.title }));
+    expect(screen.getByRole("button", { name: "Thêm vào giỏ trong hộp" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem chi tiết sách" })).toHaveAttribute("href", `/sach/${book.slug}`);
+    unmount();
+
+    render(<BookCard book={{ ...book, inStock: false }} {...actions} />);
+    expect(screen.queryByRole("button", { name: "Thêm nhanh" })).not.toBeInTheDocument();
+    expect(screen.getAllByText("Tạm hết hàng")).not.toHaveLength(0);
+  });
+
   it("uses the cover image from the API instead of the drawn cover", () => {
     const coverImageUrl = "https://res.cloudinary.com/demo/image/upload/bia.jpg";
     render(<BookCard book={{ ...book, coverImageUrl }} />);

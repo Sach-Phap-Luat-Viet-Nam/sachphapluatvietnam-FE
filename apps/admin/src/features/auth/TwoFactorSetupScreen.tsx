@@ -7,7 +7,7 @@ import { buttonClassName } from "@slvn/ui";
 import { LogoutButton } from "@/components/LogoutButton";
 import { SessionGate } from "@/components/SessionGate";
 import { CodeForm } from "./CodeForm";
-import { FORM_ERROR } from "./form-styles";
+import { FORM_ERROR } from "@/components/form-styles";
 import { enableTwoFactor, formatSharedKey, setupTwoFactor } from "./two-factor-setup";
 
 const STEP = "flex flex-col gap-3";
