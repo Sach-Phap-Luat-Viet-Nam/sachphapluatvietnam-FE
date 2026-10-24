@@ -74,6 +74,9 @@ describe("Account", () => {
     expect(screen.getByText("khach@example.com")).toBeVisible();
     await user.clear(phone);
     await user.type(phone, "0909 999 999");
+    const birthDate = screen.getByLabelText("Ngày sinh");
+    await user.type(birthDate, "20051995");
+    expect(birthDate).toHaveValue("20/05/1995");
     await user.selectOptions(screen.getByLabelText("Nghề nghiệp"), "lawyer");
     await user.click(screen.getByRole("button", { name: "Lưu thông tin" }));
 
@@ -81,7 +84,7 @@ describe("Account", () => {
     expect(body).toEqual({
       fullName: "Nguyễn Văn A",
       phoneNumber: "0909999999",
-      birthDate: null,
+      birthDate: "1995-05-20",
       occupation: "lawyer",
     });
   });
