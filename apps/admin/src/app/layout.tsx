@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Be_Vietnam_Pro } from "next/font/google";
 import { QueryProvider } from "@/components/QueryProvider";
+import { SessionEndedNotice } from "@/components/SessionEndedNotice";
+import { SessionRealtime } from "@/components/SessionRealtime";
 import "./globals.css";
 
 const sans = Be_Vietnam_Pro({
@@ -29,6 +31,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           Đến nội dung chính
         </a>
+        <SessionRealtime />
+        <SessionEndedNotice />
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

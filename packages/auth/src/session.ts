@@ -13,6 +13,8 @@ export const sessionUserSchema = z.object({
   roles: z.array(z.string()),
   /** Nhân viên chưa bật 2FA: phải sang màn bật 2FA, gọi API Admin sẽ bị 403. */
   requiresTwoFactorSetup: z.boolean(),
+  /** Giao diện storefront đã chọn; `null` khi chưa chọn (dùng mặc định tối). */
+  theme: z.enum(["dark", "light"]).nullish(),
 });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 
@@ -24,6 +26,11 @@ export const authResponseSchema = z.object({
   /** `admin`: Super Admin đăng nhập hộ (fast login). Response cũ chưa có field này coi là `portal`. */
   loginVia: z.enum(["portal", "admin"]).default("portal"),
   impersonatorId: z.number().nullish(),
+  /**
+   * Phiên bản phiên của tài khoản lúc cấp token. Sự kiện `session-ended` mang phiên bản mới hơn thì phiên này đã bị
+   * kết thúc; bằng hoặc nhỏ hơn là của chính thiết bị này (vừa đăng nhập) nên bỏ qua.
+   */
+  sessionVersion: z.number().default(0),
 });
 export type AuthSession = z.input<typeof authResponseSchema>;
 
@@ -36,14 +43,17 @@ export interface Impersonation {
 /** `expired`: token đăng nhập hộ hết hạn hoặc bị từ chối (401); `exited`: admin bấm Thoát đăng nhập hộ. */
 export type ImpersonationEnd = "expired" | "exited";
 
+/** Lý do phiên bị kết thúc từ phía server (`reason` của sự kiện `session-ended`). */
+export type SessionEndReason = "signed_in_elsewhere" | "forced_logout";
+
 /**
  * `unknown`: chưa kiểm tra cookie; `anonymous`: chưa đăng nhập (`impersonationEnded` khi tab vừa kết thúc đăng nhập
  * hộ); `authenticated`: đã có access token (`impersonation` khi là phiên đăng nhập hộ).
  */
 export type SessionState =
   | { status: "unknown" }
-  | { status: "anonymous"; impersonationEnded?: ImpersonationEnd }
-  | { status: "authenticated"; user: SessionUser; impersonation?: Impersonation };
+  | { status: "anonymous"; impersonationEnded?: ImpersonationEnd; sessionEnded?: SessionEndReason }
+  | { status: "authenticated"; user: SessionUser; sessionVersion: number; impersonation?: Impersonation };
 
 const UNKNOWN: SessionState = { status: "unknown" };
 const ANONYMOUS: SessionState = { status: "anonymous" };
@@ -66,6 +76,7 @@ const storedImpersonationSchema = z.object({
   expiresAt: z.number(),
   impersonatorId: z.number(),
   user: sessionUserSchema,
+  sessionVersion: z.number().default(0),
 });
 type StoredImpersonation = z.infer<typeof storedImpersonationSchema>;
 
@@ -147,6 +158,7 @@ function activateImpersonation(stored: StoredImpersonation): void {
   setState({
     status: "authenticated",
     user: stored.user,
+    sessionVersion: stored.sessionVersion,
     impersonation: { impersonatorId: stored.impersonatorId, expiresAt: stored.expiresAt },
   });
 }
@@ -170,6 +182,7 @@ export function startImpersonation(response: unknown, now: number = Date.now()):
     expiresAt: now + session.expiresIn * 1000,
     impersonatorId: session.impersonatorId,
     user: session.user,
+    sessionVersion: session.sessionVersion,
   };
   writeImpersonation(stored);
   activateImpersonation(stored);
@@ -190,7 +203,25 @@ export function endImpersonation(reason: ImpersonationEnd = "exited"): void {
 export function startSession(session: AuthSession): void {
   accessToken = session.accessToken;
   writeHint(true);
-  setState({ status: "authenticated", user: session.user });
+  setState({
+    status: "authenticated",
+    user: session.user,
+    sessionVersion: authResponseSchema.shape.sessionVersion.parse(session.sessionVersion),
+  });
+}
+
+/**
+ * Server đã kết thúc phiên này (đăng nhập nơi khác hoặc bị buộc đăng xuất): refresh token đã bị xóa nên chỉ cần xóa
+ * phiên ở trình duyệt và ghi lý do để UI hiện thông báo. Tab đăng nhập hộ chỉ xóa token của tab, như khi hết hạn.
+ */
+export function endSession(reason: SessionEndReason): void {
+  if (isImpersonating()) {
+    endImpersonation("expired");
+    return;
+  }
+  accessToken = null;
+  writeHint(false);
+  setState({ status: "anonymous", sessionEnded: reason });
 }
 
 /** Xóa phiên ở trình duyệt, không gọi backend. Đăng xuất thật dùng `logout`. */

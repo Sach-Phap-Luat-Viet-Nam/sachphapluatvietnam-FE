@@ -889,6 +889,55 @@
         }
       }
     },
+    "/api/v1/me/preferences": {
+      "put": {
+        "tags": [
+          "Me"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/addresses": {
       "get": {
         "tags": [
@@ -1177,6 +1226,38 @@
         "tags": [
           "Me"
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/realtime/auth": {
+      "post": {
+        "tags": [
+          "Realtime"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealtimeAuthRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealtimeAuthRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealtimeAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -4640,7 +4721,8 @@
           "expiresIn",
           "user",
           "loginVia",
-          "impersonatorId"
+          "impersonatorId",
+          "sessionVersion"
         ],
         "type": "object",
         "properties": {
@@ -4672,6 +4754,14 @@
               "string"
             ],
             "format": "int64"
+          },
+          "sessionVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -5180,6 +5270,9 @@
             "type": "string"
           }
         }
+      },
+      "ColorTheme": {
+        "type": "integer"
       },
       "CoverType": {
         "type": "integer"
@@ -5753,6 +5846,7 @@
           "twoFactorEnabled",
           "requiresTwoFactorSetup",
           "isActive",
+          "theme",
           "defaultAddress",
           "invoiceInfo"
         ],
@@ -5809,6 +5903,16 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "theme": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ColorTheme"
+              }
+            ]
           },
           "defaultAddress": {
             "oneOf": [
@@ -6395,6 +6499,24 @@
       "PopupStatus": {
         "type": "integer"
       },
+      "PreferencesResponse": {
+        "required": [
+          "theme"
+        ],
+        "type": "object",
+        "properties": {
+          "theme": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ColorTheme"
+              }
+            ]
+          }
+        }
+      },
       "PriceScheduleResponse": {
         "required": [
           "id",
@@ -6471,6 +6593,21 @@
       },
       "PriceScheduleStatus": {
         "type": "integer"
+      },
+      "RealtimeAuthRequest": {
+        "required": [
+          "socketId",
+          "channelName"
+        ],
+        "type": "object",
+        "properties": {
+          "socketId": {
+            "type": "string"
+          },
+          "channelName": {
+            "type": "string"
+          }
+        }
       },
       "ReceiptLineRequest": {
         "required": [
@@ -7089,6 +7226,24 @@
           }
         }
       },
+      "UpdatePreferencesRequest": {
+        "required": [
+          "theme"
+        ],
+        "type": "object",
+        "properties": {
+          "theme": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ColorTheme"
+              }
+            ]
+          }
+        }
+      },
       "UpdateProfileRequest": {
         "required": [
           "fullName",
@@ -7658,7 +7813,8 @@
           "roles",
           "twoFactorEnabled",
           "requiresTwoFactorSetup",
-          "isActive"
+          "isActive",
+          "theme"
         ],
         "type": "object",
         "properties": {
@@ -7713,6 +7869,16 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "theme": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ColorTheme"
+              }
+            ]
           }
         }
       }
@@ -7730,6 +7896,9 @@
     },
     {
       "name": "Me"
+    },
+    {
+      "name": "Realtime"
     },
     {
       "name": "Cart"

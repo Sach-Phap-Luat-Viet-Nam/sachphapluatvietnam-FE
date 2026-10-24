@@ -35,7 +35,7 @@ export function ImpersonationBanner() {
 
   if (session.status === "anonymous" && session.impersonationEnded) {
     return (
-      <div role="status" className="bg-burgundy text-ivory px-4 py-3 text-center text-[15px]">
+      <div role="status" className="bg-burgundy text-cream px-4 py-3 text-center text-[15px]">
         {session.impersonationEnded === "expired" ? "Phiên đăng nhập hộ đã hết hạn." : "Đã thoát đăng nhập hộ."} Bạn có
         thể đóng tab này.
       </div>
@@ -45,7 +45,7 @@ export function ImpersonationBanner() {
     return null;
   }
   return (
-    <div role="region" aria-label="Đang đăng nhập hộ" className="bg-burgundy text-ivory sticky top-0 z-50">
+    <div role="region" aria-label="Đang đăng nhập hộ" className="bg-burgundy text-cream sticky top-0 z-50">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 text-[15px]">
         <p>
           Đang đăng nhập hộ <strong className="break-all">{session.user.email}</strong>, còn{" "}
@@ -55,7 +55,7 @@ export function ImpersonationBanner() {
         <button
           type="button"
           onClick={() => endImpersonation("exited")}
-          className="border-ivory/60 hover:bg-ivory hover:text-burgundy min-h-11 border px-4 font-medium transition-colors"
+          className="border-cream/60 hover:bg-cream hover:text-burgundy min-h-11 border px-4 font-medium transition-colors"
         >
           Thoát đăng nhập hộ
         </button>

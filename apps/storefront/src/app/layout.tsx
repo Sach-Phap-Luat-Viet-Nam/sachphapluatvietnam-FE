@@ -3,10 +3,14 @@ import type { ReactNode } from "react";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SessionEndedNotice } from "@/components/SessionEndedNotice";
+import { SessionRealtime } from "@/components/SessionRealtime";
+import { ThemeSync } from "@/components/ThemeSync";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ZaloContact } from "@/components/ZaloContact";
 import { ImpersonationBanner } from "@/features/impersonation/ImpersonationBanner";
 import { PromoPopup } from "@/features/popup/PromoPopup";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
 const sans = Be_Vietnam_Pro({
@@ -27,11 +31,15 @@ export const metadata: Metadata = {
   description: "Khám phá tủ sách pháp luật Việt Nam: bộ luật, chú giải và giáo trình chuyên sâu.",
 };
 
-export const viewport: Viewport = { themeColor: "#0d1524", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#0d1524", colorScheme: "dark light" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi" className={`${sans.variable} ${editorial.variable}`}>
+    // `data-theme` do script đầu trang đặt trước khi hydrate nên React không được cảnh báo lệch thuộc tính.
+    <html lang="vi" className={`${sans.variable} ${editorial.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <a
           href="#noi-dung"
@@ -40,6 +48,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Đến nội dung chính
         </a>
         <QueryProvider>
+          <ThemeSync />
+          <SessionRealtime />
+          <SessionEndedNotice />
           <ImpersonationBanner />
           <Header />
           {children}

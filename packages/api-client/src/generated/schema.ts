@@ -778,6 +778,49 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePreferencesRequest"];
+                    "text/json": components["schemas"]["UpdatePreferencesRequest"];
+                    "application/*+json": components["schemas"]["UpdatePreferencesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PreferencesResponse"];
+                        "application/json": components["schemas"]["PreferencesResponse"];
+                        "text/json": components["schemas"]["PreferencesResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/addresses": {
         parameters: {
             query?: never;
@@ -1000,6 +1043,45 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/realtime/auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RealtimeAuthRequest"];
+                    "text/json": components["schemas"]["RealtimeAuthRequest"];
+                    "application/*+json": components["schemas"]["RealtimeAuthRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3317,6 +3399,8 @@ export interface components {
             loginVia: string;
             /** Format: int64 */
             impersonatorId: null | number | string;
+            /** Format: int32 */
+            sessionVersion: number | string;
         };
         BatchResponse: {
             /** Format: int64 */
@@ -3427,6 +3511,7 @@ export interface components {
             currentPassword: string;
             newPassword: string;
         };
+        ColorTheme: number;
         CoverType: number;
         CreateOrderRequest: {
             customerName: string;
@@ -3567,6 +3652,7 @@ export interface components {
             twoFactorEnabled: boolean;
             requiresTwoFactorSetup: boolean;
             isActive: boolean;
+            theme: null | components["schemas"]["ColorTheme"];
             defaultAddress: null | components["schemas"]["AddressResponse"];
             invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
         };
@@ -3700,6 +3786,9 @@ export interface components {
             updatedAt: string;
         };
         PopupStatus: number;
+        PreferencesResponse: {
+            theme: null | components["schemas"]["ColorTheme"];
+        };
         PriceScheduleResponse: {
             /** Format: int64 */
             id: number | string;
@@ -3721,6 +3810,10 @@ export interface components {
             updatedAt: string;
         };
         PriceScheduleStatus: number;
+        RealtimeAuthRequest: {
+            socketId: string;
+            channelName: string;
+        };
         ReceiptLineRequest: {
             /** Format: int64 */
             skuId: number | string;
@@ -3866,6 +3959,9 @@ export interface components {
             /** Format: int32 */
             quantity: number | string;
         };
+        UpdatePreferencesRequest: {
+            theme: null | components["schemas"]["ColorTheme"];
+        };
         UpdateProfileRequest: {
             fullName: string;
             phoneNumber: null | string;
@@ -3998,6 +4094,7 @@ export interface components {
             twoFactorEnabled: boolean;
             requiresTwoFactorSetup: boolean;
             isActive: boolean;
+            theme: null | components["schemas"]["ColorTheme"];
         };
     };
     responses: never;

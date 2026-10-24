@@ -99,7 +99,7 @@ export default async function HomePage() {
             <Book3D title={featured?.title ?? "Tủ sách pháp luật"} coverImageUrl={featured?.coverImageUrl ?? null} />
             {featured && (
               <>
-                <span className="stamp-in bg-burgundy text-ivory outline-burgundy border-ivory/55 absolute top-10 right-[12%] flex size-24 flex-col items-center justify-center rounded-full border border-dashed text-center shadow-[0_16px_30px_-12px_rgb(0_0_0/0.7)] outline-6 sm:top-14 sm:size-29">
+                <span className="stamp-in bg-burgundy text-cream outline-burgundy border-cream/55 absolute top-10 right-[12%] flex size-24 flex-col items-center justify-center rounded-full border border-dashed text-center shadow-[0_16px_30px_-12px_rgb(0_0_0/0.7)] outline-6 sm:top-14 sm:size-29">
                   <span className="text-[9px] tracking-[0.22em] sm:text-[10px]">ẤN BẢN</span>
                   <span className="font-editorial text-2xl leading-none font-bold italic sm:text-[26px]">mới</span>
                 </span>

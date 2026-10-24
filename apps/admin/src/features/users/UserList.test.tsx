@@ -218,7 +218,7 @@ describe("UserList", () => {
     await vi.waitFor(() => expect(within(row).queryByText("Đã vô hiệu hóa")).not.toBeInTheDocument());
   });
 
-  it("đăng xuất hộ và báo số phiên đã thu hồi", async () => {
+  it("đăng xuất hộ là buộc đăng xuất ngay và báo số phiên đã kết thúc", async () => {
     useUsers([ADMIN, KEEPER]);
     server.use(http.post(`${ORIGIN}/api/v1/admin/users/2/logout`, () => HttpResponse.json({ revokedSessions: 3 })));
     const user = userEvent.setup();
@@ -226,9 +226,11 @@ describe("UserList", () => {
 
     const row = await rowOf("Thủ kho");
     await user.click(within(row).getByRole("button", { name: "Đăng xuất hộ" }));
-    await user.click(within(row).getByRole("button", { name: "Đăng xuất" }));
+    await user.click(within(row).getByRole("button", { name: "Buộc đăng xuất" }));
 
-    expect(await screen.findByText(/Đã đăng xuất Thủ kho \(3 phiên\)/)).toBeVisible();
+    expect(
+      await screen.findByText(/Đã buộc đăng xuất Thủ kho khỏi mọi thiết bị \(3 phiên\), có hiệu lực ngay/),
+    ).toBeVisible();
   });
 
   it("báo lỗi của backend khi vô hiệu hóa thất bại", async () => {

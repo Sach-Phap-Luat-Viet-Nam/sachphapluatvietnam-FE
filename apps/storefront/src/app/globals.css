@@ -11,6 +11,8 @@
   --color-ink-deep: #0a111e;
   --color-panel: #111c30;
   --color-ivory: #f3ede1;
+  /* Màu giấy/chữ sáng cố định: không đổi theo chế độ sáng/tối (bìa sách, chữ trên nền đỏ đô). */
+  --color-cream: #f3ede1;
   --color-sand: #cfc8b9;
   --color-mist: #b9b3a6;
   --color-dim: #8f897d;
@@ -48,6 +50,41 @@
 
   /* `--font-playfair` do next/font đặt ở thẻ <html> (layout.tsx). */
   --font-editorial: var(--font-playfair, "Playfair Display"), "Times New Roman", serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/*
+ * Chế độ sáng ("Thư viện ban ngày"): mặc định là tối. Chỉ đổi giá trị token; tên token giữ nguyên nên component
+ * không cần biết đang ở chế độ nào (`bg-ink` là nền trang, `text-ivory` là chữ chính ở cả hai chế độ). Vàng đậm hơn để
+ * đạt tương phản AA cả khi làm chữ trên nền sáng lẫn khi làm nền nút với chữ `ink`.
+ */
+:root[data-theme="light"] {
+  --color-ink: #f7f3ea;
+  --color-ink-deep: #ece5d4;
+  --color-panel: #fffdf8;
+  --color-ivory: #1a2236;
+  --color-sand: #333c50;
+  --color-mist: #4a5468;
+  --color-dim: #5f6779;
+  --color-gold: #84601c;
+  --color-gold-hover: #6b4d15;
+  --color-gold-pale: #7a5a1c;
+  --color-upcoming: #8a5a10;
+  --color-ok: #1c6b3f;
+
+  --color-background: #f7f3ea;
+  --color-foreground: #1a2236;
+  --color-surface: #fffdf8;
+  --color-muted: #4a5468;
+  --color-border: rgb(26 34 54 / 0.22);
+  --color-primary: #84601c;
+  --color-primary-hover: #6b4d15;
+  --color-primary-foreground: #f7f3ea;
+  --color-danger: #b42318;
+  color-scheme: light;
 }
 
 @layer base {

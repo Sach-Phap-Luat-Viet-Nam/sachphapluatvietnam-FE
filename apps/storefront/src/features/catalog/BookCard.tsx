@@ -78,7 +78,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
           <span
             className={cn(
               "absolute top-3 left-0 px-2.5 py-1 text-xs font-medium",
-              discount ? "bg-burgundy text-ivory" : "bg-gold text-ink",
+              discount ? "bg-burgundy text-cream" : "bg-gold text-ink",
             )}
           >
             {badge}

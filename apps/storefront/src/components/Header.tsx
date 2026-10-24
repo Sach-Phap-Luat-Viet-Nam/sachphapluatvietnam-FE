@@ -4,6 +4,7 @@ import { CartLink } from "@/features/ordering/CartLink";
 import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
 import { PromoBar } from "./PromoBar";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   return (
@@ -36,6 +37,7 @@ export function Header() {
           </button>
         </form>
         <nav aria-label="Tài khoản" className="flex items-center gap-1 sm:gap-5">
+          <ThemeToggle />
           <CartLink />
           <AccountNav />
         </nav>

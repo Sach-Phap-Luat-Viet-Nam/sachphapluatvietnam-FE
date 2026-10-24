@@ -25,7 +25,7 @@ export function BookCover({ book, size = "shelf", className }: BookCoverProps) {
     return (
       <span
         className={cn(
-          "bg-ivory flex p-1.5 shadow-[0_18px_30px_-16px_rgb(0_0_0/0.85)] sm:p-2",
+          "bg-cream flex p-1.5 shadow-[0_18px_30px_-16px_rgb(0_0_0/0.85)] sm:p-2",
           COVER_SIZES[size],
           className,
         )}

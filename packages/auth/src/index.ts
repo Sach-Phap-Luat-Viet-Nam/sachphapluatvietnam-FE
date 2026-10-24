@@ -17,6 +17,7 @@ export {
   browserApi,
   clearSession,
   endImpersonation,
+  endSession,
   getServerSessionState,
   getSessionState,
   isImpersonating,
@@ -28,4 +29,13 @@ export {
   startSession,
   subscribeSession,
 } from "./session";
-export type { AuthSession, Impersonation, ImpersonationEnd, SessionState, SessionUser } from "./session";
+export type {
+  AuthSession,
+  Impersonation,
+  ImpersonationEnd,
+  SessionEndReason,
+  SessionState,
+  SessionUser,
+} from "./session";
+export { handleSessionEnded, startSessionRealtime } from "./realtime";
+export type { RealtimeConfig } from "./realtime";

@@ -48,7 +48,7 @@ export function PromoBar() {
       <div className="overflow-hidden">
         <section
           aria-label="Ưu đãi"
-          className="promo-sheen bg-burgundy text-ivory relative flex items-center text-xs sm:text-[13px]"
+          className="promo-sheen bg-burgundy text-cream relative flex items-center text-xs sm:text-[13px]"
         >
           {/* Hai dãy giống nhau nối đuôi để vòng chạy liền mạch; dãy thứ hai ẩn với trình đọc màn hình. */}
           <div className="marquee min-w-0 flex-1 overflow-hidden mask-x-from-92% mask-x-to-100% py-2">
@@ -61,7 +61,7 @@ export function PromoBar() {
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Đóng thanh ưu đãi"
-            className="text-ivory/80 hover:text-ivory flex size-9 shrink-0 items-center justify-center transition-[color,transform] duration-300 hover:rotate-90 focus-visible:-outline-offset-4 sm:mr-2"
+            className="text-cream/80 hover:text-cream flex size-9 shrink-0 items-center justify-center transition-[color,transform] duration-300 hover:rotate-90 focus-visible:-outline-offset-4 sm:mr-2"
           >
             <X size={16} strokeWidth={1.8} />
           </button>

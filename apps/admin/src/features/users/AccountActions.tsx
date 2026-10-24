@@ -73,7 +73,10 @@ export function AccountActions({ account, currentUserId, rolesEditable, detailHr
     onSuccess: (count) =>
       setNotice({
         ok: true,
-        message: `Đã đăng xuất ${account.fullName} (${count} phiên). Token đang dùng hết hạn trong tối đa 15 phút.`,
+        message:
+          count > 0
+            ? `Đã buộc đăng xuất ${account.fullName} khỏi mọi thiết bị (${count} phiên), có hiệu lực ngay.`
+            : `Đã buộc đăng xuất ${account.fullName}: không còn phiên làm mới nào, token đang dùng cũng đã bị vô hiệu ngay.`,
       }),
     onError: fail,
   });
@@ -134,8 +137,8 @@ export function AccountActions({ account, currentUserId, rolesEditable, detailHr
           <div role="group" aria-label="Thao tác nhạy cảm" className="flex flex-wrap items-center gap-2 sm:ml-auto">
             {!isSelf && (
               <ConfirmButton
-                question={`Đăng xuất ${account.fullName} khỏi mọi thiết bị?`}
-                confirmLabel="Đăng xuất"
+                question={`Buộc ${account.fullName} đăng xuất khỏi mọi thiết bị ngay lập tức?`}
+                confirmLabel="Buộc đăng xuất"
                 pending={logout.isPending}
                 onConfirm={() => {
                   setNotice(null);

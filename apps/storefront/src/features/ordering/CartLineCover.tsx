@@ -13,7 +13,7 @@ export interface CartLineCoverProps {
 export function CartLineCover({ title, coverImageUrl, skuId }: CartLineCoverProps) {
   if (coverImageUrl) {
     return (
-      <span className="bg-ivory flex h-24 w-18 shrink-0 p-1 sm:h-32 sm:w-24">
+      <span className="bg-cream flex h-24 w-18 shrink-0 p-1 sm:h-32 sm:w-24">
         <Image
           src={coverImageUrl}
           alt={`Bìa sách ${title}`}

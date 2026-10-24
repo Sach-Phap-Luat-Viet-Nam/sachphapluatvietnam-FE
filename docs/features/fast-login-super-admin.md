@@ -152,7 +152,9 @@ Khi `loginVia === "admin"`, mọi trang của tab vào hộ phải hiện một 
 
 ## Hạn chế và checklist
 
-- Token vào hộ **không thu hồi được** trước khi hết 15 phút. Thoát đăng nhập hộ chỉ xóa token ở phía FE.
+- Token vào hộ **không thu hồi riêng được** trước khi hết 15 phút; Thoát đăng nhập hộ chỉ xóa token ở phía FE. Token vào hộ
+  mang `sessionVersion` hiện tại của tài khoản đích nên chết ngay khi chính chủ đăng nhập nơi khác hoặc bị buộc đăng xuất
+  (xem `session-realtime.md`); vào hộ không đá chính chủ.
 - `GET /admin/users` hiện **chỉ liệt kê nhân viên**, chưa có API tìm khách hàng. Muốn vào hộ khách thì admin phải biết sẵn `id`, ví dụ lấy từ trang chi tiết đơn hàng.
 - Chưa có nhật ký thao tác xem được trên giao diện. Backend mới ghi log mỗi lần vào hộ (id admin, id tài khoản đích).
 - Không vào hộ lồng nhau được: phiên vào hộ không có vai trò `super_admin` nên API impersonate trả `403`.

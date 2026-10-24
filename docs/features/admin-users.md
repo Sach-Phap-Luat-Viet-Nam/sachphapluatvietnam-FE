@@ -45,7 +45,9 @@ không có vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền 
 - **Đặt mật khẩu**: mật khẩu mới 8–128 ký tự. Backend mở khóa nếu đang tạm khóa do sai mật khẩu và đăng xuất mọi thiết bị.
 - **Vô hiệu hóa / Kích hoạt lại**: vô hiệu hóa có bước xác nhận; tài khoản bị đăng xuất và không đăng nhập lại được tới
   khi kích hoạt lại. Khác với khóa 15 phút do sai mật khẩu. Tài khoản bị vô hiệu hóa không có nút Đăng nhập hộ.
-- **Đăng xuất hộ**: có bước xác nhận, báo số phiên đã thu hồi. Access token đang dùng vẫn hợp lệ tối đa 15 phút.
+- **Đăng xuất hộ** (buộc đăng xuất): có bước xác nhận ("Buộc … đăng xuất khỏi mọi thiết bị ngay lập tức?"). Backend kết
+  thúc mọi phiên **ngay** (access token cũng bị từ chối, không chờ 15 phút) và bắn Pusher để thiết bị đang mở hiện thông
+  báo (`session-realtime.md`). Thông báo thành công nêu số phiên đã kết thúc.
 - **Khách hàng**: danh sách mới đăng ký trước; trang chi tiết có thêm hồ sơ, sổ địa chỉ, thông tin xuất hóa đơn.
 - Sau mỗi thao tác ghi, danh sách được tải lại (`invalidateQueries`).
 
@@ -104,7 +106,8 @@ Mã lỗi có câu chữ riêng (`lib/admin-errors.ts`): `EMAIL_TAKEN`, `USER_NO
 ## Hạn chế / việc còn lại
 
 - Chưa hỏi lại trước thao tác nhạy cảm trong tab đăng nhập hộ (đặt hàng, hủy đơn, sửa hồ sơ); mới có banner cố định.
-- Token đăng nhập hộ không thu hồi được trước 15 phút; Thoát chỉ xóa token ở tab.
+- Token đăng nhập hộ không thu hồi riêng được trước 15 phút, nhưng chết ngay khi chính chủ đăng nhập nơi khác hoặc bị buộc
+  đăng xuất (cùng `sessionVersion`); Thoát chỉ xóa token ở tab.
 - Chi tiết khách chưa có lịch sử đơn hàng; danh sách chưa lọc theo vai trò/trạng thái.
 - Chưa có nhật ký thao tác xem được trên giao diện (backend mới ghi log).
 - Chưa thử end-to-end trên trình duyệt với backend thật; đã kiểm tra bằng Vitest + MSW và test e2e của backend.

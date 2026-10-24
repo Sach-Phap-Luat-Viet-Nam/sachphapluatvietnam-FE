@@ -10,7 +10,7 @@ function signedIn(overrides: Partial<SessionUser> = {}) {
     requiresTwoFactorSetup: false,
     ...overrides,
   };
-  return { status: "authenticated", user } as const;
+  return { status: "authenticated", user, sessionVersion: 0 } as const;
 }
 
 describe("gateDecision", () => {
