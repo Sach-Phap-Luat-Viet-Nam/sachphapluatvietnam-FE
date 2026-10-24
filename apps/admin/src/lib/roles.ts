@@ -1,7 +1,10 @@
 // Vai trò theo bảng enum ở docs/api_reference.md. Backend có thể thêm vai trò mới nên hàm nhận `string`.
 
-export const STAFF_ROLES = [
-  "super_admin",
+/**
+ * Vai trò nhân viên Super Admin cấp được trên trang quản trị. `super_admin` không cấp qua API (backend trả
+ * `VALIDATION_ERROR`): chỉ 1–2 tài khoản, tạo từ cấu hình backend.
+ */
+export const ASSIGNABLE_STAFF_ROLES = [
   "product_manager",
   "order_manager",
   "warehouse_keeper",
@@ -9,6 +12,9 @@ export const STAFF_ROLES = [
   "marketing",
   "accountant",
 ] as const;
+export type AssignableStaffRole = (typeof ASSIGNABLE_STAFF_ROLES)[number];
+
+export const STAFF_ROLES = ["super_admin", ...ASSIGNABLE_STAFF_ROLES] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
 const ROLE_LABELS: Record<string, string> = {

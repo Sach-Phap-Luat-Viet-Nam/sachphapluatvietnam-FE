@@ -7,7 +7,7 @@ import { Field, fieldA11y } from "@/components/Field";
 import { FormActions } from "@/components/FormActions";
 import { CHECKBOX, HINT, INPUT, LABEL } from "@/components/form-styles";
 import { showServerError } from "@/lib/admin-errors";
-import { STAFF_ROLES, roleLabel } from "@/lib/roles";
+import { ASSIGNABLE_STAFF_ROLES, roleLabel } from "@/lib/roles";
 import { createStaffFormSchema, resetPasswordFormSchema, rolesFormSchema } from "./schemas";
 import type { CreateStaffFormValues, ResetPasswordFormValues, RolesFormValues, StaffUser } from "./schemas";
 import { staffRolesOf } from "./user-forms";
@@ -30,7 +30,7 @@ function RoleChecklist({
     <fieldset className="flex flex-col gap-2">
       <legend className={LABEL}>Vai trò</legend>
       <div className="grid gap-x-6 sm:grid-cols-2">
-        {STAFF_ROLES.map((role) => (
+        {ASSIGNABLE_STAFF_ROLES.map((role) => (
           <label key={role} className="flex min-h-11 items-center gap-3">
             <input type="checkbox" value={role} {...registration} className={CHECKBOX} id={`${idPrefix}-${role}`} />
             {roleLabel(role)}

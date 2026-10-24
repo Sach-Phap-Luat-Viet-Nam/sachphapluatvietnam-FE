@@ -117,6 +117,8 @@ describe("UserList", () => {
 
     await user.click(await screen.findByRole("button", { name: "Thêm nhân viên" }));
     const form = screen.getByRole("form", { name: "Thêm nhân viên" });
+    // Super Admin chỉ tạo từ cấu hình backend, không cấp qua trang quản trị.
+    expect(within(form).queryByLabelText("Super Admin")).not.toBeInTheDocument();
     await user.click(within(form).getByRole("button", { name: "Thêm nhân viên" }));
     expect(await within(form).findByText("Anh/chị chọn ít nhất một vai trò.")).toBeVisible();
 

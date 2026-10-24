@@ -74,3 +74,18 @@ describe("canManage", () => {
     expect(canManage({ id: 1, roles: ["marketing"] }, 1)).toBe(false);
   });
 });
+
+describe("rolesFormSchema", () => {
+  it("không nhận vai trò Super Admin", () => {
+    expect(rolesFormSchema.safeParse({ roles: ["super_admin"] }).success).toBe(false);
+    expect(rolesFormSchema.safeParse({ roles: ["marketing"] }).success).toBe(true);
+  });
+});
+
+describe("toSetRolesBody", () => {
+  it("giữ vai trò không sửa được trên màn này", () => {
+    expect(toSetRolesBody({ roles: ["customer", "marketing"] }, ["accountant"])).toEqual({
+      roles: ["customer", "accountant"],
+    });
+  });
+});

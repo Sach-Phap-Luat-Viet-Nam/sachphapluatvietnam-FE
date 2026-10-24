@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { STAFF_ROLES } from "@/lib/roles";
+import { ASSIGNABLE_STAFF_ROLES } from "@/lib/roles";
 
 // `GET /admin/users` trả `UserResponse` (docs/api_reference.md). `isActive` chỉ có ở backend từ bản thêm vô hiệu hóa
 // tài khoản: thiếu thì coi là đang hoạt động để màn không lỗi khi backend chưa cập nhật.
@@ -64,7 +64,7 @@ const passwordSchema = z
   .min(PASSWORD_MIN, `Mật khẩu tối thiểu ${PASSWORD_MIN} ký tự.`)
   .max(PASSWORD_MAX, `Mật khẩu tối đa ${PASSWORD_MAX} ký tự.`);
 
-const rolesSchema = z.array(z.enum(STAFF_ROLES)).min(1, "Anh/chị chọn ít nhất một vai trò.");
+const rolesSchema = z.array(z.enum(ASSIGNABLE_STAFF_ROLES)).min(1, "Anh/chị chọn ít nhất một vai trò.");
 
 export const createStaffFormSchema = z.object({
   email: z.email("Email chưa đúng định dạng.").max(256, "Tối đa 256 ký tự."),
