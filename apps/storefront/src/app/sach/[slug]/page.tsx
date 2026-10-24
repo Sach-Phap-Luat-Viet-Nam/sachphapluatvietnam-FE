@@ -6,7 +6,6 @@ import { Container, cn } from "@slvn/ui";
 import { formatDate } from "@slvn/utils";
 import { TrustBand } from "@/components/TrustBand";
 import { coverTypeLabel } from "@/lib/labels";
-import { BookCover } from "@/features/catalog/BookCover";
 import { getBook } from "@/features/catalog/api";
 import {
   EDITION_PARAM,
@@ -25,6 +24,8 @@ import {
 import { bookTypeLabel, param } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 import { descriptionText, formatRichText } from "@/features/catalog/description";
+import { Book3D } from "@/features/home/Book3D";
+import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { AddToCartForm } from "@/features/ordering/AddToCartForm";
 
 interface BookPageProps {
@@ -126,13 +127,16 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
         </Container>
       )}
 
-      <Container className="grid gap-10 pt-8 pb-14 sm:pt-10 lg:grid-cols-[auto_1fr] lg:gap-16">
-        <div className="flex flex-col items-center gap-5 lg:items-start">
-          <BookCover
-            book={{ id: book.id, title: book.title, coverImageUrl: edition.coverImageUrl }}
-            size="detail"
-            className="motion-rise"
-          />
+      <Container className="grid gap-8 pt-4 pb-14 sm:pt-6 lg:grid-cols-[420px_1fr] lg:gap-14">
+        {/* Mô hình sách 3D nghiêng theo chuột (như hero); dính theo khi cuộn đọc mô tả trên desktop. */}
+        <HeroSpotlight className="flex flex-col items-center gap-2 lg:sticky lg:top-6 lg:self-start">
+          <div className="relative flex h-115 w-full items-center justify-center sm:h-145">
+            <span
+              aria-hidden="true"
+              className="book-floor absolute bottom-6 h-10 w-72 rounded-full bg-radial-[closest-side] from-black/85 to-transparent sm:bottom-4"
+            />
+            <Book3D title={book.title} coverImageUrl={edition.coverImageUrl} size="detail" />
+          </div>
           {preview && (
             <a
               href={preview}
@@ -143,7 +147,7 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
               <BookOpen size={18} /> Đọc thử
             </a>
           )}
-        </div>
+        </HeroSpotlight>
 
         <div className="flex min-w-0 flex-col gap-7">
           <div>
@@ -225,62 +229,54 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
             )}
           </section>
 
-          <section aria-labelledby="thong-tin-xuat-ban">
-            <h2 id="thong-tin-xuat-ban" className="font-editorial text-2xl font-bold">
+          {/* Gọn: lưới chữ nhỏ để phần giới thiệu sách nằm cao, khách đọc ngay dưới khối đặt mua. */}
+          <section aria-labelledby="thong-tin-xuat-ban" className="border-gold/20 border-y py-5">
+            <h2 id="thong-tin-xuat-ban" className="text-gold text-[11px] tracking-[0.26em] uppercase">
               Thông tin xuất bản
             </h2>
-            <dl className="border-gold/20 mt-4 grid border-t sm:grid-cols-2 sm:gap-x-10">
+            <dl className="mt-3.5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
               {facts.map((fact) => (
-                <div key={fact.label} className="border-gold/20 flex justify-between gap-4 border-b py-3 text-[15px]">
-                  <dt className="text-mist">{fact.label}</dt>
-                  <dd className="text-right">{fact.value}</dd>
+                <div key={fact.label} className="min-w-0">
+                  <dt className="text-mist text-xs">{fact.label}</dt>
+                  <dd className="mt-0.5 break-words">{fact.value}</dd>
                 </div>
               ))}
             </dl>
+            {edition.legalDocuments.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-mist text-xs">Văn bản pháp luật được cập nhật</h3>
+                <ul className="mt-1.5 flex flex-col gap-1 text-sm">
+                  {edition.legalDocuments.map((document) => {
+                    const effective = formatDate(document.effectiveDate);
+                    return (
+                      <li key={document.id}>
+                        <span className="text-gold-pale font-medium">{document.docNumber}</span> · {document.title}
+                        {effective && <span className="text-mist"> (hiệu lực từ {effective})</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </section>
 
-          {edition.legalDocuments.length > 0 && (
-            <section aria-labelledby="van-ban-cap-nhat">
-              <h2 id="van-ban-cap-nhat" className="font-editorial text-2xl font-bold">
-                Văn bản pháp luật được cập nhật
-              </h2>
-              <ul className="mt-4 flex flex-col gap-3">
-                {edition.legalDocuments.map((document) => {
-                  const effective = formatDate(document.effectiveDate);
-                  return (
-                    <li key={document.id} className="border-gold/40 border-l pl-4">
-                      <p>
-                        <span className="text-gold-pale font-medium">{document.docNumber}</span> · {document.title}
-                      </p>
-                      {effective && <p className="text-mist text-sm">Hiệu lực từ {effective}</p>}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-        </div>
-      </Container>
-
-      {(description || tableOfContents) && (
-        <Container className="flex flex-col gap-10 pb-12">
           {description && (
             <section aria-labelledby="gioi-thieu">
-              <h2 id="gioi-thieu" className="font-editorial text-3xl font-bold">
+              <h2 id="gioi-thieu" className="font-editorial text-[28px] font-bold">
                 Giới thiệu sách
               </h2>
               {/* Admin nhập HTML hoặc chữ thuần, đã chuyển và lọc bằng sanitize-html trên server (description.ts). */}
-              <div className={cn(DESCRIPTION_CLASS, "mt-5")} dangerouslySetInnerHTML={{ __html: description }} />
+              <div className={cn(DESCRIPTION_CLASS, "mt-4")} dangerouslySetInnerHTML={{ __html: description }} />
             </section>
           )}
           {tableOfContents && (
-            <details className="border-gold/30 max-w-3xl border px-6 py-5">
+            <details className="border-gold/30 border px-6 py-5">
               <summary className="font-editorial text-2xl font-bold">Mục lục</summary>
               <div className={cn(DESCRIPTION_CLASS, "mt-4")} dangerouslySetInnerHTML={{ __html: tableOfContents }} />
             </details>
           )}
-        </Container>
-      )}
+        </div>
+      </Container>
 
       <TrustBand />
     </main>
