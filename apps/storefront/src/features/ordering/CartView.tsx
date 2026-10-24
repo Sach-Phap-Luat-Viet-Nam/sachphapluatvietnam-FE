@@ -9,7 +9,7 @@ import { formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { coverTypeLabel } from "@/lib/labels";
-import { MAX_QUANTITY_PER_SKU, checkoutBlocker, lineIssue } from "./cart";
+import { MAX_QUANTITY_PER_SKU, checkoutBlocker, discountPercent, lineIssue, listSubtotal } from "./cart";
 import { CartLineCover } from "./CartLineCover";
 import { CartSummary } from "./CartSummary";
 import { orderingErrorMessage } from "./errors";
@@ -31,6 +31,8 @@ function CartLine({ item }: { item: CartItem }) {
   const quantity = draft ?? item.quantity;
   const syncing = draft !== null || setQuantity.isPending;
   const issue = lineIssue(item);
+  const percent = discountPercent(item.listPrice, item.unitPrice);
+  const saved = (item.listPrice - item.unitPrice) * item.quantity;
   const error = setQuantity.error ?? remove.error;
   const details = [item.editionName, coverTypeLabel(item.coverType)].filter(Boolean).join(" · ");
 
@@ -82,12 +84,20 @@ function CartLine({ item }: { item: CartItem }) {
             {details && <p className="text-mist mt-1 text-sm">{details}</p>}
           </div>
           {/* Thành tiền luôn lấy từ backend; mờ đi trong lúc chờ giỏ mới. */}
-          <p
+          <div
             aria-busy={syncing}
-            className={cn("text-gold-pale text-lg font-semibold transition-opacity", syncing && "opacity-50")}
+            className={cn("flex flex-col items-start gap-0.5 transition-opacity sm:items-end", syncing && "opacity-50")}
           >
-            {formatPrice(item.lineTotal)}
-          </p>
+            <p className="text-gold-pale text-lg font-semibold">{formatPrice(item.lineTotal)}</p>
+            {saved > 0 && (
+              <p className="text-ok text-sm">
+                <span className="sr-only">Giá bìa </span>
+                <span className="text-mist line-through">{formatPrice(item.listPrice * item.quantity)}</span>
+                <span aria-hidden="true"> · </span>
+                <span>Tiết kiệm {formatPrice(saved)}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -117,9 +127,13 @@ function CartLine({ item }: { item: CartItem }) {
           <span className="text-mist text-sm">
             {formatPrice(item.unitPrice)} / cuốn
             {item.listPrice > item.unitPrice && (
-              <span className="ml-2 line-through">{formatPrice(item.listPrice)}</span>
+              <span className="ml-2 line-through">
+                <span className="sr-only">Giá bìa </span>
+                {formatPrice(item.listPrice)}
+              </span>
             )}
           </span>
+          {percent !== null && <span className="bg-burgundy text-ivory px-2 py-0.5 text-sm">Giảm {percent}%</span>}
           <button
             type="button"
             onClick={removeLine}
@@ -217,6 +231,7 @@ export function CartView() {
       </section>
       <CartSummary
         cart={cart}
+        listSubtotal={listSubtotal(cart.items)}
         updating={updating}
         action={
           blocker ? (

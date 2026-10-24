@@ -76,10 +76,15 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - **`/gio-hang`** (`CartView`): mỗi dòng có bìa, tên (link về trang sách), ấn bản · loại bìa, đơn giá, nút −/+ (tối đa
   20), Xóa, thành tiền. Cảnh báo theo dòng: ngừng bán (`isSellable = false`), thiếu hàng (`quantity > availableQuantity`),
   đã có ấn bản mới (`isLatestEdition = false`).
+- **Hiển thị giá ưu đãi**: mỗi dòng có nhãn đỏ đô "Giảm xx%" cạnh `đơn giá / cuốn` và giá bìa gạch ngang, và dưới thành
+  tiền hiện giá bìa gạch ngang kèm "Tiết kiệm …". Phần trăm là `round(1 − giá bán / giá bìa)` (`discountPercent` trong
+  `cart.ts`), chỉ để hiển thị; giá bán, thành tiền, tạm tính vẫn của backend. Không giảm (giá bán ≥ giá bìa) thì ẩn hết.
 - **Sửa số lượng**: bấm −/+ thì số mới hiện ngay, nút không bị khóa; chờ 400 ms sau lần bấm cuối mới gửi **một**
   `PATCH` với số cuối cùng. Thành tiền và tổng vẫn lấy từ backend, mờ đi trong lúc chờ giỏ mới. Rời trang khi chưa hết
   thời gian chờ thì vẫn gửi. Lỗi thì số lượng về theo giỏ tải lại.
-- **Tóm tắt** (`CartSummary`): tạm tính, phí ship từ `POST /shipping/quote`, **tổng dự kiến** (chỉ để xem, không gửi
+- **Tóm tắt** (`CartSummary`, dùng chung cho giỏ, thanh toán và Mua ngay): khi có giảm giá thì hiện thêm **Giá gốc**
+  (gạch ngang), **Giảm giá (xx%)** (xanh, dấu −) trước tạm tính, và ô "Bạn tiết kiệm … so với giá bìa" dưới tổng tiền.
+  Các số này chỉ tính từ giá bìa của các dòng, không gồm phí ship. Tạm tính, phí ship từ `POST /shipping/quote`, **tổng dự kiến** (chỉ để xem, không gửi
   lên), "Mua thêm … để được miễn phí vận chuyển". Không lấy được phí ship thì ẩn dòng phí, không chặn đặt hàng. Tạm
   tính đổi thì giữ phí cũ (mờ) trong lúc chờ báo giá mới.
 - Nút "Đặt hàng" chỉ hiện khi giỏ không trống, không có dòng ngừng bán hoặc thiếu hàng (`checkoutBlocker`); ngược lại

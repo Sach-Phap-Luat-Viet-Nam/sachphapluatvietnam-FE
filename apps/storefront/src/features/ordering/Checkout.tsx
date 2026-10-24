@@ -20,7 +20,7 @@ import { useAddresses, useProfile, useSaveAddress } from "@/lib/use-account";
 import { fetchBuyNowBook, placeBuyNowOrder, placeOrder } from "./api";
 import { buyNowLine } from "./buy-now";
 import type { BuyNowSelection } from "./buy-now";
-import { checkoutBlocker } from "./cart";
+import { checkoutBlocker, listSubtotal } from "./cart";
 import { CartLineCover } from "./CartLineCover";
 import { CartSummary } from "./CartSummary";
 import { CHECKOUT_DEFAULTS, CHECKOUT_FIELDS, checkoutSchema, toCreateOrderBody } from "./order-forms";
@@ -461,6 +461,7 @@ function CartCheckout({ methods, onPlaced }: CheckoutModeProps) {
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">
         <CartSummary
           cart={cart}
+          listSubtotal={listSubtotal(cart.items)}
           action={
             <ul className="border-gold/20 divide-gold/10 flex flex-col divide-y border-t text-sm">
               {cart.items.map((item) => (
@@ -552,6 +553,7 @@ function BuyNowCheckout({ selection, methods, onPlaced }: CheckoutModeProps & { 
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">
         <CartSummary
           cart={{ subtotal: line.lineTotal, totalQuantity: line.quantity }}
+          listSubtotal={line.listPrice * line.quantity}
           action={
             <div className="border-gold/20 flex gap-4 border-t pt-4 text-sm">
               <CartLineCover title={line.bookTitle} coverImageUrl={line.coverImageUrl} skuId={line.skuId} />

@@ -75,6 +75,36 @@ describe("CartView", () => {
     expect(screen.getByRole("link", { name: "Đặt hàng" })).toHaveAttribute("href", "/thanh-toan");
   });
 
+  it("shows the discount per line and the savings in the summary", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () =>
+        HttpResponse.json(cartOf([item({ unitPrice: 410000, listPrice: 750000, quantity: 2, lineTotal: 820000 })])),
+      ),
+      quote(),
+    );
+    renderCart();
+
+    expect(await screen.findByText("Giảm 45%")).toBeVisible();
+    expect(screen.getByText("Tiết kiệm 680.000 ₫")).toBeVisible();
+    expect(screen.getByText("Giá gốc")).toBeVisible();
+    expect(screen.getByText("Giảm giá (45%)")).toBeVisible();
+    expect(screen.getByText("−680.000 ₫")).toBeVisible();
+    expect(screen.getByText("Bạn tiết kiệm 680.000 ₫ so với giá bìa.")).toBeVisible();
+  });
+
+  it("hides discount rows when the book is sold at list price", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(cartOf([item({ listPrice: 100000 })]))),
+      quote(),
+    );
+    renderCart();
+
+    await screen.findByRole("link", { name: "Bộ luật Dân sự 2026" });
+    expect(screen.queryByText(/^Giảm \d+%$/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Giá gốc")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Bạn tiết kiệm/)).not.toBeInTheDocument();
+  });
+
   it("changes quantities and removes lines with the cart returned by the backend", async () => {
     let patched: unknown;
     server.use(

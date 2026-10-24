@@ -25,6 +25,20 @@ export function checkoutBlocker(cart: { items: readonly StockFields[] }): string
   return null;
 }
 
+/**
+ * Phần trăm đã giảm so với giá bìa, làm tròn (`410.000` trên `750.000` → `45`). Chỉ để hiển thị nhãn "Giảm xx%": giá bán
+ * luôn lấy từ backend. `null` khi không giảm.
+ */
+export function discountPercent(listPrice: number, unitPrice: number): number | null {
+  if (listPrice <= 0 || unitPrice >= listPrice) return null;
+  return Math.max(1, Math.round((1 - unitPrice / listPrice) * 100));
+}
+
+/** Tổng giá bìa của các dòng (`listPrice × quantity`), để so với tạm tính và hiện số tiền khách tiết kiệm được. */
+export function listSubtotal(lines: readonly Pick<CartItem, "listPrice" | "quantity">[]): number {
+  return lines.reduce((sum, line) => sum + line.listPrice * line.quantity, 0);
+}
+
 /** Số tiền còn thiếu để được miễn phí vận chuyển (BR-14), `null` khi đã được miễn phí. */
 export function freeShippingGap(subtotal: number, quote: Pick<ShippingQuote, "freeShippingThreshold">): number | null {
   const gap = quote.freeShippingThreshold - subtotal;

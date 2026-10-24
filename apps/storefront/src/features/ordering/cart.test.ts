@@ -1,10 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "@slvn/api-client";
-import { checkoutBlocker, freeShippingGap, lineIssue } from "./cart";
+import { checkoutBlocker, discountPercent, freeShippingGap, lineIssue, listSubtotal } from "./cart";
 import { orderingErrorMessage } from "./errors";
 import { formatCountdown, remainingSeconds } from "./payment";
 
 const line = { isSellable: true, quantity: 2, availableQuantity: 13 };
+
+describe("discountPercent", () => {
+  it("rounds the saving against the list price", () => {
+    expect(discountPercent(750000, 410000)).toBe(45);
+    expect(discountPercent(395000, 260000)).toBe(34);
+  });
+
+  it("is null when nothing is saved, and never shows 0%", () => {
+    expect(discountPercent(100000, 100000)).toBeNull();
+    expect(discountPercent(100000, 120000)).toBeNull();
+    expect(discountPercent(0, 0)).toBeNull();
+    expect(discountPercent(1000000, 999999)).toBe(1);
+  });
+});
+
+describe("listSubtotal", () => {
+  it("adds up list price times quantity", () => {
+    expect(
+      listSubtotal([
+        { listPrice: 750000, quantity: 2 },
+        { listPrice: 395000, quantity: 1 },
+      ]),
+    ).toBe(1895000);
+    expect(listSubtotal([])).toBe(0);
+  });
+});
 
 describe("lineIssue", () => {
   it("flags discontinued lines before stock shortages", () => {
