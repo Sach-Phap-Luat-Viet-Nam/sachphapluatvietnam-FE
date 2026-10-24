@@ -21,13 +21,13 @@ Module `SachLuat.Modules.Cart`.
 
 Tiền tố `/api/v1/cart`, đăng nhập là tùy chọn.
 
-| Method | Route | Request → Response |
-| --- | --- | --- |
-| GET | `/cart` | → `{items[], totalQuantity, subtotal}` |
-| POST | `/cart/items` | `{skuId, quantity}` (cộng thêm) → giỏ |
-| PATCH | `/cart/items/{skuId}` | `{quantity}` (đặt số lượng, 0 = xóa) → giỏ |
-| DELETE | `/cart/items/{skuId}` | → giỏ |
-| DELETE | `/cart` | → 204 |
+| Method | Route                 | Request → Response                         |
+| ------ | --------------------- | ------------------------------------------ |
+| GET    | `/cart`               | → `{items[], totalQuantity, subtotal}`     |
+| POST   | `/cart/items`         | `{skuId, quantity}` (cộng thêm) → giỏ      |
+| PATCH  | `/cart/items/{skuId}` | `{quantity}` (đặt số lượng, 0 = xóa) → giỏ |
+| DELETE | `/cart/items/{skuId}` | → giỏ                                      |
+| DELETE | `/cart`               | → 204                                      |
 
 Mỗi dòng: `skuId, skuCode, bookTitle, bookSlug, editionName, coverType, coverImageUrl, quantity, unitPrice,
 listPrice, lineTotal, isLatestEdition, isSellable, availableQuantity`.
@@ -36,11 +36,11 @@ Mã lỗi: `MAX_QTY_EXCEEDED` (422), `SKU_NOT_AVAILABLE` (422), `OUT_OF_STOCK` (
 
 ## Cấu hình cần thiết
 
-| Key | Ghi chú |
-| --- | --- |
-| `ConnectionStrings:Redis` | Local: `localhost:6380` (docker compose) |
-| `Cart:MaxQuantityPerSku` | Mặc định 20 |
-| `Cart:MaxLines`, `Cart:LifetimeDays`, `Cart:KeyPrefix` | 50 dòng, 30 ngày, `sachluat:cart:` |
+| Key                                                    | Ghi chú                                  |
+| ------------------------------------------------------ | ---------------------------------------- |
+| `ConnectionStrings:Redis`                              | Local: `localhost:6380` (docker compose) |
+| `Cart:MaxQuantityPerSku`                               | Mặc định 20                              |
+| `Cart:MaxLines`, `Cart:LifetimeDays`, `Cart:KeyPrefix` | 50 dòng, 30 ngày, `sachluat:cart:`       |
 
 ## Thay đổi CSDL (migration liên quan)
 

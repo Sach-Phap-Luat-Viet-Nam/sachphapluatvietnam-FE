@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 
 const noHorizontalScroll = () => document.documentElement.scrollWidth <= window.innerWidth;
 
+// Popup quảng cáo đang chạy trên backend sẽ che trang; các luồng ở đây giả lập không có popup (popup.spec.ts).
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/popups/active", (route) => route.fulfill({ status: 204 }));
+});
+
 test("home page shows the hero and links into the catalogue", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: /Đọc đúng luật/ })).toBeVisible();

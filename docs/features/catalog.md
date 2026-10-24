@@ -15,17 +15,17 @@ Tồn kho, lô in và thẻ kho **không** thuộc Catalog mà thuộc module In
 - `Category`, `Author`, `LegalDocument` là aggregate riêng, gắn vào sách/ấn bản qua bảng nối.
 - Quy tắc nghiệp vụ (vi phạm thì ném `BusinessException`, API trả `ProblemDetails` với `code` tương ứng):
 
-| Quy tắc | Nơi kiểm tra | Mã lỗi |
-| --- | --- | --- |
-| BR-02: mỗi đầu sách tối đa 1 ấn bản mới nhất | `Book.SetLatestEdition` + partial unique index `ux_editions_book_id_latest` | `EDITION_NOT_FOUND` (ấn bản không thuộc sách) |
-| BR-04: ấn bản phải có ISBN và số QĐXB | `Edition.UpdatePublishingInfo`, cột NOT NULL | `VALIDATION_ERROR` |
-| ISBN-13 hợp lệ (978/979, đúng số kiểm tra), lưu dạng 13 chữ số | `Isbn13.TryNormalize`, check constraint | `ISBN_INVALID` |
-| ISBN duy nhất | Trong sách: domain; toàn hệ thống: unique index | `ISBN_DUPLICATE` |
-| Slug: chữ thường không dấu, số, gạch nối | `Slug.IsValid` | `SLUG_INVALID` |
-| Mã SKU: chữ in hoa, số, gạch nối, ≤ 50 ký tự; duy nhất | `Sku`, unique index | `SKU_CODE_INVALID` |
-| Mỗi ấn bản một SKU cho mỗi loại bìa | `Edition.AddSku`, unique index | `SKU_COVER_DUPLICATE` |
-| Giá: số nguyên VNĐ > 0, giá bán ≤ giá bìa | `Sku.ChangePrices`, check constraint | `PRICE_INVALID` |
-| Danh mục không được làm cha của chính nó/con cháu | `Category.MoveTo` | `CATEGORY_PARENT_INVALID` |
+| Quy tắc                                                        | Nơi kiểm tra                                                                | Mã lỗi                                        |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| BR-02: mỗi đầu sách tối đa 1 ấn bản mới nhất                   | `Book.SetLatestEdition` + partial unique index `ux_editions_book_id_latest` | `EDITION_NOT_FOUND` (ấn bản không thuộc sách) |
+| BR-04: ấn bản phải có ISBN và số QĐXB                          | `Edition.UpdatePublishingInfo`, cột NOT NULL                                | `VALIDATION_ERROR`                            |
+| ISBN-13 hợp lệ (978/979, đúng số kiểm tra), lưu dạng 13 chữ số | `Isbn13.TryNormalize`, check constraint                                     | `ISBN_INVALID`                                |
+| ISBN duy nhất                                                  | Trong sách: domain; toàn hệ thống: unique index                             | `ISBN_DUPLICATE`                              |
+| Slug: chữ thường không dấu, số, gạch nối                       | `Slug.IsValid`                                                              | `SLUG_INVALID`                                |
+| Mã SKU: chữ in hoa, số, gạch nối, ≤ 50 ký tự; duy nhất         | `Sku`, unique index                                                         | `SKU_CODE_INVALID`                            |
+| Mỗi ấn bản một SKU cho mỗi loại bìa                            | `Edition.AddSku`, unique index                                              | `SKU_COVER_DUPLICATE`                         |
+| Giá: số nguyên VNĐ > 0, giá bán ≤ giá bìa                      | `Sku.ChangePrices`, check constraint                                        | `PRICE_INVALID`                               |
+| Danh mục không được làm cha của chính nó/con cháu              | `Category.MoveTo`                                                           | `CATEGORY_PARENT_INVALID`                     |
 
 - `created_at`/`updated_at` (UTC) do `AuditableEntityInterceptor` tự gán khi `SaveChanges`.
 - Xóa mềm (`deleted_at`) cho `categories`, `authors`, `legal_documents`: gọi `Remove` sẽ chỉ gán `deleted_at`,
@@ -39,29 +39,29 @@ Tiền tố `/api/v1`. Enum trong JSON và query string dạng snake_case (`on_s
 
 **Website (không cần đăng nhập)** — chỉ đầu sách `active` có ấn bản mới nhất đã công bố:
 
-| Method | Route | Mô tả |
-| --- | --- | --- |
-| GET | `/books?q=&category=&type=&audience=&cover=&minPrice=&maxPrice=&legalDocument=&sort=&page=&limit=` | Danh sách (FR-12, FR-13, FR-14); `sort`: `newest`, `price_asc`, `price_desc`; `limit` mặc định 24, tối đa 100 |
-| GET | `/books/{slug}` | Chi tiết + ấn bản (mới nhất trước, `isLatest` cho cảnh báo BR-03) + SKU (`inStock`, `discountPercent`) + văn bản pháp luật |
-| GET | `/categories` | Cây danh mục |
+| Method | Route                                                                                              | Mô tả                                                                                                                      |
+| ------ | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/books?q=&category=&type=&audience=&cover=&minPrice=&maxPrice=&legalDocument=&sort=&page=&limit=` | Danh sách (FR-12, FR-13, FR-14); `sort`: `newest`, `price_asc`, `price_desc`; `limit` mặc định 24, tối đa 100              |
+| GET    | `/books/{slug}`                                                                                    | Chi tiết + ấn bản (mới nhất trước, `isLatest` cho cảnh báo BR-03) + SKU (`inStock`, `discountPercent`) + văn bản pháp luật |
+| GET    | `/categories`                                                                                      | Cây danh mục                                                                                                               |
 
 Danh sách trả `{items, meta: {page, limit, total}}`; mỗi item lấy giá SKU rẻ nhất của ấn bản mới nhất.
 `category` gồm cả danh mục con; `legalDocument` khớp văn bản gắn với ấn bản hoặc nhãn "Cập nhật đến".
 
 **Admin** (policy `catalog_admin`: super_admin, product_manager, bắt buộc 2FA):
 
-| Method | Route | Mô tả |
-| --- | --- | --- |
-| GET | `/admin/books?q=&status=` | Danh sách mọi trạng thái |
-| GET/PUT | `/admin/books/{id}` | Chi tiết (mọi ấn bản, tồn từng SKU) / sửa |
-| POST | `/admin/books` | Tạo: `{title, slug, bookType, status, description?, targetAudiences[], metaTitle?, metaDescription?, categoryIds[], authorIds[]}` |
-| POST | `/admin/books/{id}/editions` | Thêm ấn bản; ấn bản đầu tiên tự là mới nhất |
-| PUT | `/admin/editions/{id}` | Sửa ấn bản (ISBN, QĐXB, "cập nhật đến", trạng thái, `legalDocumentIds[]`, ...) |
-| POST | `/admin/editions/{id}/set-latest` | Đổi ấn bản mới nhất (BR-02) |
-| POST | `/admin/editions/{id}/skus` | `{skuCode, coverType, listPrice, salePrice, allowPreorder}` |
-| PUT | `/admin/skus/{id}` | `{listPrice, salePrice, allowPreorder}` |
-| GET/POST/PUT/DELETE | `/admin/categories`, `/admin/authors`, `/admin/legal-documents` | CRUD, xóa là xóa mềm |
-| POST | `/admin/uploads/cover-signature` | Chữ ký upload ảnh bìa lên Cloudinary (xem mục Ảnh bìa) |
+| Method              | Route                                                           | Mô tả                                                                                                                             |
+| ------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/admin/books?q=&status=`                                       | Danh sách mọi trạng thái                                                                                                          |
+| GET/PUT             | `/admin/books/{id}`                                             | Chi tiết (mọi ấn bản, tồn từng SKU) / sửa                                                                                         |
+| POST                | `/admin/books`                                                  | Tạo: `{title, slug, bookType, status, description?, targetAudiences[], metaTitle?, metaDescription?, categoryIds[], authorIds[]}` |
+| POST                | `/admin/books/{id}/editions`                                    | Thêm ấn bản; ấn bản đầu tiên tự là mới nhất                                                                                       |
+| PUT                 | `/admin/editions/{id}`                                          | Sửa ấn bản (ISBN, QĐXB, "cập nhật đến", trạng thái, `legalDocumentIds[]`, ...)                                                    |
+| POST                | `/admin/editions/{id}/set-latest`                               | Đổi ấn bản mới nhất (BR-02)                                                                                                       |
+| POST                | `/admin/editions/{id}/skus`                                     | `{skuCode, coverType, listPrice, salePrice, allowPreorder}`                                                                       |
+| PUT                 | `/admin/skus/{id}`                                              | `{listPrice, salePrice, allowPreorder}`                                                                                           |
+| GET/POST/PUT/DELETE | `/admin/categories`, `/admin/authors`, `/admin/legal-documents` | CRUD, xóa là xóa mềm                                                                                                              |
+| POST                | `/admin/uploads/cover-signature`                                | Chữ ký upload ảnh bìa lên Cloudinary (xem mục Ảnh bìa)                                                                            |
 
 Các API sửa đầu sách/ấn bản/SKU trả lại toàn bộ đầu sách (`AdminBookResponse`).
 Mã lỗi thêm: `UPLOAD_NOT_CONFIGURED` (503, chưa cấu hình Cloudinary), `SLUG_DUPLICATE` (409), `SKU_CODE_DUPLICATE` (409), `CATEGORY_HAS_CHILDREN` (409),
@@ -70,7 +70,7 @@ Mã lỗi thêm: `UPLOAD_NOT_CONFIGURED` (503, chưa cấu hình Cloudinary), `S
 **Ảnh bìa (Cloudinary, upload có ký)**: file không đi qua API.
 
 1. Admin FE gọi `POST /admin/uploads/cover-signature` → `{uploadUrl, apiKey, timestamp, folder, allowedFormats,
-   signature}`. Chữ ký chỉ có hiệu lực 1 giờ (giới hạn của Cloudinary).
+signature}`. Chữ ký chỉ có hiệu lực 1 giờ (giới hạn của Cloudinary).
 2. FE gửi `multipart/form-data` tới `uploadUrl` với field `file` cùng **đúng** `api_key`, `timestamp`, `folder`,
    `allowed_formats`, `signature` (thêm/bớt tham số thì chữ ký sai). Cloudinary trả `secure_url`.
 3. FE lưu `secure_url` vào `coverImageUrl` qua `PUT /admin/editions/{id}`. Khi đã cấu hình Cloudinary, link phải
@@ -93,15 +93,15 @@ Mã lỗi thêm: `UPLOAD_NOT_CONFIGURED` (503, chưa cấu hình Cloudinary), `S
 
 Migration `CreateCatalogSchema`, schema `catalog`:
 
-| Bảng | Ghi chú |
-| --- | --- |
-| `books` | `book_type`, `status` dạng chuỗi; `target_audiences` là mảng `varchar(30)[]` |
-| `editions` | `isbn char(13)` unique; thêm `cover_image_url`, `table_of_contents` so với tài liệu gốc |
-| `skus` | `list_price`, `sale_price numeric(12,0)`; không có cột tồn kho |
-| `categories` | cây qua `parent_id`; `sort_order`; slug unique khi chưa xóa |
-| `authors` | `biography`, `sort_order`; slug unique khi chưa xóa |
-| `legal_documents` | index `doc_number` để tìm theo số hiệu |
-| `book_categories`, `book_authors`, `edition_legal_documents` | bảng nối, khóa chính ghép |
+| Bảng                                                         | Ghi chú                                                                                 |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `books`                                                      | `book_type`, `status` dạng chuỗi; `target_audiences` là mảng `varchar(30)[]`            |
+| `editions`                                                   | `isbn char(13)` unique; thêm `cover_image_url`, `table_of_contents` so với tài liệu gốc |
+| `skus`                                                       | `list_price`, `sale_price numeric(12,0)`; không có cột tồn kho                          |
+| `categories`                                                 | cây qua `parent_id`; `sort_order`; slug unique khi chưa xóa                             |
+| `authors`                                                    | `biography`, `sort_order`; slug unique khi chưa xóa                                     |
+| `legal_documents`                                            | index `doc_number` để tìm theo số hiệu                                                  |
+| `book_categories`, `book_authors`, `edition_legal_documents` | bảng nối, khóa chính ghép                                                               |
 
 Enum lưu dạng chuỗi snake_case (`on_sale`, `joint_circular`). Đổi tên member enum = đổi dữ liệu,
 phải có migration cập nhật giá trị cũ.

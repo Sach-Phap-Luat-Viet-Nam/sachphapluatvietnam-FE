@@ -3,7 +3,14 @@ import type { PopupStores } from "./popup";
 import type { Popup } from "./schemas";
 
 function popup(displayFrequency: Popup["displayFrequency"], updatedAt = "2026-11-01T02:00:00Z"): Popup {
-  return { id: 5, title: "Sale mùa thi", imageUrl: "https://img.test/a.jpg", linkUrl: null, displayFrequency, updatedAt };
+  return {
+    id: 5,
+    title: "Sale mùa thi",
+    imageUrl: "https://img.test/a.jpg",
+    linkUrl: null,
+    displayFrequency,
+    updatedAt,
+  };
 }
 
 function memoryStore(): Storage {

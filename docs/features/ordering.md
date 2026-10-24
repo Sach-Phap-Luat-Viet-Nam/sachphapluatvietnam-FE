@@ -18,14 +18,14 @@
 **Đổi trạng thái** chỉ theo bảng 16.1 (`OrderStatusMachine`); dòng đơn bị khóa (`FOR UPDATE`) trong lúc đổi.
 Tác động kèm theo:
 
-| Chuyển sang | Tác động |
-| --- | --- |
-| `paid` | `payment_status = paid` |
-| `packing` | Trừ tồn thật FIFO, ghi giá vốn `cost_price` từng dòng |
-| `cancelled` | Hoàn tồn tạm giữ |
-| `delivered` (COD) | `payment_status = paid` |
-| `returned` | Nhập lại kho đúng các lô đã xuất |
-| `refunded` | Chỉ khi đã thanh toán; `payment_status = refunded` |
+| Chuyển sang       | Tác động                                              |
+| ----------------- | ----------------------------------------------------- |
+| `paid`            | `payment_status = paid`                               |
+| `packing`         | Trừ tồn thật FIFO, ghi giá vốn `cost_price` từng dòng |
+| `cancelled`       | Hoàn tồn tạm giữ                                      |
+| `delivered` (COD) | `payment_status = paid`                               |
+| `returned`        | Nhập lại kho đúng các lô đã xuất                      |
+| `refunded`        | Chỉ khi đã thanh toán; `payment_status = refunded`    |
 
 - **Khách tự hủy** (BR-12): chỉ khi trạng thái hiện tại còn chuyển được sang `cancelled`
   (`pending_payment`, `pending_confirm`, `preorder_waiting`, `confirmed`).
@@ -36,17 +36,17 @@ Tác động kèm theo:
 
 Tiền tố `/api/v1`.
 
-| Method | Route | Xác thực | Mô tả |
-| --- | --- | --- | --- |
-| POST | `/orders` | Tùy chọn | `{customerName, phone, email?, shippingAddress: {province, ward, streetAddress}, paymentMethod: cod\|bank_transfer, invoiceInfo?: {companyName, taxCode, address, email}, note?}` + header `Idempotency-Key` → 201 `OrderResponse` |
-| GET | `/orders` | Bearer | Đơn của tôi (phân trang) |
-| GET | `/orders/{code}` | Bearer | Chi tiết đơn của tôi kèm lịch sử trạng thái |
-| POST | `/orders/lookup` | Không | `{orderCode, phone}` (giới hạn tần suất) |
-| POST | `/orders/{code}/cancel` | Bearer | `{reason?}` |
-| POST | `/shipping/quote` | Không | `{subtotal}` → `{shippingFee, freeShippingThreshold}` |
-| GET | `/admin/orders?status=&paymentMethod=&from=&to=&q=` | orders_read | Lọc theo trạng thái, phương thức, ngày (giờ VN), mã đơn/SĐT |
-| GET | `/admin/orders/{code}` | orders_read | `{order, userId, nextStatuses[], costOfGoods}` |
-| POST | `/admin/orders/{code}/status` | orders_manage | `{status, note?}` |
+| Method | Route                                               | Xác thực      | Mô tả                                                                                                                                                                                                                              |
+| ------ | --------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/orders`                                           | Tùy chọn      | `{customerName, phone, email?, shippingAddress: {province, ward, streetAddress}, paymentMethod: cod\|bank_transfer, invoiceInfo?: {companyName, taxCode, address, email}, note?}` + header `Idempotency-Key` → 201 `OrderResponse` |
+| GET    | `/orders`                                           | Bearer        | Đơn của tôi (phân trang)                                                                                                                                                                                                           |
+| GET    | `/orders/{code}`                                    | Bearer        | Chi tiết đơn của tôi kèm lịch sử trạng thái                                                                                                                                                                                        |
+| POST   | `/orders/lookup`                                    | Không         | `{orderCode, phone}` (giới hạn tần suất)                                                                                                                                                                                           |
+| POST   | `/orders/{code}/cancel`                             | Bearer        | `{reason?}`                                                                                                                                                                                                                        |
+| POST   | `/shipping/quote`                                   | Không         | `{subtotal}` → `{shippingFee, freeShippingThreshold}`                                                                                                                                                                              |
+| GET    | `/admin/orders?status=&paymentMethod=&from=&to=&q=` | orders_read   | Lọc theo trạng thái, phương thức, ngày (giờ VN), mã đơn/SĐT                                                                                                                                                                        |
+| GET    | `/admin/orders/{code}`                              | orders_read   | `{order, userId, nextStatuses[], costOfGoods}`                                                                                                                                                                                     |
+| POST   | `/admin/orders/{code}/status`                       | orders_manage | `{status, note?}`                                                                                                                                                                                                                  |
 
 `OrderResponse`: mã đơn, trạng thái, phương thức/tình trạng thanh toán, thông tin khách, địa chỉ, `items[]`,
 `subtotal, discount, shippingFee, total`, hóa đơn, `paymentExpiresAt`, `canCancel`, `history[]`.
@@ -57,13 +57,13 @@ Mã lỗi: `CART_EMPTY` (422), `SKU_NOT_AVAILABLE` (422), `MAX_QTY_EXCEEDED` (42
 
 ## Cấu hình cần thiết
 
-| Key | Mặc định |
-| --- | --- |
-| `Ordering:ShippingFlatFee` | 30000 |
-| `Ordering:FreeShippingThreshold` | 300000 (BR-14) |
-| `Ordering:PaymentTimeoutMinutes` | 30 |
-| `Ordering:MaxQuantityPerSku` | 20 |
-| `Ordering:EnableExpiredPaymentSweep`, `Ordering:ExpiredPaymentSweepSeconds` | true, 60 |
+| Key                                                                         | Mặc định       |
+| --------------------------------------------------------------------------- | -------------- |
+| `Ordering:ShippingFlatFee`                                                  | 30000          |
+| `Ordering:FreeShippingThreshold`                                            | 300000 (BR-14) |
+| `Ordering:PaymentTimeoutMinutes`                                            | 30             |
+| `Ordering:MaxQuantityPerSku`                                                | 20             |
+| `Ordering:EnableExpiredPaymentSweep`, `Ordering:ExpiredPaymentSweepSeconds` | true, 60       |
 
 ## Thay đổi CSDL (migration liên quan)
 

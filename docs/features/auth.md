@@ -25,15 +25,15 @@ bắt buộc xác thực 2 bước (2FA) cho mọi API Admin (NFR-15). Module `S
      `POST /auth/login/2fa` với mã 6 số.
 - **Phân quyền**: claim `role` theo bảng 4.2. Policy Admin = đúng vai trò + `amr=mfa`:
 
-| Policy | Vai trò | Dùng cho |
-| --- | --- | --- |
-| `catalog_admin` | super_admin, product_manager | `/admin/books`, `/admin/editions`, `/admin/skus`, `/admin/categories`, `/admin/authors`, `/admin/legal-documents` |
-| `inventory_admin` | super_admin, warehouse_keeper | `/admin/inventory/...` |
-| `inventory_approve` | super_admin | Duyệt/từ chối phiếu nhập |
-| `orders_read` | super_admin, order_manager, customer_service, accountant | Xem đơn Admin |
-| `orders_manage` | super_admin, order_manager | Đổi trạng thái đơn |
-| `users_admin` | super_admin | `/admin/users` |
-| `content_admin` | super_admin, marketing | `/admin/popups`, `/admin/uploads/popup-signature` |
+| Policy              | Vai trò                                                  | Dùng cho                                                                                                          |
+| ------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `catalog_admin`     | super_admin, product_manager                             | `/admin/books`, `/admin/editions`, `/admin/skus`, `/admin/categories`, `/admin/authors`, `/admin/legal-documents` |
+| `inventory_admin`   | super_admin, warehouse_keeper                            | `/admin/inventory/...`                                                                                            |
+| `inventory_approve` | super_admin                                              | Duyệt/từ chối phiếu nhập                                                                                          |
+| `orders_read`       | super_admin, order_manager, customer_service, accountant | Xem đơn Admin                                                                                                     |
+| `orders_manage`     | super_admin, order_manager                               | Đổi trạng thái đơn                                                                                                |
+| `users_admin`       | super_admin                                              | `/admin/users`                                                                                                    |
+| `content_admin`     | super_admin, marketing                                   | `/admin/popups`, `/admin/uploads/popup-signature`                                                                 |
 
 - **Super Admin đầu tiên**: tạo lúc khởi động từ cấu hình `Auth:BootstrapAdmin` nếu email chưa tồn tại.
 - **Fast login (Super Admin vào hộ tài khoản)**:
@@ -61,21 +61,21 @@ bắt buộc xác thực 2 bước (2FA) cho mọi API Admin (NFR-15). Module `S
 
 Tiền tố `/api/v1`.
 
-| Method | Route | Xác thực | Request → Response |
-| --- | --- | --- | --- |
-| POST | `/auth/register` | Không | `{email, password, fullName, phoneNumber?}` → 201 `AuthResponse` + cookie |
-| POST | `/auth/login` | Không | `{email, password, rememberMe}` → `{requiresTwoFactor, twoFactorToken?, session?}` |
-| POST | `/auth/login/2fa` | Không | `{twoFactorToken, code}` → `AuthResponse` + cookie |
-| POST | `/auth/refresh` | Cookie | → `AuthResponse` + cookie mới |
-| POST | `/auth/logout` | Cookie | → 204, xóa cookie |
-| POST | `/auth/password/change` | Bearer | `{currentPassword, newPassword}` → 204, thu hồi mọi phiên |
-| POST | `/auth/2fa/setup` | Bearer | → `{sharedKey, authenticatorUri}` |
-| POST | `/auth/2fa/enable` | Bearer | `{code}` → `AuthResponse` (amr=mfa) |
-| GET/PATCH | `/me` | Bearer | Hồ sơ: `fullName, phoneNumber, birthDate, occupation` (FR-05) |
-| GET | `/admin/users` | users_admin | Danh sách nhân viên (phân trang) |
-| POST | `/admin/users` | users_admin | `{email, fullName, password, roles[]}` → 201 |
-| PUT | `/admin/users/{id}/roles` | users_admin | `{roles[]}` |
-| POST | `/admin/users/{id}/impersonate` | users_admin | → `AuthResponse` của tài khoản đích (`loginVia: "admin"`), không cookie |
+| Method    | Route                           | Xác thực    | Request → Response                                                                 |
+| --------- | ------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| POST      | `/auth/register`                | Không       | `{email, password, fullName, phoneNumber?}` → 201 `AuthResponse` + cookie          |
+| POST      | `/auth/login`                   | Không       | `{email, password, rememberMe}` → `{requiresTwoFactor, twoFactorToken?, session?}` |
+| POST      | `/auth/login/2fa`               | Không       | `{twoFactorToken, code}` → `AuthResponse` + cookie                                 |
+| POST      | `/auth/refresh`                 | Cookie      | → `AuthResponse` + cookie mới                                                      |
+| POST      | `/auth/logout`                  | Cookie      | → 204, xóa cookie                                                                  |
+| POST      | `/auth/password/change`         | Bearer      | `{currentPassword, newPassword}` → 204, thu hồi mọi phiên                          |
+| POST      | `/auth/2fa/setup`               | Bearer      | → `{sharedKey, authenticatorUri}`                                                  |
+| POST      | `/auth/2fa/enable`              | Bearer      | `{code}` → `AuthResponse` (amr=mfa)                                                |
+| GET/PATCH | `/me`                           | Bearer      | Hồ sơ: `fullName, phoneNumber, birthDate, occupation` (FR-05)                      |
+| GET       | `/admin/users`                  | users_admin | Danh sách nhân viên (phân trang)                                                   |
+| POST      | `/admin/users`                  | users_admin | `{email, fullName, password, roles[]}` → 201                                       |
+| PUT       | `/admin/users/{id}/roles`       | users_admin | `{roles[]}`                                                                        |
+| POST      | `/admin/users/{id}/impersonate` | users_admin | → `AuthResponse` của tài khoản đích (`loginVia: "admin"`), không cookie            |
 
 `AuthResponse`: `{accessToken, tokenType: "Bearer", expiresIn, loginVia: "portal" | "admin", impersonatorId?,
 user: {id, email, fullName, roles[], twoFactorEnabled, requiresTwoFactorSetup, ...}}`.
@@ -86,14 +86,14 @@ Mã lỗi: `INVALID_CREDENTIALS` (401), `ACCOUNT_LOCKED` (423), `EMAIL_TAKEN` (4
 
 ## Cấu hình cần thiết
 
-| Key | Ghi chú |
-| --- | --- |
-| `Jwt:SigningKey` | **Bí mật**, ≥ 32 ký tự, user-secrets / secret manager |
-| `Jwt:Issuer`, `Jwt:Audience`, `Jwt:AccessTokenMinutes` | `appsettings.json` |
-| `Auth:RefreshTokenDays`, `Auth:SessionRefreshTokenHours`, `Auth:TotpIssuer` | Mặc định 30 ngày / 12 giờ |
-| `Auth:BootstrapAdmin:Email`, `Auth:BootstrapAdmin:Password` | **Bí mật**, chỉ cần lần đầu |
-| `RateLimiting:AuthPermitPerMinute` | Mặc định 10 |
-| `TrustedProxy:Secret` | **Bí mật**, trống hoặc ≥ 32 ký tự, phải trùng `PROXY_SECRET` bên FE. Render: `TrustedProxy__Secret` |
+| Key                                                                         | Ghi chú                                                                                             |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `Jwt:SigningKey`                                                            | **Bí mật**, ≥ 32 ký tự, user-secrets / secret manager                                               |
+| `Jwt:Issuer`, `Jwt:Audience`, `Jwt:AccessTokenMinutes`                      | `appsettings.json`                                                                                  |
+| `Auth:RefreshTokenDays`, `Auth:SessionRefreshTokenHours`, `Auth:TotpIssuer` | Mặc định 30 ngày / 12 giờ                                                                           |
+| `Auth:BootstrapAdmin:Email`, `Auth:BootstrapAdmin:Password`                 | **Bí mật**, chỉ cần lần đầu                                                                         |
+| `RateLimiting:AuthPermitPerMinute`                                          | Mặc định 10                                                                                         |
+| `TrustedProxy:Secret`                                                       | **Bí mật**, trống hoặc ≥ 32 ký tự, phải trùng `PROXY_SECRET` bên FE. Render: `TrustedProxy__Secret` |
 
 ## Thay đổi CSDL (migration liên quan)
 

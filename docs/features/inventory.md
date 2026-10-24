@@ -29,17 +29,17 @@ Module `SachLuat.Modules.Inventory`, schema `inventory`.
 
 Tiền tố `/api/v1/admin/inventory`, policy `inventory_admin` (trừ duyệt/từ chối: `inventory_approve`).
 
-| Method | Route | Mô tả |
-| --- | --- | --- |
-| GET | `/receipts?status=draft&page=&limit=` | Danh sách phiếu nhập |
-| GET | `/receipts/{id}` | Chi tiết phiếu |
-| POST | `/receipts` | `{note?, lines: [{skuId, batchCode, printerName?, quantity, unitCost, receivedAt}]}` → 201 |
-| POST | `/receipts/{id}/approve` | Duyệt (Super Admin) |
-| POST | `/receipts/{id}/reject` | `{reason}` |
-| GET | `/skus/{skuId}` | Thẻ kho: `available, reserved, onHand, lowStockThreshold, batches[], recentTransactions[]` |
-| PUT | `/skus/{skuId}/threshold` | `{lowStockThreshold}` |
-| GET | `/low-stock` | SKU tồn thấp (phân trang) |
-| POST | `/issues` | `{skuId, quantity, type: damage\|gift, note}` |
+| Method | Route                                 | Mô tả                                                                                      |
+| ------ | ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| GET    | `/receipts?status=draft&page=&limit=` | Danh sách phiếu nhập                                                                       |
+| GET    | `/receipts/{id}`                      | Chi tiết phiếu                                                                             |
+| POST   | `/receipts`                           | `{note?, lines: [{skuId, batchCode, printerName?, quantity, unitCost, receivedAt}]}` → 201 |
+| POST   | `/receipts/{id}/approve`              | Duyệt (Super Admin)                                                                        |
+| POST   | `/receipts/{id}/reject`               | `{reason}`                                                                                 |
+| GET    | `/skus/{skuId}`                       | Thẻ kho: `available, reserved, onHand, lowStockThreshold, batches[], recentTransactions[]` |
+| PUT    | `/skus/{skuId}/threshold`             | `{lowStockThreshold}`                                                                      |
+| GET    | `/low-stock`                          | SKU tồn thấp (phân trang)                                                                  |
+| POST   | `/issues`                             | `{skuId, quantity, type: damage\|gift, note}`                                              |
 
 Mã lỗi: `OUT_OF_STOCK` (409), `RECEIPT_NOT_DRAFT` (409), `RECEIPT_SELF_APPROVAL` (403),
 `BATCH_CODE_DUPLICATE` (409), `RECEIPT_EMPTY` (422), `REFERENCE_NOT_FOUND` (422, SKU không tồn tại).

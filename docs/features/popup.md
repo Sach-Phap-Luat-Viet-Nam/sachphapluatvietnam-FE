@@ -19,11 +19,11 @@ Module `SachLuat.Modules.Content`, schema `content`. Module này cũng là chỗ
 4. **Tần suất** do FE tự áp, lưu dấu "đã xem" ở trình duyệt với khóa `popup:{id}:{updatedAt}` (popup vừa sửa thì
    `updatedAt` đổi nên hiện lại):
 
-| `displayFrequency` | FE hiển thị |
-| --- | --- |
-| `every_visit` | Mỗi lần tải trang |
-| `once_per_session` | Một lần mỗi phiên trình duyệt (`sessionStorage`) |
-| `once_per_day` | Một lần mỗi ngày theo giờ Việt Nam (`localStorage` lưu ngày đã xem) |
+| `displayFrequency` | FE hiển thị                                                         |
+| ------------------ | ------------------------------------------------------------------- |
+| `every_visit`      | Mỗi lần tải trang                                                   |
+| `once_per_session` | Một lần mỗi phiên trình duyệt (`sessionStorage`)                    |
+| `once_per_day`     | Một lần mỗi ngày theo giờ Việt Nam (`localStorage` lưu ngày đã xem) |
 
 - **Trạng thái trên Admin** (`status`, tính lúc trả về, không lưu): `inactive` (đang tắt), `scheduled` (chưa tới
   `startsAt`), `running` (đang chạy), `ended` (đã qua `endsAt`).
@@ -35,15 +35,15 @@ Module `SachLuat.Modules.Content`, schema `content`. Module này cũng là chỗ
 
 Tiền tố `/api/v1`. API Admin dùng policy `content_admin` (`super_admin`, `marketing`, bắt buộc 2FA).
 
-| Method | Route | Xác thực | Request → Response |
-| --- | --- | --- | --- |
-| GET | `/popups/active` | Không | → 200 `PopupResponse` hoặc 204 |
-| GET | `/admin/popups?page=&limit=` | content_admin | → `PagedResponse<AdminPopupResponse>`, sắp theo ưu tiên |
-| GET | `/admin/popups/{id}` | content_admin | → `AdminPopupResponse` |
-| POST | `/admin/popups` | content_admin | `UpsertPopupRequest` → 201 `AdminPopupResponse` |
-| PUT | `/admin/popups/{id}` | content_admin | `UpsertPopupRequest` → `AdminPopupResponse` |
-| DELETE | `/admin/popups/{id}` | content_admin | → 204 |
-| POST | `/admin/uploads/popup-signature` | content_admin | → `{uploadUrl, apiKey, timestamp, folder, allowedFormats, signature}` |
+| Method | Route                            | Xác thực      | Request → Response                                                    |
+| ------ | -------------------------------- | ------------- | --------------------------------------------------------------------- |
+| GET    | `/popups/active`                 | Không         | → 200 `PopupResponse` hoặc 204                                        |
+| GET    | `/admin/popups?page=&limit=`     | content_admin | → `PagedResponse<AdminPopupResponse>`, sắp theo ưu tiên               |
+| GET    | `/admin/popups/{id}`             | content_admin | → `AdminPopupResponse`                                                |
+| POST   | `/admin/popups`                  | content_admin | `UpsertPopupRequest` → 201 `AdminPopupResponse`                       |
+| PUT    | `/admin/popups/{id}`             | content_admin | `UpsertPopupRequest` → `AdminPopupResponse`                           |
+| DELETE | `/admin/popups/{id}`             | content_admin | → 204                                                                 |
+| POST   | `/admin/uploads/popup-signature` | content_admin | → `{uploadUrl, apiKey, timestamp, folder, allowedFormats, signature}` |
 
 `UpsertPopupRequest`:
 
@@ -83,8 +83,8 @@ hình Cloudinary), `UNAUTHORIZED` (401), `FORBIDDEN` (403, không phải `super_
 
 Migration `CreateContentSchema` (module Content), schema `content`:
 
-| Bảng | Ghi chú |
-| --- | --- |
+| Bảng     | Ghi chú                                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `popups` | `title`, `image_url`, `link_url`, `starts_at`, `ends_at` (UTC), `is_active`, `priority`, `display_frequency` (snake_case), `created_at`, `updated_at`, `deleted_at` |
 
 Production tắt `Database:ApplyMigrationsOnStartup`, nên cần áp migration này ở bước deploy trước khi dùng API.

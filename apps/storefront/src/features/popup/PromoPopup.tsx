@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { getActivePopup } from "./api";
 import { markPopupSeen, safePopupLink, shouldShowPopup } from "./popup";
 import type { PopupStores } from "./popup";
 import type { Popup } from "./schemas";
 
-const CTA_LABEL = "Xem chi tiết";
 const CLOSE_LABEL = "Đóng quảng cáo";
 
 function browserStores(): PopupStores {
@@ -61,7 +60,6 @@ export function PromoPopup() {
       markPopupSeen(popup, browserStores(), new Date());
     }
   };
-  const linkProps = link?.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
   const image = (
     <Image
@@ -73,7 +71,8 @@ export function PromoPopup() {
       loading="eager"
       unoptimized
       onLoad={open}
-      className="block h-auto max-h-[72dvh] w-full object-contain"
+      // Hiện theo kích thước thật của ảnh, giới hạn trong màn hình; PC rộng tối thiểu 36rem để ảnh nhỏ không bị bé.
+      className="block h-auto max-h-[85dvh] w-auto max-w-[calc(100vw-2rem)] object-contain lg:max-w-[min(calc(100vw-4rem),64rem)] lg:min-w-[36rem]"
     />
   );
 
@@ -81,33 +80,26 @@ export function PromoPopup() {
     <dialog
       ref={dialog}
       aria-label={popup.title}
-      className="bg-panel text-ivory border-gold/40 backdrop:bg-ink/80 fixed inset-0 m-auto w-[min(calc(100%-2rem),30rem)] overflow-visible border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
+      className="bg-panel text-ivory border-gold/40 backdrop:bg-ink/80 fixed inset-0 m-auto w-fit max-w-none border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
     >
       <button
         type="button"
         aria-label={CLOSE_LABEL}
         onClick={close}
-        className="bg-ink text-ivory border-gold/50 hover:text-gold absolute -top-4 -right-4 z-10 flex size-11 items-center justify-center rounded-full border"
+        className="bg-ink/90 text-ivory border-gold/50 hover:text-gold absolute top-2 right-2 z-10 flex size-11 items-center justify-center rounded-full border"
       >
         <X size={20} aria-hidden="true" />
       </button>
       {link ? (
-        <>
-          <Link href={link.href} onClick={close} tabIndex={-1} aria-hidden="true" {...linkProps}>
-            {image}
-          </Link>
-          <div className="p-4">
-            <Link
-              href={link.href}
-              onClick={close}
-              {...linkProps}
-              className="btn-sweep bg-gold text-ink flex min-h-12 items-center justify-center gap-2.5 font-semibold"
-            >
-              {CTA_LABEL}
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-        </>
+        // Bấm vào ảnh là mở link; tên link lấy từ alt của ảnh (`title` của popup).
+        <Link
+          href={link.href}
+          onClick={close}
+          {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className="block"
+        >
+          {image}
+        </Link>
       ) : (
         image
       )}
