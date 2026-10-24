@@ -10,6 +10,7 @@ import { getBooks, getCategoryTree } from "@/features/catalog/api";
 import type { BookSummary, CategoryNode } from "@/features/catalog/schemas";
 import { Book3D } from "@/features/home/Book3D";
 import { DustMotes } from "@/features/home/DustMotes";
+import { HeroFanBook } from "@/features/home/HeroFanBook";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { LawTicker } from "@/features/home/LawTicker";
 import { tickerItems } from "@/features/home/home";
@@ -85,14 +86,9 @@ export default async function HomePage() {
           </div>
 
           <div className="relative flex h-120 min-w-0 flex-[1_1_420px] items-center justify-center perspective-[1500px] sm:h-150">
-            <span
-              aria-hidden="true"
-              className="book-fan-left bg-cover-wine absolute top-24 left-[6%] hidden h-85 w-60 border-l-12 border-black/30 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.85)] sm:block"
-            />
-            <span
-              aria-hidden="true"
-              className="book-fan-right bg-cover-green absolute top-36 right-[4%] hidden h-77.5 w-55 border-l-12 border-black/30 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.85)] sm:block"
-            />
+            {/* Hai cuốn xòe phía sau là sách mới thứ 2 và 3; cuốn 3D ở giữa là sách mới nhất. */}
+            <HeroFanBook book={books[1]} className="book-fan-left bg-cover-wine top-24 left-[6%] h-85 w-60" />
+            <HeroFanBook book={books[2]} className="book-fan-right bg-cover-green top-36 right-[4%] h-77.5 w-55" />
             <span
               aria-hidden="true"
               className="book-floor absolute bottom-16 h-10 w-80 rounded-full bg-radial-[closest-side] from-black/85 to-transparent"
@@ -104,7 +100,10 @@ export default async function HomePage() {
                   <span className="text-[9px] tracking-[0.22em] sm:text-[10px]">ẤN BẢN</span>
                   <span className="font-editorial text-2xl leading-none font-bold italic sm:text-[26px]">mới</span>
                 </span>
-                <div className="motion-rise border-gold/35 bg-ink/90 absolute bottom-0 flex w-[min(350px,100%)] items-end justify-between gap-3 border px-5 py-4 [animation-delay:2100ms]">
+                <Link
+                  href={`/sach/${featured.slug}`}
+                  className="motion-rise border-gold/35 bg-ink/90 hover:border-gold absolute bottom-0 flex w-[min(350px,100%)] items-end justify-between gap-3 border px-5 py-4 transition-colors [animation-delay:2100ms]"
+                >
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <span className="font-editorial truncate text-lg font-bold">{featured.title}</span>
                     {featured.updatedToText && (
@@ -114,7 +113,7 @@ export default async function HomePage() {
                   {featured.salePrice !== null && (
                     <span className="text-gold font-semibold whitespace-nowrap">{formatPrice(featured.salePrice)}</span>
                   )}
-                </div>
+                </Link>
               </>
             )}
           </div>
