@@ -1,24 +1,13 @@
-import { Banknote, Search, Truck } from "lucide-react";
+import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
 import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
+import { PromoBar } from "./PromoBar";
 
 export function Header() {
   return (
     <header className="motion-drop bg-ink-deep relative z-20">
-      <div className="bg-burgundy text-ivory text-xs sm:text-[13px]">
-        <Container className="flex items-center justify-center gap-x-5 py-2">
-          <span className="flex items-center gap-2">
-            <Truck size={15} strokeWidth={1.6} className="text-gold-pale shrink-0" />
-            Miễn phí vận chuyển cho đơn từ 300.000đ
-          </span>
-          <span aria-hidden="true" className="bg-gold-pale hidden size-1.5 rotate-45 sm:block" />
-          <span className="hidden items-center gap-2 sm:flex">
-            <Banknote size={15} strokeWidth={1.6} className="text-gold-pale shrink-0" />
-            Thanh toán khi nhận hàng hoặc chuyển khoản
-          </span>
-        </Container>
-      </div>
+      <PromoBar />
       <Container className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-4 sm:py-5">
         <BrandMark />
         <form

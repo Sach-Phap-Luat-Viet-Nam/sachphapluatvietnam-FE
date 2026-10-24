@@ -31,8 +31,9 @@ export function HeroSpotlight({ children, className }: HeroSpotlightProps) {
         const y = (event.clientY - rect.top) / rect.height;
         section.style.setProperty("--lamp-x", `${(x * 100).toFixed(1)}%`);
         section.style.setProperty("--lamp-y", `${(y * 100).toFixed(1)}%`);
-        section.style.setProperty("--tilt-y", `${((x - 0.5) * 22).toFixed(2)}deg`);
-        section.style.setProperty("--tilt-x", `${((0.5 - y) * 14).toFixed(2)}deg`);
+        // Biên độ ±35° quanh góc nghiêng sẵn 24° của sách: rê chuột sang trái thấy mép giấy, sang phải thấy rõ gáy.
+        section.style.setProperty("--tilt-y", `${((x - 0.5) * 70).toFixed(2)}deg`);
+        section.style.setProperty("--tilt-x", `${((0.5 - y) * 16).toFixed(2)}deg`);
       });
     };
     const leave = () => {

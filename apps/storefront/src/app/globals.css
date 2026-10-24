@@ -121,10 +121,35 @@
   .book-3d {
     position: relative;
     transform-style: preserve-3d;
-    transform: rotateY(28deg) rotateX(4deg);
+    transform: rotateY(24deg) rotateX(4deg);
     animation:
       book-open 1.6s cubic-bezier(0.16, 0.8, 0.2, 1) 0.35s both,
-      book-float 6s ease-in-out 2s infinite;
+      book-float 6s ease-in-out 2s infinite,
+      book-sway 11s ease-in-out 2s infinite;
+  }
+  /* Bìa cứng: rãnh bản lề cạnh gáy và vệt bóng chéo trên mặt bìa. */
+  .book-gloss {
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.45) 0,
+        rgb(255 255 255 / 0.14) 2.5%,
+        rgb(0 0 0 / 0.28) 4.5%,
+        rgb(255 255 255 / 0.06) 6%,
+        transparent 10%
+      ),
+      linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.13) 48%, transparent 62%);
+  }
+  /* Gáy cong: tối hai mép, sáng giữa. */
+  .book-spine-shade {
+    background: linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.55),
+      rgb(255 255 255 / 0.1) 45%,
+      rgb(0 0 0 / 0.15) 60%,
+      rgb(0 0 0 / 0.6)
+    );
   }
   /* Các mặt của sách 3D, dày `--book-depth`; gáy bên trái, mép giấy bên phải và phía trên. */
   .book-3d {
@@ -157,7 +182,9 @@
     width: calc(var(--book-depth) - 6px);
     height: calc(100% - 6px);
     transform: rotateY(90deg);
-    background: repeating-linear-gradient(90deg, var(--color-page-edge) 0 2px, var(--color-page-line) 2px 3px);
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 25% 75%, rgb(0 0 0 / 0.3)),
+      repeating-linear-gradient(90deg, var(--color-page-edge) 0 2px, var(--color-page-line) 2px 3px);
   }
   .book-top {
     position: absolute;
@@ -272,6 +299,17 @@
     transform: translateY(-4px) rotate(-6deg);
   }
 
+  /* Thanh ưu đãi: vệt sáng quét ngang định kỳ. */
+  .promo-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(100deg, transparent 40%, rgb(255 241 204 / 0.18) 50%, transparent 60%);
+    background-size: 250% 100%;
+    animation: foil 7s ease-in-out 1.5s infinite;
+  }
+
   /* Section "Mới phát hành": đèn vàng rọi từ trên xuống dải kệ. */
   .shelf-lamp {
     background:
@@ -364,6 +402,19 @@
 @keyframes book-float {
   50% {
     translate: 0 -14px;
+  }
+}
+/* Lắc nhẹ quanh trục đứng để lộ gáy và mép giấy khi khách không rê chuột. */
+@keyframes book-sway {
+  0%,
+  100% {
+    rotate: y 0deg;
+  }
+  30% {
+    rotate: y 12deg;
+  }
+  70% {
+    rotate: y -14deg;
   }
 }
 @keyframes floor-breathe {
