@@ -133,25 +133,33 @@ export default async function HomePage() {
       />
 
       <Container className="py-20 sm:py-24">
-        <section aria-labelledby="new-books" className="flex flex-col gap-11">
-          <div className="motion-reveal flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="text-gold mb-2.5 text-xs tracking-[0.3em]">VỪA LÊN KỆ</p>
+        <section aria-labelledby="new-books" className="flex flex-col gap-6 sm:gap-11">
+          <div className="motion-reveal flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+            <div className="flex max-w-xl flex-col gap-3">
+              <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em]">
+                <span className="bg-gold h-px w-10" />
+                VỪA LÊN KỆ
+              </p>
               <h2 id="new-books" className="font-editorial text-4xl leading-tight font-bold sm:text-[52px]">
                 Mới phát hành
               </h2>
+              <p className="text-sand leading-7">Những ấn bản vừa in, mỗi cuốn ghi rõ văn bản được cập nhật đến đâu.</p>
             </div>
-            <Link href="/sach" className="link-underline flex items-center gap-2.5 py-1.5 text-[15px]">
-              Xem toàn bộ tủ sách
+            <Link href="/sach?sort=newest" className="link-underline flex items-center gap-2.5 py-1.5 text-[15px]">
+              Xem tất cả sách mới
               <ArrowRight size={16} />
             </Link>
           </div>
           {books.length ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-8 lg:grid-cols-4">
+            // Mobile/tablet: kệ vuốt ngang, lộ một phần cuốn kế tiếp để gợi ý vuốt; desktop: lưới 4 cột.
+            // Khoảng trống trên bìa trong BookCard đã đủ cho sách nhấc lên khi hover nên vùng cuộn không cắt mất.
+            <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
               {books.map((book) => (
-                <BookCard key={book.id} book={book} />
+                <li key={book.id} className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
+                  <BookCard book={book} />
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
             <p className="text-mist border-gold/25 border-y py-10 text-center">
               Tủ sách đang được cập nhật. Sách mới sẽ sớm lên kệ.
