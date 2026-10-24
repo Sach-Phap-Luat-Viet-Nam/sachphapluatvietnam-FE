@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, RefreshCw } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatDateTime, formatPrice } from "@slvn/utils";
+import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { orderingErrorMessage } from "./errors";
 import { ORDER_STATUS_LABELS, PAYMENT_METHOD_SHORT_LABELS, label, orderStatusTone } from "./labels";
@@ -53,11 +54,7 @@ export function MyOrders({ page }: MyOrdersProps) {
   }
 
   if (!data) {
-    return (
-      <p role="status" className="text-gold py-16 text-xs tracking-[0.3em]">
-        ĐANG TẢI ĐƠN HÀNG…
-      </p>
-    );
+    return <BookLoader label="Đang tải đơn hàng" />;
   }
 
   const { limit, total } = data.meta;

@@ -36,10 +36,16 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   Thành công hiện "Đã thêm n cuốn vào giỏ" + link giỏ; lỗi hiện thông báo theo `code`.
 - **Thông tin xuất bản** (FR-21): ISBN, NXB, số QĐXB, số ĐKXB, năm, ngày phát hành, số trang, khổ, trọng lượng,
   "cập nhật văn bản đến ngày"; danh sách văn bản pháp luật được cập nhật; link "Đọc thử" (chỉ nhận `https://`).
-- **Mô tả** là HTML Admin nhập: lọc trên server bằng `sanitize-html` (`features/catalog/description.ts`), chỉ giữ
-  `p, br, strong, b, em, i, u, ul, ol, li, h2–h4, blockquote, a[href http/https/mailto]`; `h1` hạ thành `h2`; link mở
-  tab mới với `rel="nofollow noopener noreferrer"`. Meta description: `metaDescription`, nếu trống thì 160 ký tự đầu
-  của mô tả.
+- **Mô tả và mục lục** (`formatRichText`, `features/catalog/description.ts`, chạy trên server): Admin nhập **HTML hoặc
+  chữ thuần** (dữ liệu thật hiện là chữ thuần có xuống dòng). Chữ thuần được chuyển thành HTML: dòng trống tách đoạn `<p>`,
+  xuống dòng đơn thành `<br>`, dòng `-----` thành `<hr>`. Sau đó lọc bằng `sanitize-html`, chỉ giữ
+  `p, br, hr, strong, b, em, i, u, ul, ol, li, h2–h4, blockquote, a[href http/https/mailto]`; `h1` hạ thành `h2`; link
+  mở tab mới với `rel="nofollow noopener noreferrer"`. Mục lục nằm trong khối thu gọn "Mục lục". Meta description:
+  `metaDescription`, nếu trống thì 160 ký tự đầu của mô tả.
+- **Giá khuyến mãi**: giá đang áp dụng `salePrice`, giá bìa `listPrice` gạch ngang, nhãn `-discountPercent%`; đang khuyến
+  mãi thì thêm "Giá thường" (`regularSalePrice`, khi khác giá bìa) và "Giá ưu đãi đến …" (`saleEndsAt`, giờ Việt Nam).
+  JSON-LD `Offer` có `priceValidUntil`. Hộp "Xem nhanh" ở tủ sách cũng hiện hạn ưu đãi.
+- Header sách có thêm dòng danh mục (link về tủ sách đã lọc).
 - **SEO**: `generateMetadata` (title, description, canonical, Open Graph `book` + ảnh bìa), JSON-LD
   `Book`+`Product`/`Offer` (mỗi SKU một offer, `InStock`/`OutOfStock`/`Discontinued`) và `BreadcrumbList` (NFR-31),
   ký tự `<` được đổi thành mã thoát Unicode (`serializeJsonLd`) để dữ liệu không đóng được thẻ `<script>`.
@@ -135,6 +141,13 @@ Không thêm biến môi trường. Dùng `API_BASE_URL`, `PROXY_SECRET` như c�
 
 Thêm package `sanitize-html` (+ `@types/sanitize-html`) cho storefront, chỉ dùng trên server.
 
+### Trạng thái đang tải
+
+`BookLoader` (`src/components/BookLoader.tsx`, CSS `book-loader` trong `globals.css`): cuốn sách mở bìa navy viền vàng,
+3 trang giấy ngà lật nối tiếp bằng CSS 3D, sách nổi nhẹ, chữ trạng thái màu vàng. Có `role="status"`, không cần
+JavaScript. Dùng ở `app/loading.tsx` (chung), `app/sach/loading.tsx`, `app/sach/[slug]/loading.tsx` và trạng thái tải
+giỏ, thanh toán, đơn hàng. Bật giảm chuyển động thì chỉ còn cuốn sách mở đứng yên.
+
 ## Hạn chế / việc còn lại
 
 - **Thông tin tài khoản nhận chuyển khoản chưa có**: `BANK_ACCOUNT = null` nên chỉ có COD. Điền ngân hàng, số tài khoản,
@@ -152,6 +165,10 @@ Thêm package `sanitize-html` (+ `@types/sanitize-html`) cho storefront, chỉ d
   của thành viên đã đăng nhập.
 - Chưa có mã giảm giá (backend chưa có `/cart/apply-coupon`), pre-order, cổng thanh toán online.
 - Chưa có số hotline CSKH để hiện ở chỗ "liên hệ CSKH" (báo giá sỉ, hủy đơn).
+- `regularSalePrice`, `saleEndsAt` chưa có trong `docs/api_reference.md` (lấy theo response mẫu backend gửi 24/10/2026);
+  schema để `nullish` nên response cũ chưa có field vẫn đọc được.
+- Nhiều đầu sách thật đang để "Đang cập nhật" hoặc trống ở NXB, số QĐXB, số trang, khổ… (thông tin lại nằm trong mô
+  tả): cần nhập đúng field ở Admin để hiện trong "Thông tin xuất bản" và JSON-LD.
 - Breadcrumb danh mục dùng `/sach?category=<slug>` vì chưa có route `/danh-muc/<slug>` (NFR-30).
 
 ## Kiểm tra

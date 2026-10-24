@@ -11,6 +11,7 @@ import { isApiError } from "@slvn/api-client";
 import { fieldErrors } from "@slvn/auth";
 import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
+import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { placeOrder } from "./api";
 import { checkoutBlocker } from "./cart";
@@ -321,11 +322,7 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
   }
 
   if (!cart) {
-    return (
-      <p role="status" className="text-gold py-16 text-xs tracking-[0.3em]">
-        ĐANG CHUẨN BỊ ĐƠN HÀNG…
-      </p>
-    );
+    return <BookLoader label="Đang chuẩn bị đơn hàng" />;
   }
 
   if (!cart.items.length) {

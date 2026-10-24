@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, CircleCheck, RefreshCw, X } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
 import { cn } from "@slvn/ui";
+import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL } from "@/components/form-styles";
 import { BankTransferInfo, isAwaitingTransfer } from "./BankTransferInfo";
 import { orderingErrorMessage } from "./errors";
@@ -169,11 +170,7 @@ export function MyOrder({ code, bankAccount = BANK_ACCOUNT }: MyOrderProps) {
   }
 
   if (!order) {
-    return (
-      <p role="status" className="text-gold py-16 text-xs tracking-[0.3em]">
-        ĐANG TẢI ĐƠN HÀNG…
-      </p>
-    );
+    return <BookLoader label="Đang tải đơn hàng" />;
   }
 
   return (

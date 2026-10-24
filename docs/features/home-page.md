@@ -11,7 +11,9 @@ nhất và dẫn khách vào tủ sách. Thiết kế "Thư viện đêm" trên 
    - Tiêu đề "Đọc đúng luật. Bản mới nhất.", nút "Khám phá tủ sách" (`/sach`) và "Sách mới phát hành"
      (`/sach?sort=newest`).
    - Cuốn sách 3D (`Book3D`: bìa, gáy, mép giấy) lấy sách mới nhất; có ảnh bìa thì dùng ảnh, chưa có thì vẽ bìa mạ vàng.
-     Có sách thì hiện con dấu "Ấn bản mới" và thẻ tên sách, "Cập nhật đến", giá.
+     Có sách thì hiện con dấu "Ấn bản mới" và thẻ tên sách, "Cập nhật đến", giá (bấm vào mở trang chi tiết).
+   - Hai cuốn xòe phía sau (`HeroFanBook`, ẩn trên mobile) là sách mới thứ 2 và 3: ảnh bìa thật, phủ tối nhẹ, bấm vào mở
+     trang chi tiết. Thiếu sách thì vẽ bìa màu trơn như trang trí.
    - `HeroSpotlight` (client) đặt biến CSS theo vị trí chuột: ánh đèn vàng đi theo con trỏ, sách nghiêng 3D. Không chạy
      trên màn hình cảm ứng hoặc khi bật giảm chuyển động; chỉ đổi biến CSS, không render lại React.
    - Bụi sáng bay lên (`DustMotes`, ẩn trên mobile), vệt sáng chạy qua chữ mạ vàng.

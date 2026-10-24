@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
+import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { coverTypeLabel } from "@/lib/labels";
 import { MAX_QUANTITY_PER_SKU, checkoutBlocker, lineIssue } from "./cart";
@@ -141,11 +142,7 @@ export function CartView() {
   }
 
   if (!cart) {
-    return (
-      <p role="status" className="text-gold py-16 text-xs tracking-[0.3em]">
-        ĐANG MỞ GIỎ SÁCH…
-      </p>
-    );
+    return <BookLoader label="Đang mở giỏ sách" />;
   }
 
   if (!cart.items.length) {
