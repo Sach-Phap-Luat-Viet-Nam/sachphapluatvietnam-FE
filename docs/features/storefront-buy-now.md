@@ -1,8 +1,8 @@
 # Mua ngay trên storefront
 
-> **Trạng thái (24/10/2026)**: backend đã code `POST /api/v1/orders/buy-now` nhưng **chưa merge/deploy**. FE chưa
-> làm. Trước khi gọi API thật, kiểm tra `/openapi/v1.json` đã có route này; trong lúc chờ thì mock bằng MSW (SKILL.md
-> mục 6).
+> **Trạng thái (24/10/2026)**: backend có `POST /api/v1/orders/buy-now` (commit `bf488bc` repo backend). **FE đã làm**
+> (xem "Hạn chế / việc còn lại"). Route chưa có trong `openapi/v1.json` nên đang khai báo tạm ở
+> `packages/api-client/src/pending-paths.ts`.
 
 ## Mục đích
 
@@ -12,17 +12,20 @@ khách đã bỏ vào giỏ trước đó vẫn còn sau khi đặt đơn Mua ng
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
-App **storefront**. Phần dưới là luồng đề xuất; tên route, query và component do FE chốt.
+App **storefront**. Code: `features/ordering/buy-now.ts` (đọc/tạo link, dựng dòng tóm tắt), `AddToCartForm.tsx` (nút),
+`Checkout.tsx` (`BuyNowCheckout`), `api.ts` (`fetchBuyNowBook`, `placeBuyNowOrder`).
 
-1. **Trang chi tiết `/sach/<slug>`**: nút "Mua ngay" dùng cùng lựa chọn loại bìa (SKU) và số lượng (1–20) với "Thêm
-   vào giỏ". Hiện/ẩn theo đúng điều kiện "mua được" của nút "Thêm vào giỏ" (ấn bản `on_sale`/`clearance`, SKU
-   `inStock = true`).
-   - Đang xem **ấn bản cũ**: nên mở dialog xác nhận US-02 như khi thêm vào giỏ, rồi mới chuyển trang.
-   - Bấm nút **không gọi API**, chỉ chuyển sang trang thanh toán và mang theo slug, `skuId` và số lượng, ví dụ
-     `/thanh-toan?mua-ngay=<slug>&sku=<skuId>&sl=<n>`. Để trên URL thì F5 không mất lựa chọn.
-2. **Trang `/thanh-toan` ở chế độ Mua ngay** (có query Mua ngay):
+1. **Trang chi tiết `/sach/<slug>`**: nút "Mua ngay" (link, cạnh "Thêm vào giỏ") dùng cùng lựa chọn loại bìa (SKU) và
+   số lượng (1–20). Chỉ hiện khi khối đặt mua hiện (ấn bản `on_sale`/`clearance`) và SKU đang chọn `inStock = true`.
+   - Đang xem **ấn bản cũ**: mở dialog xác nhận US-02 dùng chung với "Thêm vào giỏ"; nút xác nhận đổi thành "Vẫn mua
+     ấn bản này" rồi mới chuyển trang.
+   - Bấm nút **không gọi API**, chỉ chuyển sang `/thanh-toan?mua-ngay=<slug>&sku=<skuId>&sl=<n>`. Để trên URL thì F5
+     không mất lựa chọn. Query thiếu hoặc sai (sửa tay, `sl` ngoài 1–20) thì báo "Liên kết không hợp lệ", không lặng lẽ
+     đặt từ giỏ.
+2. **Trang `/thanh-toan` ở chế độ Mua ngay** (có query Mua ngay; page đọc `searchParams` nên render động):
    - **Không** đọc `GET /cart` cho phần tóm tắt. Lấy thông tin sách bằng `GET /books/{slug}`, rồi tìm SKU theo `id`
-     trong `editions[].skus[]`. SKU không còn hoặc hết hàng thì báo lỗi kèm link về trang sách.
+     trong `editions[].skus[]`. Sách 404 → "Không tìm thấy sách"; SKU không còn thuộc sách → "Sách không còn bán", kèm
+     link về trang sách. SKU hết hàng hoặc ấn bản ngừng bán → vẫn hiện form nhưng khóa nút Đặt hàng và nêu lý do.
    - Tóm tắt: 1 dòng (bìa, tên, ấn bản · loại bìa, đơn giá `salePrice`, số lượng), tạm tính = `salePrice × số lượng`,
      phí ship lấy từ `POST /shipping/quote`. Tổng chỉ để xem; số chốt là `subtotal`, `shippingFee`, `total` trong
      response tạo đơn.
@@ -82,14 +85,15 @@ khoản → `pending_payment` kèm `paymentExpiresAt` (30 phút).
 | 409  | `IDEMPOTENCY_KEY_REUSED`       | Sinh key mới rồi gửi lại một lần                                                                    |
 
 - **Không có `CART_EMPTY`**, vì route này không đọc giỏ.
-- Khi lỗi sách/tồn, giữ nguyên form để khách không mất thông tin đã nhập; link "Xem lại giỏ hàng" đổi thành "Quay lại
-  trang sách".
+- Khi lỗi sách/tồn (`SKU_NOT_AVAILABLE`, `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`): giữ nguyên form để khách không mất thông
+  tin đã nhập, tải lại sách (hết hàng thì khóa nút), link "Xem lại giỏ hàng" đổi thành "Quay lại trang sách". Câu chữ
+  của `SKU_NOT_AVAILABLE`/`OUT_OF_STOCK` không nhắc tới giỏ (`BUY_NOW_MESSAGES` trong `Checkout.tsx`).
 
 ## Cấu hình cần thiết (biến môi trường)
 
-Không thêm biến môi trường. Sau khi backend deploy, chạy `pnpm api:generate` để có type của route mới. `paymentMethod`
-nhiều khả năng vẫn bị sinh thành `number`, nên cần `// @ts-expect-error` giống `POST /orders` trong
-`features/ordering/api.ts`.
+Không thêm biến môi trường. Khi chạy được `pnpm api:fetch && pnpm api:generate` với backend có route này: xóa khai báo
+`/api/v1/orders/buy-now` trong `pending-paths.ts`. `paymentMethod` nhiều khả năng bị sinh thành `number`, lúc đó cần
+`// @ts-expect-error` giống `POST /orders` trong `features/ordering/api.ts`.
 
 ## Hạn chế / việc còn lại
 
@@ -97,9 +101,11 @@ nhiều khả năng vẫn bị sinh thành `number`, nên cần `// @ts-expect-e
 - Chưa có API xem trước đơn: FE tự tính tạm tính từ `GET /books/{slug}` và gọi `/shipping/quote`; giá trên trang có thể
   lệch nếu lịch giá vừa đổi, nên con số chốt luôn là của response tạo đơn.
 - Cần bổ sung `POST /api/v1/orders/buy-now` vào `docs/api_reference.md` khi backend deploy.
-- Việc FE cần làm:
-  - [ ] Nút "Mua ngay" ở trang chi tiết (desktop + thanh cố định dưới màn hình trên mobile), có dialog ấn bản cũ.
-  - [ ] Chế độ Mua ngay của `/thanh-toan`: tóm tắt 1 dòng từ `GET /books/{slug}`, không động vào cache giỏ.
-  - [ ] Hàm `buyNow` trong `features/ordering/api.ts`, xử lý lỗi theo bảng trên.
-  - [ ] Test: component test (MSW) cho luồng thành công, giữ nguyên giỏ, lỗi `OUT_OF_STOCK`/`SKU_NOT_AVAILABLE`,
-        thử lại `Idempotency-Key`; Playwright luồng Mua ngay COD.
+- Việc FE:
+  - [x] Nút "Mua ngay" ở trang chi tiết, có dialog ấn bản cũ.
+  - [ ] Thanh cố định dưới màn hình trên mobile (chưa làm; trên mobile nút nằm ngay dưới tên sách nên vẫn thấy sớm).
+  - [x] Chế độ Mua ngay của `/thanh-toan`: tóm tắt 1 dòng từ `GET /books/{slug}`, không động vào cache giỏ.
+  - [x] `placeBuyNowOrder` / `fetchBuyNowBook` trong `features/ordering/api.ts`, xử lý lỗi theo bảng trên.
+  - [x] Component test (MSW): luồng thành công không đọc/xóa giỏ, `OUT_OF_STOCK` giữ form và khóa nút, link sai, SKU
+        không còn; test link và dialog ở `AddToCartForm`; test hàm thuần ở `buy-now.test.ts`.
+  - [ ] Playwright luồng Mua ngay COD (chưa làm).
