@@ -1,7 +1,12 @@
 # Ảnh đại diện (avatar) người dùng
 
-> **Trạng thái**: backend đã có API (commit `bf488bc` repo backend), **FE chưa làm**. File này là bàn giao cho FE;
-> đặc tả gốc ở mục "Ảnh đại diện" trong `docs/features/auth.md` của repo backend.
+> **Trạng thái (24/10/2026)**: backend đã có API (commit `bf488bc` repo backend), **FE đã làm** (xem "Hạn chế / việc
+> còn lại"). Đặc tả gốc ở mục "Ảnh đại diện" trong `docs/features/auth.md` của repo backend. Route `/me/avatar*` chưa có
+> trong `openapi/v1.json` nên đang khai báo tạm ở `packages/api-client/src/pending-paths.ts`.
+>
+> **Code FE**: `Avatar` (`packages/ui`, ảnh tròn, chưa có ảnh hoặc ảnh lỗi thì hiện chữ cái đầu), `avatarImageUrl` /
+> `nameInitials` (`packages/utils`), `apps/storefront/src/lib/avatar-api.ts` (upload, lưu, xóa, thông báo lỗi),
+> `useChangeAvatar` (`lib/use-account.ts`), `features/account/AvatarField.tsx`.
 
 ## Mục đích
 
@@ -10,7 +15,10 @@ sách và chi tiết nhân viên/khách hàng.
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
-### Storefront: đổi avatar ở `/tai-khoan` (đề xuất)
+### Storefront: đổi avatar ở `/tai-khoan`
+
+Mục ảnh nằm đầu khung "Thông tin cá nhân": nút "Tải ảnh lên"/"Đổi ảnh" (chọn file là lưu ngay, không cần bấm "Lưu
+thông tin") và "Xóa ảnh". Chỉ nhận JPG, PNG, WebP (đúng `allowedFormats` của chữ ký), tối đa 10 MB.
 
 Giống upload ảnh bìa ở admin (`apps/admin/src/lib/image-upload.ts`): file đi **thẳng từ trình duyệt lên Cloudinary**,
 backend chỉ ký và lưu link.
@@ -38,8 +46,9 @@ backend chỉ ký và lưu link.
 
 Nút **"Xóa ảnh"**: `DELETE /api/v1/me/avatar` → 204, rồi cập nhật cache như bước 5.
 
-**Phiên đăng nhập hộ** (Super Admin fast login, `loginVia: "admin"`): đề xuất **ẩn** nút đổi/xóa avatar, giống việc
-không ghi `theme` lên tài khoản của khách (`storefront-theme.md`). Backend **không chặn** việc này, FE tự quyết.
+**Phiên đăng nhập hộ** (Super Admin fast login, `loginVia: "admin"`): **ẩn** nút đổi/xóa avatar, chỉ hiện ảnh kèm dòng
+giải thích, giống việc không ghi `theme` lên tài khoản của khách (`storefront-theme.md`). Backend **không chặn** việc
+này, FE tự chặn. Phiên này cũng không refresh được (refresh sẽ kết thúc phiên đăng nhập hộ).
 
 ### Hiển thị
 
@@ -51,7 +60,9 @@ không ghi `theme` lên tài khoản của khách (`storefront-theme.md`). Backe
 - Ảnh gốc **không được resize** khi upload (có thể vài MB). Khi hiển thị, chèn transformation vào link, ví dụ thêm
   `c_fill,g_face,w_96,h_96,f_auto,q_auto/` ngay sau `/image/upload/` (kích thước chọn theo chỗ hiển thị, nhân 2 cho
   màn retina). Chỉ chèn với link `https://res.cloudinary.com/...`; link khác (môi trường dev) giữ nguyên.
-- Dùng `next/image` thì kiểm tra `images.remotePatterns` trong `next.config.ts` đã cho phép `res.cloudinary.com`.
+- `Avatar` dùng `<img>` (package `ui` không phụ thuộc Next.js), nên không cần `images.remotePatterns`. Cỡ đang dùng:
+  header storefront 36 px, trang tài khoản 88 px, danh sách nhân viên/khách 48 px, chi tiết khách 96 px; link Cloudinary
+  lấy gấp đôi cỡ hiển thị.
 - Mỗi user chỉ có **một** `publicId` cố định: upload mới ghi đè ảnh cũ, nhưng `secure_url` mới có version khác
   (`/v1712345678/`), nên link mới không bị cache ảnh cũ. **Luôn lưu đúng `secure_url` vừa nhận**, không tự ghép link.
 
@@ -98,7 +109,7 @@ link ảnh bất kỳ.
 - FE: không cần biến môi trường mới.
 - Backend phải chạy migration `AddUserAvatarUrl` và cấu hình `Cloudinary:*` (đã có sẵn cho ảnh bìa).
 - Sau khi backend deploy: `pnpm --filter @slvn/api-client api:fetch` rồi `pnpm api:generate` để type mới có
-  `avatarUrl` và các route `/me/avatar*`.
+  `avatarUrl` và các route `/me/avatar*`, rồi xóa khai báo `/me/avatar*` trong `pending-paths.ts`.
 
 ## Thay đổi CSDL (migration liên quan)
 
@@ -106,8 +117,11 @@ Không thuộc FE (cột `auth.users.avatar_url`, migration `AddUserAvatarUrl` �
 
 ## Hạn chế / việc còn lại
 
-- FE chưa làm: form đổi/xóa avatar ở `/tai-khoan`, avatar trên header storefront, avatar trong bảng nhân viên/khách
-  hàng ở admin.
+- FE đã làm: đổi/xóa avatar ở `/tai-khoan`, avatar trên header storefront (`AccountNav`), avatar trong danh sách nhân
+  viên/khách hàng (`UserCard`) và trang chi tiết khách ở admin. Header **admin** chưa hiện avatar của nhân viên đang
+  đăng nhập, và nhân viên chưa tự đổi avatar được (admin chưa có trang hồ sơ cá nhân).
+- Đổi/xóa avatar xong thì refresh phiên để header cập nhật; refresh lỗi (mất mạng) thì báo lỗi dù ảnh đã lưu, tải lại
+  trang là thấy ảnh mới.
 - Backend chưa resize ảnh khi upload và không xóa ảnh trên Cloudinary khi khách bỏ avatar (lần upload sau ghi đè).
 - Admin chưa đổi/xóa avatar hộ khách được.
 - Chưa có bước cắt ảnh (crop) trước khi upload; tạm dùng `c_fill,g_face` khi hiển thị.
