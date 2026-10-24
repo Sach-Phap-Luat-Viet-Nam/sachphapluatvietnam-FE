@@ -27,6 +27,9 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   RECEIPT_EMPTY: "Phiếu cần ít nhất một dòng.",
   OUT_OF_STOCK: "Không đủ tồn khả dụng cho số lượng này.",
   ORDER_INVALID_TRANSITION: "Đơn vừa được đổi trạng thái ở nơi khác. Anh/chị xem lại trạng thái mới rồi thao tác lại.",
+  COUPON_CODE_DUPLICATE: "Mã này đã tồn tại. Anh/chị dùng mã khác.",
+  PROMOTION_NOT_COUPON: "Chương trình này không dùng mã giảm giá. Anh/chị đổi cách áp dụng sang “Khách nhập mã” trước.",
+  SHIPPING_PROVINCE_DUPLICATE: "Có tỉnh đã thuộc vùng giao hàng khác. Mỗi tỉnh chỉ nằm trong một vùng.",
   ORDER_NOT_PAID: "Đơn chưa thanh toán nên không hoàn tiền được.",
 };
 

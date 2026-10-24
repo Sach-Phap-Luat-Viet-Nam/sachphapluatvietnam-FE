@@ -1,6 +1,7 @@
 import type { StaffRole } from "./roles";
 
-export type AdminModuleId = "overview" | "catalog" | "content" | "inventory" | "orders" | "users" | "customers";
+export type AdminModuleId =
+  "overview" | "catalog" | "content" | "promotions" | "inventory" | "orders" | "shipping" | "users" | "customers";
 
 export interface AdminModule {
   id: AdminModuleId;
@@ -13,6 +14,7 @@ export interface AdminModule {
   ready: boolean;
 }
 
+// Khuyến mãi và Vận chuyển theo docs/features/checkout-promotion-shipping.md, mục 7.
 // Quyền theo bảng "Admin — người dùng và phân quyền" trong docs/api_reference.md; "Nội dung" theo policy
 // `content_admin` trong docs/features/popup.md.
 export const ADMIN_MODULES: readonly AdminModule[] = [
@@ -41,6 +43,14 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     ready: true,
   },
   {
+    id: "promotions",
+    href: "/khuyen-mai",
+    label: "Khuyến mãi",
+    description: "Chương trình giảm giá đơn, miễn phí vận chuyển và mã giảm giá: lịch chạy, điều kiện, thống kê.",
+    roles: ["super_admin", "product_manager", "marketing"],
+    ready: true,
+  },
+  {
     id: "inventory",
     href: "/kho",
     label: "Kho",
@@ -54,6 +64,14 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     label: "Đơn hàng",
     description: "Tra cứu, lọc đơn và chuyển trạng thái: xác nhận, đóng gói, giao hàng, hủy, hoàn tiền.",
     roles: ["super_admin", "order_manager", "customer_service", "accountant"],
+    ready: true,
+  },
+  {
+    id: "shipping",
+    href: "/van-chuyen",
+    label: "Vận chuyển",
+    description: "Vùng giao hàng, biểu phí theo trọng lượng, ngưỡng miễn phí vận chuyển.",
+    roles: ["super_admin", "order_manager"],
     ready: true,
   },
   {

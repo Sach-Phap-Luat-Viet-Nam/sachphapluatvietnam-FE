@@ -6,6 +6,9 @@ import { SUBMIT } from "@/components/form-styles";
 import { getActivePromotions } from "@/features/promotion/api";
 import { PromotionCard } from "@/features/promotion/PromotionCard";
 
+/** Danh sách đổi theo lịch chạy, nên dựng lại mỗi phút thay vì chốt cứng lúc build. */
+export const revalidate = 60;
+
 export function generateMetadata(): Metadata {
   return {
     title: "Khuyến mãi",

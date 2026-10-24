@@ -53,3 +53,21 @@ export function displayToInternal(text: string): string {
   const valid = isRealDateTime(Number(year), Number(month), Number(day), Number(hour), Number(minute));
   return valid ? `${year}-${month}-${day}T${hour}:${minute}` : text;
 }
+
+// Việt Nam không đổi giờ theo mùa: luôn UTC+7. Ô ngày giờ nhập theo giờ Việt Nam, backend nhận kèm offset và trả về UTC.
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
+const VN_OFFSET = "+07:00";
+
+/** Thời điểm UTC từ backend → giá trị ô ngày giờ (`YYYY-MM-DDTHH:mm`) theo giờ Việt Nam. */
+export function toVnDateTimeInput(iso: string | null): string {
+  if (!iso) {
+    return "";
+  }
+  const time = Date.parse(iso);
+  return Number.isNaN(time) ? "" : new Date(time + VN_OFFSET_MS).toISOString().slice(0, 16);
+}
+
+/** Giá trị ô ngày giờ (giờ Việt Nam) → chuỗi kèm offset gửi backend: `2026-11-01T08:30:00+07:00`. */
+export function fromVnDateTimeInput(value: string): string {
+  return `${value}:00${VN_OFFSET}`;
+}
