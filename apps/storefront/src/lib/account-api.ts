@@ -2,14 +2,44 @@ import { z } from "zod";
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
 
-// Hồ sơ (`/me`) và sổ địa chỉ (`/me/addresses`) của khách đang đăng nhập. Dùng chung cho trang tài khoản và form đặt
-// hàng. Gọi từ trình duyệt bằng `browserApi` (gắn Bearer, tự refresh khi 401).
+// Hồ sơ (`/me`), sổ địa chỉ (`/me/addresses`) và thông tin xuất hóa đơn (`/me/invoice-info`) của khách đang đăng nhập
+// (backend `MeController`, docs/features/auth.md của backend). Dùng chung cho trang tài khoản và form đặt hàng. Gọi từ
+// trình duyệt bằng `browserApi` (gắn Bearer, tự refresh khi 401).
 
 /** Nghề nghiệp (`Occupation`) khách tự chọn ở hồ sơ. */
 export const OCCUPATIONS = ["student", "lawyer", "accountant", "other"] as const;
 export type Occupation = (typeof OCCUPATIONS)[number];
 
-/** `UserResponse` của `/me` (docs/api_reference.md, mục Auth và tài khoản). */
+/** `AddressResponse`. `recipientName`/`phone` điền vào `customerName`/`phone` khi đặt hàng. */
+export const addressSchema = z.object({
+  id: z.number(),
+  recipientName: z.string(),
+  phone: z.string(),
+  province: z.string(),
+  ward: z.string(),
+  streetAddress: z.string(),
+  isDefault: z.boolean(),
+  updatedAt: z.string(),
+});
+export type Address = z.infer<typeof addressSchema>;
+
+/** `UpsertAddressRequest`. `isDefault: false` không bỏ được cờ mặc định (sổ không rỗng luôn có một địa chỉ mặc định). */
+export type AddressBody = Omit<Address, "id" | "updatedAt">;
+
+/** `InvoiceInfoResponse`. */
+export const invoiceInfoSchema = z.object({
+  companyName: z.string(),
+  taxCode: z.string(),
+  address: z.string(),
+  email: z.string(),
+  updatedAt: z.string(),
+});
+export type InvoiceInfo = z.infer<typeof invoiceInfoSchema>;
+
+/** `UpsertInvoiceInfoRequest`. */
+export type InvoiceInfoBody = Omit<InvoiceInfo, "updatedAt">;
+
+/** `MeResponse` của `GET/PATCH /me`: hồ sơ kèm địa chỉ mặc định và thông tin hóa đơn (`null` khi chưa có). */
 export const profileSchema = z.object({
   id: z.number(),
   email: z.string(),
@@ -17,6 +47,8 @@ export const profileSchema = z.object({
   phoneNumber: z.string().nullable(),
   birthDate: z.string().nullable(),
   occupation: z.string().nullable(),
+  defaultAddress: addressSchema.nullable(),
+  invoiceInfo: invoiceInfoSchema.nullable(),
 });
 export type Profile = z.infer<typeof profileSchema>;
 
@@ -28,28 +60,15 @@ export interface UpdateProfileBody {
   occupation: Occupation | null;
 }
 
-/** `AddressResponse` (đề xuất, docs/features/address-book.md). */
-export const addressSchema = z.object({
-  id: z.number(),
-  recipientName: z.string(),
-  phone: z.string(),
-  province: z.string(),
-  ward: z.string(),
-  streetAddress: z.string(),
-  isDefault: z.boolean(),
-});
-export type Address = z.infer<typeof addressSchema>;
-
-/** `UpsertAddressRequest` (đề xuất). */
-export type AddressBody = Omit<Address, "id">;
-
 /** `1 Xuân Thủy, Phường Cầu Giấy, Hà Nội`. */
 export function addressLine(address: Pick<Address, "streetAddress" | "ward" | "province">): string {
   return [address.streetAddress, address.ward, address.province].join(", ");
 }
 
-/** Mỗi tài khoản lưu tối đa ngần này địa chỉ (đề xuất cho backend). */
+/** Mỗi tài khoản lưu tối đa ngần này địa chỉ (`AddressBook.MaxAddresses`, quá thì `ADDRESS_LIMIT_REACHED`). */
 export const MAX_ADDRESSES = 10;
+
+const addressBookSchema = addressSchema.array();
 
 export async function fetchProfile(): Promise<Profile> {
   return profileSchema.parse(await unwrap(browserApi().GET("/api/v1/me")));
@@ -70,21 +89,37 @@ export async function updateProfile(body: UpdateProfileBody): Promise<Profile> {
   return profileSchema.parse(data);
 }
 
-/** Địa chỉ đã lưu, địa chỉ mặc định đứng đầu. */
+// Các API sổ địa chỉ trả cả sổ, backend đã sắp: mặc định đứng đầu, rồi đến địa chỉ cập nhật gần nhất.
+
 export async function fetchAddresses(): Promise<Address[]> {
-  const data = addressSchema.array().parse(await unwrap(browserApi().GET("/api/v1/me/addresses")));
-  return [...data].sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
+  return addressBookSchema.parse(await unwrap(browserApi().GET("/api/v1/me/addresses")));
 }
 
-export async function createAddress(body: AddressBody): Promise<Address> {
-  return addressSchema.parse(await unwrap(browserApi().POST("/api/v1/me/addresses", { body })));
+/** Thêm địa chỉ → 201 cả sổ. Địa chỉ đầu tiên tự thành mặc định. */
+export async function createAddress(body: AddressBody): Promise<Address[]> {
+  return addressBookSchema.parse(await unwrap(browserApi().POST("/api/v1/me/addresses", { body })));
 }
 
-export async function updateAddress(id: number, body: AddressBody): Promise<Address> {
+export async function updateAddress(id: number, body: AddressBody): Promise<Address[]> {
   const data = await unwrap(browserApi().PUT("/api/v1/me/addresses/{id}", { params: { path: { id } }, body }));
-  return addressSchema.parse(data);
+  return addressBookSchema.parse(data);
 }
 
+export async function setDefaultAddress(id: number): Promise<Address[]> {
+  const data = await unwrap(browserApi().POST("/api/v1/me/addresses/{id}/default", { params: { path: { id } } }));
+  return addressBookSchema.parse(data);
+}
+
+/** 204. Xóa địa chỉ mặc định thì địa chỉ cập nhật gần nhất còn lại thành mặc định. */
 export async function deleteAddress(id: number): Promise<void> {
   await unwrap(browserApi().DELETE("/api/v1/me/addresses/{id}", { params: { path: { id } } }));
+}
+
+export async function saveInvoiceInfo(body: InvoiceInfoBody): Promise<InvoiceInfo> {
+  return invoiceInfoSchema.parse(await unwrap(browserApi().PUT("/api/v1/me/invoice-info", { body })));
+}
+
+/** 204. */
+export async function deleteInvoiceInfo(): Promise<void> {
+  await unwrap(browserApi().DELETE("/api/v1/me/invoice-info"));
 }

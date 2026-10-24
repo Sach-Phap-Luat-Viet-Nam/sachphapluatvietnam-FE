@@ -18,7 +18,15 @@ const USER = {
   roles: ["customer"],
   requiresTwoFactorSetup: false,
 };
-const PROFILE = { ...USER, phoneNumber: "0901234567", birthDate: null, occupation: null, twoFactorEnabled: false };
+const PROFILE = {
+  ...USER,
+  phoneNumber: "0901234567",
+  birthDate: null,
+  occupation: null,
+  twoFactorEnabled: false,
+  defaultAddress: null,
+  invoiceInfo: null,
+};
 
 const HOME = {
   id: 1,
@@ -28,6 +36,7 @@ const HOME = {
   ward: "Phường Cầu Giấy",
   streetAddress: "1 Xuân Thủy",
   isDefault: true,
+  updatedAt: "2026-10-20T03:00:00Z",
 };
 
 function renderAccount() {
