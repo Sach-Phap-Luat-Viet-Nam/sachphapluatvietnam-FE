@@ -86,7 +86,8 @@ function CartLine({ item }: { item: CartItem }) {
           {/* Thành tiền luôn lấy từ backend; mờ đi trong lúc chờ giỏ mới. */}
           <div
             aria-busy={syncing}
-            className={cn("flex flex-col items-start gap-0.5 transition-opacity sm:items-end", syncing && "opacity-50")}
+            // Căn trái: khối giá có thể xuống dòng dưới tên sách, lúc đó căn phải sẽ lệch khỏi lề của các dòng khác.
+            className={cn("flex flex-col items-start gap-0.5 transition-opacity", syncing && "opacity-50")}
           >
             <p className="text-gold-pale text-lg font-semibold">{formatPrice(item.lineTotal)}</p>
             {saved > 0 && (
@@ -133,7 +134,10 @@ function CartLine({ item }: { item: CartItem }) {
               </span>
             )}
           </span>
-          {percent !== null && <span className="bg-burgundy text-ivory px-2 py-0.5 text-sm">Giảm {percent}%</span>}
+          {/* `text-cream` (chữ sáng cố định): `text-ivory` đổi thành chữ tối ở chế độ sáng, khó đọc trên nền đỏ đô. */}
+          {percent !== null && (
+            <span className="bg-burgundy text-cream px-2.5 py-1 text-sm font-semibold">Giảm {percent}%</span>
+          )}
           <button
             type="button"
             onClick={removeLine}
