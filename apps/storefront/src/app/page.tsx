@@ -153,7 +153,7 @@ export default async function HomePage() {
           {books.length ? (
             // Mobile/tablet: kệ vuốt ngang, lộ một phần cuốn kế tiếp để gợi ý vuốt; desktop: lưới 4 cột.
             // Khoảng trống trên bìa trong BookCard đã đủ cho sách nhấc lên khi hover nên vùng cuộn không cắt mất.
-            <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+            <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:none] gap-5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
               {books.map((book) => (
                 <li key={book.id} className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
                   <BookCard book={book} />
