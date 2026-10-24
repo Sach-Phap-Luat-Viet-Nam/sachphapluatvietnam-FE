@@ -18,7 +18,7 @@ export function ZaloContact() {
       <span className="bg-panel/95 border-zalo/50 group-hover:border-zalo hidden flex-col border px-4 py-2 text-right shadow-[0_16px_30px_-12px_rgb(0_0_0/0.8)] transition-colors sm:flex">
         <span className="text-ivory text-sm font-semibold">Tư vấn qua Zalo</span>
         <span className="text-sand text-xs">
-          {ZALO_CONTACT_NAME} · =
+          {ZALO_CONTACT_NAME}
         </span>
       </span>
       <span className="relative flex size-14 shrink-0 items-center justify-center">

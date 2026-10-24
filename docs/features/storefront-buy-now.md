@@ -22,6 +22,10 @@ App **storefront**. Code: `features/ordering/buy-now.ts` (đọc/tạo link, d�
    - Bấm nút **không gọi API**, chỉ chuyển sang `/thanh-toan?mua-ngay=<slug>&sku=<skuId>&sl=<n>`. Để trên URL thì F5
      không mất lựa chọn. Query thiếu hoặc sai (sửa tay, `sl` ngoài 1–20) thì báo "Liên kết không hợp lệ", không lặng lẽ
      đặt từ giỏ.
+   - **Thẻ sách** (trang chủ, `/sach`, hộp Xem nhanh): nút chữ "Mua ngay" cạnh nút giỏ (`QuickBuyButton`, đặt chung với
+     `QuickAddButton` trong `QuickPurchase`). Chọn SKU như thêm nhanh (ấn bản mới nhất đang bán, SKU còn hàng rẻ nhất),
+     số lượng 1, rồi sang `/thanh-toan?mua-ngay=…`. Không có SKU mua được thì mở trang chi tiết. Không hiện dialog ấn bản
+     cũ vì thẻ sách luôn là ấn bản mới nhất.
 2. **Trang `/thanh-toan` ở chế độ Mua ngay** (có query Mua ngay; page đọc `searchParams` nên render động):
    - **Không** đọc `GET /cart` cho phần tóm tắt. Lấy thông tin sách bằng `GET /books/{slug}`, rồi tìm SKU theo `id`
      trong `editions[].skus[]`. Sách 404 → "Không tìm thấy sách"; SKU không còn thuộc sách → "Sách không còn bán", kèm

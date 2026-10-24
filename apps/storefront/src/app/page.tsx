@@ -14,7 +14,7 @@ import { HeroFanBook } from "@/features/home/HeroFanBook";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { LawTicker } from "@/features/home/LawTicker";
 import { tickerItems } from "@/features/home/home";
-import { QuickAddButton } from "@/features/ordering/QuickAddButton";
+import { QuickPurchase } from "@/features/ordering/QuickPurchase";
 import { OfferShelf } from "@/features/popup/OfferShelf";
 import { getRunningPopups } from "@/features/popup/server";
 
@@ -168,8 +168,8 @@ export default async function HomePage() {
                   <BookCard
                     book={book}
                     index={index + 1}
-                    cartAction={<QuickAddButton slug={book.slug} title={book.title} />}
-                    dialogCartAction={<QuickAddButton slug={book.slug} title={book.title} variant="full" />}
+                    cartAction={<QuickPurchase slug={book.slug} title={book.title} />}
+                    dialogCartAction={<QuickPurchase slug={book.slug} title={book.title} variant="full" />}
                   />
                 </li>
               ))}
