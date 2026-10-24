@@ -23,7 +23,8 @@ function useShippingQuote(subtotal: number) {
 }
 
 export interface CartSummaryProps {
-  cart: Cart;
+  /** Giỏ, hoặc đơn Mua ngay một dòng: chỉ cần tạm tính và tổng số cuốn. */
+  cart: Pick<Cart, "subtotal" | "totalQuantity">;
   /** Nội dung đặt dưới tổng tiền, ví dụ nút "Đặt hàng". */
   action?: ReactNode;
   /** Giỏ đang được cập nhật: số tiền đang hiện có thể sắp đổi. */

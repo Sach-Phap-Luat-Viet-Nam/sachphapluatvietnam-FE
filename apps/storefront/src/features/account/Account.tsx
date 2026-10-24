@@ -8,6 +8,7 @@ import { FORM_ERROR } from "@/components/form-styles";
 import { SignInRequired } from "@/components/SignInRequired";
 import { useProfile } from "@/lib/use-account";
 import { AddressBook } from "./AddressBook";
+import { AvatarField } from "./AvatarField";
 import { ProfileForm } from "./ProfileForm";
 
 const SECTION = "border-gold/30 bg-panel flex flex-col gap-6 border px-6 py-7 sm:px-8";
@@ -55,6 +56,7 @@ export function Account() {
         <h2 id="thong-tin-ca-nhan" className={SECTION_TITLE}>
           Thông tin cá nhân
         </h2>
+        <AvatarField profile={profile} />
         {/* `key` để form nhận lại giá trị khi đổi tài khoản trong cùng trình duyệt. */}
         <ProfileForm key={profile.id} profile={profile} />
       </section>

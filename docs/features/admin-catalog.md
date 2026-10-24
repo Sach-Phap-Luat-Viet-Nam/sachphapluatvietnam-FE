@@ -21,7 +21,7 @@ vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"
 
 - **Đưa một cuốn sách lên bán**: tạo danh mục/tác giả/văn bản (nếu chưa có) → tạo đầu sách → thêm ấn bản (ISBN, số
   QĐXB) → thêm SKU (loại bìa, giá) → đặt đầu sách "Đang hiển thị", ấn bản "Đang bán". Sách có hàng khi phiếu nhập kho
-  được duyệt (module Kho, chưa có màn hình).
+  được duyệt (phần Kho, `admin-inventory.md`).
 - **Không xóa đầu sách/ấn bản/SKU** (backend không có API, đơn cũ còn tham chiếu SKU): gỡ đầu sách bằng trạng thái
   "Ẩn", ấn bản bằng "Ngừng bán". Danh mục, tác giả, văn bản pháp luật xóa được (xóa mềm), có bước xác nhận
   (`components/ConfirmButton.tsx`).

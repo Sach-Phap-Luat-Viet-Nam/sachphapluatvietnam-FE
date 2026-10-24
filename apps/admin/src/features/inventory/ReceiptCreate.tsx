@@ -154,7 +154,12 @@ function ReceiptLineFields({ index, control, register, errors, onRemove }: Recei
         )}
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field id={`${prefix}-batch`} label="Mã lô" hint="Ví dụ LO-2026-10. Tự đổi sang chữ hoa." error={lineErrors?.batchCode?.message}>
+        <Field
+          id={`${prefix}-batch`}
+          label="Mã lô"
+          hint="Ví dụ LO-2026-10. Tự đổi sang chữ hoa."
+          error={lineErrors?.batchCode?.message}
+        >
           <input
             {...register(`lines.${index}.batchCode`)}
             {...fieldA11y(`${prefix}-batch`, lineErrors?.batchCode?.message, true)}

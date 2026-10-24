@@ -34,8 +34,9 @@ describe("AccountNav", () => {
     const user = userEvent.setup();
     render(<AccountNav />);
 
-    // Trong lúc kiểm tra phiên vẫn hiện link như HTML từ server.
-    expect(screen.getByRole("link", { name: "Đăng nhập" })).toHaveAttribute("href", "/dang-nhap");
+    // Trong lúc kiểm tra phiên chỉ hiện khung chờ, không hiện nút Đăng nhập cho khách đã đăng nhập.
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByRole("link", { name: "Đăng nhập" })).not.toBeInTheDocument();
     expect(await screen.findByText("Nguyễn Văn A")).toBeVisible();
     expect(screen.getByRole("link", { name: "Đơn của tôi" })).toHaveAttribute("href", "/don-hang");
 

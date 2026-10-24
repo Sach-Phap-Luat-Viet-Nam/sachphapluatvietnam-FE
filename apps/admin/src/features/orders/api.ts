@@ -51,7 +51,10 @@ export async function fetchOrder(code: string): Promise<AdminOrder> {
 }
 
 /** Đổi trạng thái theo bảng 16.1; sai bảng (người khác vừa đổi) → `ORDER_INVALID_TRANSITION`. */
-export async function changeOrderStatus(code: string, body: { status: string; note: string | null }): Promise<AdminOrder> {
+export async function changeOrderStatus(
+  code: string,
+  body: { status: string; note: string | null },
+): Promise<AdminOrder> {
   const data = await unwrap(
     browserApi().POST("/api/v1/admin/orders/{code}/status", {
       params: { path: { code } },

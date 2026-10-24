@@ -79,6 +79,132 @@ test("sends staff without 2FA to the setup screen and shows the QR code", async 
   expect(await page.evaluate(noHorizontalScroll)).toBe(true);
 });
 
+test("order manager opens an order and moves it to the next status", async ({ page }, testInfo) => {
+  await mockSession(page, ["order_manager"]);
+  const order = {
+    orderCode: "SLVN2610230001",
+    status: "pending_confirm",
+    paymentMethod: "cod",
+    paymentStatus: "unpaid",
+    customerName: "Nguyễn Văn A",
+    phone: "0901234567",
+    email: null,
+    shippingAddress: { province: "Hà Nội", ward: "Phường Cầu Giấy", streetAddress: "1 Xuân Thủy" },
+    items: [
+      {
+        skuId: 100,
+        skuCode: "SLVN-BLDS-BM",
+        bookTitle: "Bộ luật Dân sự 2026",
+        editionName: "Tái bản lần 3",
+        isbn: "9780306406157",
+        coverType: "paperback",
+        unitPrice: 150000,
+        quantity: 2,
+        lineTotal: 300000,
+      },
+    ],
+    subtotal: 300000,
+    discount: 0,
+    shippingFee: 0,
+    total: 300000,
+    invoiceRequired: false,
+    invoiceInfo: null,
+    note: null,
+    paymentExpiresAt: null,
+    canCancel: true,
+    createdAt: "2026-10-23T03:00:00Z",
+    history: [{ fromStatus: null, toStatus: "pending_confirm", note: null, createdAt: "2026-10-23T03:00:00Z" }],
+  };
+  await page.route("**/api/v1/admin/orders?**", (route) =>
+    route.fulfill({ json: { items: [{ ...order, itemCount: 2 }], meta: { page: 1, limit: 20, total: 1 } } }),
+  );
+  await page.route("**/api/v1/admin/orders/SLVN2610230001", (route) =>
+    route.fulfill({ json: { order, userId: null, nextStatuses: ["confirmed", "cancelled"], costOfGoods: null } }),
+  );
+  await page.route("**/api/v1/admin/orders/SLVN2610230001/status", (route) =>
+    route.fulfill({
+      json: {
+        order: { ...order, status: "confirmed" },
+        userId: null,
+        nextStatuses: ["packing", "cancelled"],
+        costOfGoods: null,
+      },
+    }),
+  );
+
+  await page.goto("/don-hang");
+  await page.getByRole("link", { name: "SLVN2610230001" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Đơn SLVN2610230001" })).toBeVisible();
+  await page.getByRole("button", { name: "Chờ xử lý" }).click();
+  await page.getByRole("button", { name: "Xác nhận: Chờ xử lý" }).click();
+  await expect(page.getByText("Đã chuyển đơn sang “Chờ xử lý”.")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("order-detail.png"), fullPage: true });
+  expect(await page.evaluate(noHorizontalScroll)).toBe(true);
+});
+
+test("warehouse keeper sees receipts and the low-stock list", async ({ page }, testInfo) => {
+  await mockSession(page, ["warehouse_keeper"]);
+  await page.route("**/api/v1/admin/inventory/receipts?**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            id: 7,
+            status: "draft",
+            note: "Nhập lô tháng 10",
+            createdBy: 7,
+            createdAt: "2026-10-23T03:00:00Z",
+            decidedBy: null,
+            decidedAt: null,
+            rejectReason: null,
+            lines: [
+              {
+                id: 11,
+                skuId: 100,
+                skuCode: "SLVN-BLDS-BM",
+                batchCode: "LO-2026-10",
+                printerName: null,
+                quantity: 500,
+                unitCost: 45000,
+                receivedAt: "2026-10-20",
+                printBatchId: null,
+              },
+            ],
+          },
+        ],
+        meta: { page: 1, limit: 20, total: 1 },
+      },
+    }),
+  );
+  await page.route("**/api/v1/admin/inventory/low-stock?**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            skuId: 100,
+            skuCode: "SLVN-BLDS-BM",
+            bookTitle: "Bộ luật Dân sự 2026",
+            available: 12,
+            reserved: 0,
+            lowStockThreshold: 50,
+          },
+        ],
+        meta: { page: 1, limit: 50, total: 1 },
+      },
+    }),
+  );
+
+  await page.goto("/kho");
+  await expect(page.getByRole("link", { name: "Phiếu #7" })).toBeVisible();
+  await expect(page.getByText("Chờ duyệt").last()).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("receipts.png"), fullPage: true });
+  expect(await page.evaluate(noHorizontalScroll)).toBe(true);
+
+  await page.getByRole("link", { name: "Tồn thấp" }).click();
+  await expect(page.getByRole("link", { name: "SLVN-BLDS-BM" })).toHaveAttribute("href", "/kho/the-kho/100");
+  expect(await page.evaluate(noHorizontalScroll)).toBe(true);
+});
+
 test("blocks search engines", async ({ request }) => {
   const robots = await request.get("/robots.txt");
   expect(await robots.text()).toContain("Disallow: /");

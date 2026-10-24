@@ -62,9 +62,7 @@ export async function rejectReceipt(id: number, reason: string): Promise<Receipt
 
 /** Thẻ kho: tồn, lô in theo thứ tự xuất FIFO, 100 dòng nhập/xuất gần nhất. SKU chưa từng nhập vẫn mở được (tồn 0). */
 export async function fetchStockCard(skuId: number): Promise<StockCard> {
-  const data = await unwrap(
-    browserApi().GET("/api/v1/admin/inventory/skus/{skuId}", { params: { path: { skuId } } }),
-  );
+  const data = await unwrap(browserApi().GET("/api/v1/admin/inventory/skus/{skuId}", { params: { path: { skuId } } }));
   return stockCardSchema.parse(data);
 }
 

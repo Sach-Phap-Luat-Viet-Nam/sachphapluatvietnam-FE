@@ -105,7 +105,10 @@ function StockCardContent({ card }: { card: StockCard }) {
               </thead>
               <tbody>
                 {card.batches.map((batch) => (
-                  <tr key={batch.id} className={cn("border-border border-b last:border-b-0", batch.remaining === 0 && "text-muted")}>
+                  <tr
+                    key={batch.id}
+                    className={cn("border-border border-b last:border-b-0", batch.remaining === 0 && "text-muted")}
+                  >
                     <td className="px-4 py-3 font-medium">{batch.batchCode}</td>
                     <td className="px-4 py-3">{batch.printerName ?? "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{formatDate(batch.receivedAt)}</td>
@@ -126,7 +129,9 @@ function StockCardContent({ card }: { card: StockCard }) {
         <h2 id="stock-transactions" className="p-5 pb-1 text-xl font-semibold">
           Lịch sử nhập xuất
         </h2>
-        <p className="text-muted px-5 pb-3 text-sm">100 dòng gần nhất, mới nhất trước. Số dương là nhập, số âm là xuất.</p>
+        <p className="text-muted px-5 pb-3 text-sm">
+          100 dòng gần nhất, mới nhất trước. Số dương là nhập, số âm là xuất.
+        </p>
         {card.recentTransactions.length === 0 ? (
           <p className="text-muted border-border border-t p-5">Chưa có giao dịch nào.</p>
         ) : (

@@ -1,5 +1,7 @@
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
+import { buyNowBookSchema } from "./buy-now";
+import type { BuyNowBook, BuyNowSelection } from "./buy-now";
 import { cartSchema, orderPageSchema, orderSchema, shippingQuoteSchema } from "./schemas";
 import type { Cart, Order, OrderPage, ShippingQuote } from "./schemas";
 import type { CreateOrderBody } from "./order-forms";
@@ -60,6 +62,30 @@ export async function placeOrder(order: CreateOrderBody, idempotencyKey: string)
         invoiceInfo: order.invoiceInfo,
         note: order.note,
       },
+    }),
+  );
+  return orderSchema.parse(data);
+}
+
+/** Chi tiết sách cho tóm tắt đơn Mua ngay (API công khai). */
+export async function fetchBuyNowBook(slug: string): Promise<BuyNowBook> {
+  const data = await unwrap(browserApi().GET("/api/v1/books/{slug}", { params: { path: { slug } } }));
+  return buyNowBookSchema.parse(data);
+}
+
+/**
+ * "Mua ngay": đặt thẳng một SKU, backend không đọc và không xóa giỏ. `idempotencyKey` dùng như `placeOrder`.
+ * Route chưa có trong OpenAPI nên khai báo tạm ở `@slvn/api-client` (`pending-paths.ts`).
+ */
+export async function placeBuyNowOrder(
+  { skuId, quantity }: Pick<BuyNowSelection, "skuId" | "quantity">,
+  order: CreateOrderBody,
+  idempotencyKey: string,
+): Promise<Order> {
+  const data = await unwrap(
+    browserApi().POST("/api/v1/orders/buy-now", {
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: { skuId, quantity, ...order },
     }),
   );
   return orderSchema.parse(data);

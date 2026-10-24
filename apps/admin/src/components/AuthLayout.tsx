@@ -27,17 +27,12 @@ export function AuthLayout({ title, lead, children }: AuthLayoutProps) {
           aria-hidden="true"
           className="border-primary-foreground/10 absolute -top-32 -right-32 size-96 rounded-full border-[3rem]"
         />
-        <span
-          aria-hidden="true"
-          className="bg-accent/25 absolute -bottom-24 -left-24 size-72 rounded-full blur-3xl"
-        />
+        <span aria-hidden="true" className="bg-accent/25 absolute -bottom-24 -left-24 size-72 rounded-full blur-3xl" />
 
         <Brand />
 
         <div className="relative flex max-w-md flex-col gap-8">
-          <p className="text-3xl leading-tight font-semibold xl:text-4xl">
-            Quản lý sách, kho và đơn hàng ở một nơi.
-          </p>
+          <p className="text-3xl leading-tight font-semibold xl:text-4xl">Quản lý sách, kho và đơn hàng ở một nơi.</p>
           <ul className="flex flex-col gap-4">
             {SECURITY_NOTES.map(({ icon: Icon, text }) => (
               <li key={text} className="text-primary-foreground/85 flex items-start gap-3 leading-7">
@@ -50,9 +45,7 @@ export function AuthLayout({ title, lead, children }: AuthLayoutProps) {
           </ul>
         </div>
 
-        <p className="text-primary-foreground/60 relative text-sm">
-          Trang nội bộ, không dành cho khách mua sách.
-        </p>
+        <p className="text-primary-foreground/60 relative text-sm">Trang nội bộ, không dành cho khách mua sách.</p>
       </aside>
 
       <main id="noi-dung" className="flex flex-col items-center justify-center gap-6 px-4 py-10 sm:px-8">

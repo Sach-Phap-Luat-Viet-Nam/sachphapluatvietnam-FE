@@ -24,7 +24,8 @@ import type { AdminOrder, StatusChangeFormValues } from "./schemas";
 export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
   const user = useSessionUser();
   const [target, setTarget] = useState<string | null>(null);
-  const [done, setDone] = useState<string | null>(null);
+  // Thông báo nằm ở khung ngoài để còn hiện sau khi đơn tải lại (form có thể biến mất nếu hết trạng thái kế tiếp).
+  const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const { order, nextStatuses } = detail;
 
   if (!user) {
@@ -43,9 +44,12 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
       <h2 id="order-actions" className="text-xl font-semibold">
         Xử lý đơn
       </h2>
-      {done && (
-        <p role="status" className={FORM_SUCCESS}>
-          {done}
+      {notice && (
+        <p
+          role={notice.kind === "error" ? "alert" : "status"}
+          className={notice.kind === "error" ? FORM_ERROR : FORM_SUCCESS}
+        >
+          {notice.text}
         </p>
       )}
       {nextStatuses.length === 0 ? (
@@ -58,7 +62,11 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
           onCancel={() => setTarget(null)}
           onChanged={(label) => {
             setTarget(null);
-            setDone(`Đã chuyển đơn sang “${label}”.`);
+            setNotice({ kind: "success", text: `Đã chuyển đơn sang “${label}”.` });
+          }}
+          onConflict={(text) => {
+            setTarget(null);
+            setNotice({ kind: "error", text });
           }}
         />
       ) : (
@@ -70,7 +78,7 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
                 key={status}
                 variant={isDestructiveTransition(status) ? "danger-outline" : "primary"}
                 onClick={() => {
-                  setDone(null);
+                  setNotice(null);
                   setTarget(status);
                 }}
               >
@@ -90,9 +98,11 @@ interface StatusChangeFormProps {
   effect: string | null;
   onCancel: () => void;
   onChanged: (label: string) => void;
+  /** Đơn vừa được đổi ở nơi khác: đóng form, báo lỗi ở khung ngoài và tải lại đơn. */
+  onConflict: (message: string) => void;
 }
 
-function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged }: StatusChangeFormProps) {
+function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged, onConflict }: StatusChangeFormProps) {
   const queryClient = useQueryClient();
   const label = enumLabel(ORDER_STATUS_LABELS, status);
   const destructive = isDestructiveTransition(status);
@@ -112,6 +122,7 @@ function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged }: St
     onError: (error) => {
       // Người khác vừa đổi trạng thái: tải lại đơn để dựng lại nút theo `nextStatuses` mới.
       if (isApiError(error) && error.code === "ORDER_INVALID_TRANSITION") {
+        onConflict(adminErrorMessage(error));
         void queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderCode) });
       }
     },
@@ -147,7 +158,7 @@ function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged }: St
           Quay lại
         </Button>
       </div>
-      {change.isError && (
+      {change.isError && !(isApiError(change.error) && change.error.code === "ORDER_INVALID_TRANSITION") && (
         <p role="alert" className={FORM_ERROR}>
           {adminErrorMessage(change.error)}
         </p>

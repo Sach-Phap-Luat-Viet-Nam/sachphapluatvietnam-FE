@@ -17,6 +17,7 @@ const profile = {
   phoneNumber: null,
   birthDate: null,
   occupation: "robot",
+  avatarUrl: null,
   defaultAddress: null,
   invoiceInfo: null,
 };

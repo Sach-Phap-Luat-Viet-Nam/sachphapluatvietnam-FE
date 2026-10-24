@@ -15,6 +15,8 @@ export const sessionUserSchema = z.object({
   requiresTwoFactorSetup: z.boolean(),
   /** Giao diện storefront đã chọn; `null` khi chưa chọn (dùng mặc định tối). */
   theme: z.enum(["dark", "light"]).nullish(),
+  /** Link ảnh đại diện (docs/features/user-avatar.md); `null` khi chưa có, thiếu ở backend bản cũ. */
+  avatarUrl: z.string().nullish(),
 });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 

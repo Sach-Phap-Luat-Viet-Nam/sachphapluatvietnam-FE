@@ -12,6 +12,8 @@ export const staffUserSchema = z.object({
   twoFactorEnabled: z.boolean(),
   requiresTwoFactorSetup: z.boolean(),
   isActive: z.boolean().default(true),
+  /** Ảnh đại diện (docs/features/user-avatar.md); thiếu ở backend chưa có tính năng avatar thì coi như chưa có ảnh. */
+  avatarUrl: z.string().nullable().default(null),
 });
 export type StaffUser = z.infer<typeof staffUserSchema>;
 

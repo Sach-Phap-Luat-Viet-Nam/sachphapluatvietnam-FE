@@ -7,7 +7,11 @@ import { setupServer } from "msw/node";
 import { AddToCartForm } from "./AddToCartForm";
 import type { PurchaseOption } from "./AddToCartForm";
 
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
 const ORIGIN = window.location.origin;
+const SLUG = "bo-luat-dan-su-2026";
 const server = setupServer();
 
 const PAPERBACK: PurchaseOption = {
@@ -59,7 +63,7 @@ describe("AddToCartForm", () => {
       }),
     );
     const user = userEvent.setup();
-    renderForm(<AddToCartForm options={[PAPERBACK, HARDCOVER]} newerEdition={null} />);
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[PAPERBACK, HARDCOVER]} newerEdition={null} />);
 
     expect(screen.getByText("150.000 ₫", { selector: "span.text-3xl" })).toBeVisible();
     await user.click(screen.getByRole("radio", { name: /Bìa cứng/ }));
@@ -84,6 +88,7 @@ describe("AddToCartForm", () => {
     const user = userEvent.setup();
     renderForm(
       <AddToCartForm
+        bookSlug={SLUG}
         options={[PAPERBACK]}
         newerEdition={{ name: "Tái bản lần 3 · 2026", href: "/sach/bo-luat-dan-su-2026" }}
       />,
@@ -100,6 +105,43 @@ describe("AddToCartForm", () => {
     expect(posted).toBe(true);
   });
 
+  it("links Buy now to checkout with the chosen cover and quantity, without touching the cart", async () => {
+    const user = userEvent.setup();
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[PAPERBACK, HARDCOVER]} newerEdition={null} />);
+
+    await user.click(screen.getByRole("radio", { name: /Bìa cứng/ }));
+    await user.click(screen.getByRole("button", { name: "Tăng số lượng" }));
+
+    expect(screen.getByRole("link", { name: "Mua ngay" })).toHaveAttribute(
+      "href",
+      `/thanh-toan?mua-ngay=${SLUG}&sku=101&sl=2`,
+    );
+  });
+
+  it("asks for confirmation before buying an older edition now", async () => {
+    push.mockClear();
+    const user = userEvent.setup();
+    renderForm(
+      <AddToCartForm
+        bookSlug={SLUG}
+        options={[PAPERBACK]}
+        newerEdition={{ name: "Tái bản lần 3 · 2026", href: "/sach/bo-luat-dan-su-2026" }}
+      />,
+    );
+
+    await user.click(screen.getByRole("link", { name: "Mua ngay" }));
+    expect(screen.getByRole("dialog", { name: "Đã có ấn bản mới" })).toBeVisible();
+    expect(push).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Vẫn mua ấn bản này" }));
+    expect(push).toHaveBeenCalledWith(`/thanh-toan?mua-ngay=${SLUG}&sku=100&sl=1`);
+  });
+
+  it("hides Buy now while the chosen cover is out of stock", () => {
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[{ ...PAPERBACK, inStock: false }]} newerEdition={null} />);
+    expect(screen.queryByRole("link", { name: "Mua ngay" })).not.toBeInTheDocument();
+  });
+
   it("explains business errors from the backend", async () => {
     server.use(
       http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(cart(0))),
@@ -111,7 +153,7 @@ describe("AddToCartForm", () => {
       ),
     );
     const user = userEvent.setup();
-    renderForm(<AddToCartForm options={[PAPERBACK]} newerEdition={null} />);
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[PAPERBACK]} newerEdition={null} />);
 
     await user.click(screen.getByRole("button", { name: "Thêm vào giỏ" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("tối đa 20 cuốn");
@@ -119,13 +161,14 @@ describe("AddToCartForm", () => {
   });
 
   it("disables buying a cover that is out of stock", () => {
-    renderForm(<AddToCartForm options={[{ ...PAPERBACK, inStock: false }]} newerEdition={null} />);
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[{ ...PAPERBACK, inStock: false }]} newerEdition={null} />);
     expect(screen.getByRole("button", { name: "Tạm hết hàng" })).toBeDisabled();
   });
 
   it("shows the regular price and when a timed promotion ends", () => {
     renderForm(
       <AddToCartForm
+        bookSlug={SLUG}
         options={[
           {
             ...PAPERBACK,
@@ -151,6 +194,7 @@ describe("AddToCartForm", () => {
   it("hides promotion details when the price is the regular one", () => {
     renderForm(
       <AddToCartForm
+        bookSlug={SLUG}
         options={[{ ...PAPERBACK, listPrice: 395000, salePrice: 395000, regularSalePrice: 395000, discountPercent: 0 }]}
         newerEdition={null}
       />,
@@ -161,7 +205,7 @@ describe("AddToCartForm", () => {
 
   it("keeps the quantity between 1 and 20", async () => {
     const user = userEvent.setup();
-    renderForm(<AddToCartForm options={[PAPERBACK]} newerEdition={null} />);
+    renderForm(<AddToCartForm bookSlug={SLUG} options={[PAPERBACK]} newerEdition={null} />);
     const quantity = screen.getByLabelText("Số lượng");
 
     expect(screen.getByRole("button", { name: "Giảm số lượng" })).toBeDisabled();

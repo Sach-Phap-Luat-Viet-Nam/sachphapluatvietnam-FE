@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { getServerSessionState, getSessionState, subscribeSession } from "@slvn/auth";
+import { Avatar } from "@slvn/ui";
 import { formatDate } from "@slvn/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { ErrorStatus, LoadingStatus } from "@/components/QueryStatus";
@@ -59,6 +60,12 @@ export function CustomerDetail({ customerId }: { customerId: number }) {
                 <h2 id="customer-profile" className="text-xl font-semibold">
                   Hồ sơ
                 </h2>
+                <Avatar
+                  name={account.fullName}
+                  url={account.avatarUrl}
+                  size={96}
+                  alt={account.avatarUrl ? `Ảnh đại diện của ${account.fullName}` : "Khách chưa có ảnh đại diện"}
+                />
                 <dl className="grid gap-4 sm:grid-cols-2">
                   <Info label="Số điện thoại" value={account.phoneNumber} />
                   <Info label="Ngày sinh" value={formatDate(account.birthDate)} />

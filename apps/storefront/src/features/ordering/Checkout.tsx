@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, RefreshCw } from "lucide-react";
@@ -12,14 +13,18 @@ import { formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { TextField } from "@/components/TextField";
+import { coverTypeLabel } from "@/lib/labels";
 import { MAX_ADDRESSES } from "@/lib/account-api";
 import type { Address, AddressBody } from "@/lib/account-api";
 import { useAddresses, useProfile, useSaveAddress } from "@/lib/use-account";
-import { placeOrder } from "./api";
+import { fetchBuyNowBook, placeBuyNowOrder, placeOrder } from "./api";
+import { buyNowLine } from "./buy-now";
+import type { BuyNowSelection } from "./buy-now";
 import { checkoutBlocker } from "./cart";
+import { CartLineCover } from "./CartLineCover";
 import { CartSummary } from "./CartSummary";
 import { CHECKOUT_DEFAULTS, CHECKOUT_FIELDS, checkoutSchema, toCreateOrderBody } from "./order-forms";
-import type { CheckoutValues, PaymentMethod } from "./order-forms";
+import type { CheckoutValues, CreateOrderBody, PaymentMethod } from "./order-forms";
 import { orderingErrorMessage } from "./errors";
 import { PAYMENT_METHOD_LABELS, label } from "./labels";
 import { OrderPlaced } from "./OrderPlaced";
@@ -30,8 +35,14 @@ import type { BankAccount } from "./payment";
 import type { Order } from "./schemas";
 import { useCart, useClearCartCache, useRefreshCart } from "./useCart";
 
-/** Lỗi do giỏ đã đổi (hết hàng, ngừng bán, trống): tải lại giỏ và gợi ý quay về giỏ để sửa. */
-const CART_ERROR_CODES = new Set(["CART_EMPTY", "SKU_NOT_AVAILABLE", "MAX_QTY_EXCEEDED", "OUT_OF_STOCK"]);
+/** Lỗi do sách khách chọn đã đổi (hết hàng, ngừng bán, giỏ trống): tải lại dữ liệu và gợi ý quay lại để sửa. */
+const STALE_SELECTION_CODES = new Set(["CART_EMPTY", "SKU_NOT_AVAILABLE", "MAX_QTY_EXCEEDED", "OUT_OF_STOCK"]);
+
+/** Mua ngay không dùng giỏ: câu chữ "xóa khỏi giỏ" của thông báo mặc định không đúng ngữ cảnh. */
+const BUY_NOW_MESSAGES: Record<string, string> = {
+  SKU_NOT_AVAILABLE: "Sách này hiện không còn bán.",
+  OUT_OF_STOCK: "Sách không còn đủ số lượng bạn chọn. Bạn vui lòng quay lại trang sách để chọn lại số lượng.",
+};
 
 const PAYMENT_HINTS: Record<PaymentMethod, string> = {
   cod: "Trả tiền mặt cho nhân viên giao hàng khi nhận sách.",
@@ -40,20 +51,30 @@ const PAYMENT_HINTS: Record<PaymentMethod, string> = {
 
 const SECTION_TITLE = "font-editorial text-2xl font-bold";
 
+/** Khi đơn bị từ chối vì sách đã đổi: link để khách quay lại sửa lựa chọn, và việc tải lại dữ liệu. */
+interface StaleSelectionRecovery {
+  href: string;
+  label: string;
+  reload: () => void;
+  /** Câu chữ riêng theo `code`, thay thông báo mặc định của `orderingErrorMessage`. */
+  messages?: Record<string, string>;
+}
+
 interface CheckoutFormProps {
   methods: PaymentMethod[];
-  /** Lý do giỏ chưa đặt được (ngừng bán, thiếu hàng): vẫn giữ form để khách không mất thông tin đã nhập. */
+  /** Lý do chưa đặt được (ngừng bán, thiếu hàng): vẫn giữ form để khách không mất thông tin đã nhập. */
   blocker: string | null;
+  /** Gửi đơn: từ giỏ (`placeOrder`) hoặc Mua ngay (`placeBuyNowOrder`). */
+  submitOrder: (order: CreateOrderBody, idempotencyKey: string) => Promise<Order>;
+  recovery: StaleSelectionRecovery;
   /** `addressToSave`: địa chỉ khách muốn lưu vào sổ địa chỉ sau khi đặt (thành viên). */
   onPlaced: (order: Order, addressToSave: AddressBody | null) => void;
 }
 
-function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
+function CheckoutForm({ methods, blocker, submitOrder, recovery, onPlaced }: CheckoutFormProps) {
   // Một key cho mỗi lần vào trang thanh toán; gửi lại (bấm nhiều lần, retry) thì backend trả đúng đơn đã tạo.
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
-  const [cartChanged, setCartChanged] = useState(false);
-  const clearCart = useClearCartCache();
-  const refreshCart = useRefreshCart();
+  const [selectionChanged, setSelectionChanged] = useState(false);
   const {
     register,
     control,
@@ -128,19 +149,18 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
 
   const onSubmit = async (values: CheckoutValues) => {
     const body = toCreateOrderBody(values);
-    setCartChanged(false);
+    setSelectionChanged(false);
     try {
       let order: Order;
       try {
-        order = await placeOrder(body, idempotencyKey);
+        order = await submitOrder(body, idempotencyKey);
       } catch (error) {
         // Key đã dùng cho đơn của người khác/số điện thoại khác: sinh key mới rồi gửi lại một lần.
         if (!isApiError(error) || error.code !== "IDEMPOTENCY_KEY_REUSED") throw error;
         const freshKey = crypto.randomUUID();
         setIdempotencyKey(freshKey);
-        order = await placeOrder(body, freshKey);
+        order = await submitOrder(body, freshKey);
       }
-      clearCart();
       onPlaced(
         order,
         canSaveAddress && saveToBook
@@ -156,11 +176,11 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
       const invalidFields = fieldErrors(error, CHECKOUT_FIELDS);
       invalidFields.forEach(({ field, message }) => setError(field, { message }));
       if (invalidFields.length === 0) {
-        setError("root.server", { message: orderingErrorMessage(error) });
+        setError("root.server", { message: orderingErrorMessage(error, recovery.messages) });
       }
-      if (isApiError(error) && CART_ERROR_CODES.has(error.code)) {
-        setCartChanged(true);
-        refreshCart();
+      if (isApiError(error) && STALE_SELECTION_CODES.has(error.code)) {
+        setSelectionChanged(true);
+        recovery.reload();
       }
     }
   };
@@ -332,11 +352,11 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
         {errors.root?.server && (
           <p role="alert" className={FORM_ERROR}>
             {errors.root.server.message}
-            {cartChanged && (
+            {selectionChanged && (
               <>
                 {" "}
-                <Link href="/gio-hang" className="link-underline text-gold font-medium">
-                  Xem lại giỏ hàng
+                <Link href={recovery.href} className="link-underline text-gold font-medium">
+                  {recovery.label}
                 </Link>
               </>
             )}
@@ -347,59 +367,67 @@ function CheckoutForm({ methods, blocker, onPlaced }: CheckoutFormProps) {
   );
 }
 
-export interface CheckoutProps {
-  /** Mặc định lấy cấu hình trong `payment.ts`; truyền vào để test. */
-  bankAccount?: BankAccount | null;
+type PlacedHandler = CheckoutFormProps["onPlaced"];
+
+interface CheckoutModeProps {
+  methods: PaymentMethod[];
+  onPlaced: PlacedHandler;
 }
 
-/** Trang thanh toán: form thông tin giao hàng bên cạnh tóm tắt giỏ, đặt xong thì hiện màn cảm ơn tại chỗ. */
-export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
+/** Không đặt được (giỏ trống, link Mua ngay sai, sách không còn): lời giải thích và một link đi tiếp. */
+function CheckoutNotice({
+  title,
+  message,
+  href,
+  label,
+}: {
+  title: string;
+  message: string;
+  href: string;
+  label: string;
+}) {
+  return (
+    <div className="border-gold/25 flex min-h-80 flex-col items-center justify-center gap-4 border px-6 text-center">
+      <h2 className="font-editorial text-3xl font-bold">{title}</h2>
+      <p className="text-mist">{message}</p>
+      <Link href={href} className={cn(SUBMIT, "mt-2 px-7")}>
+        {label} <ArrowRight size={18} />
+      </Link>
+    </div>
+  );
+}
+
+function LoadError({ message, retrying, onRetry }: { message: string; retrying: boolean; onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <p role="alert" className={FORM_ERROR}>
+        {message}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        disabled={retrying}
+        className="link-underline text-gold flex min-h-11 items-center gap-2"
+      >
+        <RefreshCw size={16} /> Thử lại
+      </button>
+    </div>
+  );
+}
+
+/** Đặt từ giỏ: tóm tắt các dòng trong giỏ; đặt xong thì làm trống giỏ trong cache (backend đã xóa giỏ). */
+function CartCheckout({ methods, onPlaced }: CheckoutModeProps) {
   const { data: cart, isError, error, refetch, isFetching } = useCart();
-  // Giữ đơn vừa tạo trong state (không lưu vào storage) vì đơn có thông tin cá nhân của khách.
-  const [placed, setPlaced] = useState<Order | null>(null);
-  const saveAddress = useSaveAddress();
-
-  const handlePlaced = (order: Order, addressToSave: AddressBody | null) => {
-    setPlaced(order);
-    if (addressToSave) saveAddress.mutate(addressToSave);
-  };
-
-  if (placed) {
-    return (
-      <div className="flex flex-col gap-4">
-        {/* Đơn đã tạo xong; lưu địa chỉ chỉ là tiện ích nên lỗi thì báo nhẹ, không chặn màn cảm ơn. */}
-        <p aria-live="polite" className="text-sm empty:hidden">
-          {saveAddress.isSuccess && <span className="text-ok">Đã lưu địa chỉ vào sổ địa chỉ.</span>}
-          {saveAddress.isError && (
-            <span className="text-upcoming">
-              Chưa lưu được địa chỉ vào sổ địa chỉ, bạn có thể thêm lại ở trang{" "}
-              <Link href="/tai-khoan" className="link-underline text-gold">
-                Tài khoản
-              </Link>
-              .
-            </span>
-          )}
-        </p>
-        <OrderPlaced order={placed} bankAccount={bankAccount} />
-      </div>
-    );
-  }
+  const clearCart = useClearCartCache();
+  const refreshCart = useRefreshCart();
 
   if (isError) {
     return (
-      <div className="flex flex-col items-start gap-4">
-        <p role="alert" className={FORM_ERROR}>
-          Chưa tải được giỏ sách. {orderingErrorMessage(error)}
-        </p>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          disabled={isFetching}
-          className="link-underline text-gold flex min-h-11 items-center gap-2"
-        >
-          <RefreshCw size={16} /> Thử lại
-        </button>
-      </div>
+      <LoadError
+        message={`Chưa tải được giỏ sách. ${orderingErrorMessage(error)}`}
+        retrying={isFetching}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
@@ -409,22 +437,26 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
 
   if (!cart.items.length) {
     return (
-      <div className="border-gold/25 flex min-h-80 flex-col items-center justify-center gap-4 border px-6 text-center">
-        <h2 className="font-editorial text-3xl font-bold">Giỏ sách đang trống</h2>
-        <p className="text-mist">Bạn chọn sách trước rồi quay lại để đặt hàng.</p>
-        <Link href="/sach" className={cn(SUBMIT, "mt-2 px-7")}>
-          Vào tủ sách <ArrowRight size={18} />
-        </Link>
-      </div>
+      <CheckoutNotice
+        title="Giỏ sách đang trống"
+        message="Bạn chọn sách trước rồi quay lại để đặt hàng."
+        href="/sach"
+        label="Vào tủ sách"
+      />
     );
   }
 
   return (
     <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
       <CheckoutForm
-        methods={availablePaymentMethods(bankAccount)}
+        methods={methods}
         blocker={checkoutBlocker(cart)}
-        onPlaced={handlePlaced}
+        submitOrder={placeOrder}
+        recovery={{ href: "/gio-hang", label: "Xem lại giỏ hàng", reload: refreshCart }}
+        onPlaced={(order, addressToSave) => {
+          clearCart();
+          onPlaced(order, addressToSave);
+        }}
       />
       <div className="flex flex-col gap-4 lg:sticky lg:top-6">
         <CartSummary
@@ -452,5 +484,163 @@ export function Checkout({ bankAccount = BANK_ACCOUNT }: CheckoutProps) {
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * "Mua ngay": tóm tắt một dòng dựng từ `GET /books/{slug}` (không đọc giỏ), đặt bằng `POST /orders/buy-now`. Giỏ của
+ * khách giữ nguyên nên đặt xong không động vào cache giỏ.
+ */
+function BuyNowCheckout({ selection, methods, onPlaced }: CheckoutModeProps & { selection: BuyNowSelection }) {
+  const book = useQuery({
+    queryKey: ["buy-now-book", selection.slug],
+    queryFn: () => fetchBuyNowBook(selection.slug),
+  });
+  const bookHref = `/sach/${selection.slug}`;
+
+  if (book.isError) {
+    if (isApiError(book.error) && book.error.status === 404) {
+      return (
+        <CheckoutNotice
+          title="Không tìm thấy sách"
+          message="Sách bạn chọn mua không còn trong tủ sách."
+          href="/sach"
+          label="Vào tủ sách"
+        />
+      );
+    }
+    return (
+      <LoadError
+        message={`Chưa tải được thông tin sách. ${orderingErrorMessage(book.error)}`}
+        retrying={book.isFetching}
+        onRetry={() => void book.refetch()}
+      />
+    );
+  }
+
+  if (!book.data) {
+    return <BookLoader label="Đang chuẩn bị đơn hàng" />;
+  }
+
+  const line = buyNowLine(book.data, selection);
+  if (!line) {
+    return (
+      <CheckoutNotice
+        title="Sách không còn bán"
+        message="Loại sách bạn chọn không còn bán. Bạn chọn lại trên trang sách nhé."
+        href={bookHref}
+        label="Quay lại trang sách"
+      />
+    );
+  }
+
+  const details = [line.editionName, coverTypeLabel(line.coverType)].filter(Boolean).join(" · ");
+  return (
+    <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
+      <CheckoutForm
+        methods={methods}
+        blocker={line.blocker}
+        submitOrder={(order, idempotencyKey) => placeBuyNowOrder(selection, order, idempotencyKey)}
+        recovery={{
+          href: bookHref,
+          label: "Quay lại trang sách",
+          reload: () => void book.refetch(),
+          messages: BUY_NOW_MESSAGES,
+        }}
+        onPlaced={onPlaced}
+      />
+      <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+        <CartSummary
+          cart={{ subtotal: line.lineTotal, totalQuantity: line.quantity }}
+          action={
+            <div className="border-gold/20 flex gap-4 border-t pt-4 text-sm">
+              <CartLineCover title={line.bookTitle} coverImageUrl={line.coverImageUrl} skuId={line.skuId} />
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span className="text-ivory line-clamp-2 leading-6" title={line.bookTitle}>
+                  {line.bookTitle}
+                </span>
+                {details && <span className="text-mist">{details}</span>}
+                <span className="flex items-baseline justify-between gap-4">
+                  <span className="text-mist">
+                    SL: {line.quantity} × {formatPrice(line.unitPrice)}
+                  </span>
+                  <span className="text-sand shrink-0 font-semibold">{formatPrice(line.lineTotal)}</span>
+                </span>
+              </div>
+            </div>
+          }
+        />
+        <Link href={bookHref} className="link-underline text-gold w-fit text-sm">
+          Quay lại trang sách
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export interface CheckoutProps {
+  /** Mặc định lấy cấu hình trong `payment.ts`; truyền vào để test. */
+  bankAccount?: BankAccount | null;
+  /** Lựa chọn "Mua ngay" đọc từ URL (`parseBuyNowParams`); `null` là đặt từ giỏ. */
+  buyNow?: BuyNowSelection | "invalid" | null;
+}
+
+/**
+ * Trang thanh toán: form thông tin giao hàng bên cạnh tóm tắt giỏ (hoặc một dòng Mua ngay), đặt xong thì hiện màn cảm ơn
+ * tại chỗ.
+ */
+export function Checkout({ bankAccount = BANK_ACCOUNT, buyNow = null }: CheckoutProps) {
+  // Giữ đơn vừa tạo trong state (không lưu vào storage) vì đơn có thông tin cá nhân của khách.
+  const [placed, setPlaced] = useState<Order | null>(null);
+  const saveAddress = useSaveAddress();
+  const methods = availablePaymentMethods(bankAccount);
+
+  const handlePlaced = (order: Order, addressToSave: AddressBody | null) => {
+    setPlaced(order);
+    if (addressToSave) saveAddress.mutate(addressToSave);
+  };
+
+  if (placed) {
+    return (
+      <div className="flex flex-col gap-4">
+        {/* Đơn đã tạo xong; lưu địa chỉ chỉ là tiện ích nên lỗi thì báo nhẹ, không chặn màn cảm ơn. */}
+        <p aria-live="polite" className="text-sm empty:hidden">
+          {saveAddress.isSuccess && <span className="text-ok">Đã lưu địa chỉ vào sổ địa chỉ.</span>}
+          {saveAddress.isError && (
+            <span className="text-upcoming">
+              Chưa lưu được địa chỉ vào sổ địa chỉ, bạn có thể thêm lại ở trang{" "}
+              <Link href="/tai-khoan" className="link-underline text-gold">
+                Tài khoản
+              </Link>
+              .
+            </span>
+          )}
+        </p>
+        <OrderPlaced order={placed} bankAccount={bankAccount} />
+      </div>
+    );
+  }
+
+  if (buyNow === "invalid") {
+    return (
+      <CheckoutNotice
+        title="Liên kết không hợp lệ"
+        message="Liên kết Mua ngay thiếu thông tin hoặc đã bị sửa. Bạn chọn lại sách trong tủ sách nhé."
+        href="/sach"
+        label="Vào tủ sách"
+      />
+    );
+  }
+
+  return buyNow ? (
+    // Đổi lựa chọn là đơn khác: tạo lại form để có `Idempotency-Key` mới.
+    <BuyNowCheckout
+      key={`${buyNow.slug}:${buyNow.skuId}:${buyNow.quantity}`}
+      selection={buyNow}
+      methods={methods}
+      onPlaced={handlePlaced}
+    />
+  ) : (
+    <CartCheckout methods={methods} onPlaced={handlePlaced} />
   );
 }

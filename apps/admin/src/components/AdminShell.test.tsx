@@ -35,16 +35,16 @@ describe("AdminShell", () => {
     expect(screen.queryByText("Nội dung")).not.toBeInTheDocument();
   });
 
-  it("hiện menu theo vai trò, phần chưa làm không có link", () => {
+  it("hiện menu theo vai trò", () => {
     signIn(["warehouse_keeper"]);
     render(<AdminShell>Nội dung</AdminShell>);
 
     const nav = screen.getByRole("navigation", { name: "Quản trị" });
     expect(nav).toHaveTextContent("Tổng quan");
-    expect(nav).toHaveTextContent("Kho");
     expect(nav).not.toHaveTextContent("Nhân viên");
+    expect(nav).not.toHaveTextContent("Đơn hàng");
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
-    expect(screen.queryByRole("link", { name: /Kho/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kho" })).toHaveAttribute("href", "/kho");
     expect(screen.getByText("Thủ kho")).toBeVisible();
     expect(screen.getByText("Nội dung")).toBeVisible();
   });

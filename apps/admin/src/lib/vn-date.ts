@@ -15,7 +15,9 @@ export function isRealDate(value: string): boolean {
   }
   const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
   const date = new Date(Date.UTC(year, month - 1, day));
-  return year >= 1000 && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  return (
+    year >= 1000 && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
 }
 
 /** Tự thêm `/` khi gõ: chỉ giữ chữ số (tối đa 8) rồi dựng lại `dd/mm/yyyy`. */

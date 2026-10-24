@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -386,5 +386,123 @@ describe("Checkout", () => {
     renderCheckout();
     expect(await screen.findByRole("radio", { name: /Thanh toán khi nhận hàng/ })).toBeChecked();
     expect(screen.queryByRole("radio", { name: /Chuyển khoản/ })).not.toBeInTheDocument();
+  });
+});
+
+const BOOK = {
+  title: "Bộ luật Dân sự 2026",
+  slug: "bo-luat-dan-su-2026",
+  editions: [
+    {
+      editionName: "Tái bản lần 3",
+      coverImageUrl: null,
+      status: "on_sale",
+      skus: [{ id: 100, coverType: "paperback", salePrice: 150000, listPrice: 200000, inStock: true }],
+    },
+  ],
+};
+const BUY_NOW = { slug: "bo-luat-dan-su-2026", skuId: 100, quantity: 2 };
+
+function buyNowHandlers(...books: (typeof BOOK)[]) {
+  let calls = 0;
+  return [
+    // Lần tải thứ n trả `books[n]` (giữ bản cuối) để giả lập tồn kho đổi giữa chừng.
+    http.get(`${ORIGIN}/api/v1/books/bo-luat-dan-su-2026`, () =>
+      HttpResponse.json(books[Math.min(calls++, books.length - 1)] ?? BOOK),
+    ),
+    http.post(`${ORIGIN}/api/v1/shipping/quote`, () =>
+      HttpResponse.json({ shippingFee: 30000, freeShippingThreshold: 500000 }),
+    ),
+  ];
+}
+
+describe("Checkout (Mua ngay)", () => {
+  it("orders just the chosen book with an Idempotency-Key, without reading or clearing the cart", async () => {
+    let body: unknown;
+    let key: string | null = null;
+    let cartTouched = false;
+    server.use(
+      ...buyNowHandlers(BOOK),
+      http.all(`${ORIGIN}/api/v1/cart*`, () => {
+        cartTouched = true;
+        return HttpResponse.json(CART);
+      }),
+      http.post(`${ORIGIN}/api/v1/orders/buy-now`, async ({ request }) => {
+        body = await request.json();
+        key = request.headers.get("Idempotency-Key");
+        return HttpResponse.json(order(), { status: 201 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderCheckout(<Checkout bankAccount={null} buyNow={BUY_NOW} />);
+
+    expect(await screen.findByText("Tái bản lần 3 · Bìa mềm")).toBeVisible();
+    expect(screen.getByText("SL: 2 × 150.000 ₫")).toBeVisible();
+    expect(await screen.findByText("330.000 ₫")).toBeVisible();
+    expect(screen.getAllByRole("link", { name: "Quay lại trang sách" })[0]).toHaveAttribute(
+      "href",
+      "/sach/bo-luat-dan-su-2026",
+    );
+
+    await fillRecipient(user);
+    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+
+    expect(await screen.findByRole("heading", { name: "Cảm ơn bạn đã đặt sách" })).toBeVisible();
+    expect(key).toMatch(/^[0-9a-f-]{36}$/);
+    expect(body).toEqual({
+      skuId: 100,
+      quantity: 2,
+      customerName: "Nguyễn Văn A",
+      phone: "0901234567",
+      email: null,
+      shippingAddress: { province: "Hà Nội", ward: "Phường Cầu Giấy", streetAddress: "1 Xuân Thủy" },
+      paymentMethod: "cod",
+      invoiceInfo: null,
+      note: null,
+    });
+    expect(cartTouched).toBe(false);
+  });
+
+  it("keeps the form and points back to the book when stock ran out at order time", async () => {
+    const soldOut = {
+      ...BOOK,
+      editions: BOOK.editions.map((edition) => ({
+        ...edition,
+        skus: edition.skus.map((sku) => ({ ...sku, inStock: false })),
+      })),
+    };
+    server.use(
+      ...buyNowHandlers(BOOK, soldOut),
+      http.post(`${ORIGIN}/api/v1/orders/buy-now`, () => problem(409, "OUT_OF_STOCK")),
+    );
+    const user = userEvent.setup();
+    renderCheckout(<Checkout bankAccount={null} buyNow={BUY_NOW} />);
+
+    await fillRecipient(user);
+    await user.click(screen.getByRole("button", { name: "Đặt hàng" }));
+
+    const alert = await screen.findByText(/quay lại trang sách để chọn lại số lượng/);
+    expect(within(alert).getByRole("link", { name: "Quay lại trang sách" })).toHaveAttribute(
+      "href",
+      "/sach/bo-luat-dan-su-2026",
+    );
+    // Tải lại sách thấy đã hết hàng: chặn nút đặt nhưng không mất thông tin khách đã nhập.
+    expect(await screen.findByText(/Sách đang tạm hết hàng/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Đặt hàng" })).toBeDisabled();
+    expect(screen.getByLabelText("Họ và tên")).toHaveValue("Nguyễn Văn A");
+  });
+
+  it("explains a tampered link and a SKU that no longer belongs to the book", async () => {
+    server.use(...buyNowHandlers(BOOK));
+    const { unmount } = renderCheckout(<Checkout bankAccount={null} buyNow="invalid" />);
+    expect(screen.getByRole("heading", { name: "Liên kết không hợp lệ" })).toBeVisible();
+    unmount();
+
+    renderCheckout(<Checkout bankAccount={null} buyNow={{ ...BUY_NOW, skuId: 999 }} />);
+    expect(await screen.findByRole("heading", { name: "Sách không còn bán" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Quay lại trang sách" })).toHaveAttribute(
+      "href",
+      "/sach/bo-luat-dan-su-2026",
+    );
   });
 });

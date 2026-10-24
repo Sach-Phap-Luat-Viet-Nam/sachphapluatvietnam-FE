@@ -19,6 +19,7 @@ const ADMIN: StaffUser = {
   twoFactorEnabled: true,
   requiresTwoFactorSetup: false,
   isActive: true,
+  avatarUrl: null,
 };
 const KEEPER: StaffUser = {
   id: 2,
@@ -28,6 +29,7 @@ const KEEPER: StaffUser = {
   twoFactorEnabled: false,
   requiresTwoFactorSetup: true,
   isActive: true,
+  avatarUrl: null,
 };
 
 function page(items: StaffUser[]) {

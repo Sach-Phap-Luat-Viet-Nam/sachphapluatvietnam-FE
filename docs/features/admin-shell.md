@@ -3,8 +3,8 @@
 ## Mục đích
 
 Nhân viên đăng nhập vào app **admin** (email, mật khẩu, mã 6 số), bật xác thực 2 lớp ở lần đăng nhập đầu, rồi vào khung
-quản trị có menu theo vai trò. Đây là nền cho các màn nghiệp vụ: Sách và Nội dung (popup) đã có; Kho, Đơn hàng, Nhân
-viên làm ở các đợt sau.
+quản trị có menu theo vai trò. Đây là nền cho các màn nghiệp vụ: Sách, Nội dung (popup), Kho, Đơn hàng, Nhân viên và
+Khách hàng.
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
@@ -23,6 +23,12 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   - Chưa đăng nhập: chuyển về `/dang-nhap?next=<trang đang mở>`.
   - Tài khoản chỉ có vai trò `customer`: hiện "Không có quyền truy cập" kèm nút Đăng xuất.
   - Nhân viên chưa bật 2FA: chuyển sang `/xac-thuc-hai-lop`. Đã bật thì không vào lại màn này được.
+- **Giao diện đăng nhập / bật 2FA** (`components/AuthLayout.tsx`): desktop chia hai cột, bên trái là khối thương hiệu navy
+  kèm 3 ghi chú bảo mật (bắt buộc 2FA, phiên 12 giờ, chỉ tài khoản do Super Admin cấp), bên phải là thẻ form; mobile chỉ
+  còn tên thương hiệu và thẻ form. Ô email/mật khẩu có icon, ô mật khẩu báo "Đang bật Caps Lock", nút gửi có vòng xoay
+  khi chờ. Bước nhập mã có nhãn "Bước 2/2 · Xác thực 2 lớp".
+- **Ô mã 6 số** (`features/auth/CodeForm.tsx`, dùng cho bước đăng nhập 2FA và màn bật 2FA): chỉ giữ chữ số (dán
+  `123 456` vẫn được), đủ 6 số thì tự gửi (không gửi trùng khi đang chờ); nút "Xác nhận" vẫn còn.
 - **Đăng nhập**: không có "Giữ đăng nhập 30 ngày" (máy có thể dùng chung), luôn gửi `rememberMe = false` (phiên 12
   giờ). Tài khoản khách hàng bị từ chối và đăng xuất ngay để không để lại cookie trên domain admin.
 - **Bật 2FA**: bấm "Tạo mã QR" mới gọi `/auth/2fa/setup` (mỗi lần gọi là một khóa mới, nên không tự gọi khi tải
@@ -35,8 +41,8 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   | Tổng quan  | Mọi nhân viên                                                    | Đã có                           |
   | Sách       | `super_admin`, `product_manager`                                 | Đã có (`admin-catalog.md`)      |
   | Nội dung   | `super_admin`, `marketing`                                       | Đã có: popup (`admin-popup.md`) |
-  | Kho        | `super_admin`, `warehouse_keeper`                                | Sắp có                          |
-  | Đơn hàng   | `super_admin`, `order_manager`, `customer_service`, `accountant` | Sắp có                          |
+  | Kho        | `super_admin`, `warehouse_keeper`                                | Đã có (`admin-inventory.md`)    |
+  | Đơn hàng   | `super_admin`, `order_manager`, `customer_service`, `accountant` | Đã có (`admin-orders.md`)       |
   | Nhân viên  | `super_admin`                                                    | Đã có (`admin-users.md`)        |
   | Khách hàng | `super_admin`                                                    | Đã có (`admin-users.md`)        |
 
@@ -71,6 +77,6 @@ Giống storefront: `API_BASE_URL` (bắt buộc), `PROXY_SECRET` (trên Vercel)
   API (`apps/admin/e2e/admin.spec.ts`).
 - Ở **local**, storefront (3000) và admin (3001) dùng chung cookie của `localhost`: đăng nhập app này sẽ thay phiên của
   app kia. Trên Vercel hai domain tách riêng nên không bị.
-- Chưa có màn Kho, Đơn hàng. Nhân viên, Khách hàng và đăng nhập hộ: `admin-users.md`.
+- Kho: `admin-inventory.md`; Đơn hàng: `admin-orders.md`; Nhân viên, Khách hàng và đăng nhập hộ: `admin-users.md`.
 - Chưa có màn đổi mật khẩu (`/auth/password/change`); nhân viên mới dùng mật khẩu tạm do Super Admin đặt.
 - Chưa đồng bộ đăng xuất giữa các tab.

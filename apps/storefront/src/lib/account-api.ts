@@ -50,6 +50,8 @@ export const profileSchema = z.object({
   phoneNumber: z.string().nullable(),
   birthDate: z.string().nullable(),
   occupation: z.string().nullable(),
+  /** Thiếu ở backend chưa có tính năng avatar: coi như chưa có ảnh. */
+  avatarUrl: z.string().nullable().default(null),
   defaultAddress: addressSchema.nullable().default(null),
   invoiceInfo: invoiceInfoSchema.nullable().default(null),
 });

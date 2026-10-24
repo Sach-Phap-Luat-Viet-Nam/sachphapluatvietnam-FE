@@ -1,12 +1,14 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Check, Minus, Plus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, ArrowRight, Check, Minus, Plus, X, Zap } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatDateTime, formatDiscount, formatPrice } from "@slvn/utils";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
+import { buyNowHref } from "./buy-now";
 import { MAX_QUANTITY_PER_SKU } from "./cart";
 import { orderingErrorMessage } from "./errors";
 import { useAddToCart } from "./useCart";
@@ -28,22 +30,32 @@ export interface PurchaseOption {
 }
 
 export interface AddToCartFormProps {
+  /** Slug của sách, mang sang trang thanh toán khi bấm "Mua ngay". */
+  bookSlug: string;
   /** Các SKU của ấn bản đang xem. */
   options: PurchaseOption[];
-  /** Có khi đang xem ấn bản cũ: hỏi xác nhận trước khi thêm vào giỏ (US-02). */
+  /** Có khi đang xem ấn bản cũ: hỏi xác nhận trước khi thêm vào giỏ hoặc mua ngay (US-02). */
   newerEdition: { name: string; href: string } | null;
 }
+
+/** Thao tác khách bấm khi đang xem ấn bản cũ, chờ xác nhận trong dialog. */
+type PendingAction = "add" | "buy";
 
 function clampQuantity(value: number): number {
   return Number.isFinite(value) ? Math.min(MAX_QUANTITY_PER_SKU, Math.max(1, Math.trunc(value))) : 1;
 }
 
-/** Chọn loại bìa, số lượng và thêm vào giỏ. */
-export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
+/**
+ * Chọn loại bìa, số lượng rồi thêm vào giỏ, hoặc "Mua ngay": sang thẳng trang thanh toán với đúng lựa chọn đó, giỏ giữ
+ * nguyên (docs/features/storefront-buy-now.md).
+ */
+export function AddToCartForm({ bookSlug, options, newerEdition }: AddToCartFormProps) {
   const id = useId();
+  const router = useRouter();
   const confirm = useRef<HTMLDialogElement>(null);
   const [skuId, setSkuId] = useState(() => (options.find((option) => option.inStock) ?? options[0])?.skuId);
   const [quantity, setQuantity] = useState(1);
+  const [pendingAction, setPendingAction] = useState<PendingAction>("add");
   const addToCart = useAddToCart();
 
   const selected = options.find((option) => option.skuId === skuId);
@@ -54,19 +66,41 @@ export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
   const regularPrice =
     regular !== null && regular > selected.salePrice && regular !== selected.listPrice ? regular : null;
   const saleEnds = formatDateTime(selected.saleEndsAt);
+  const checkoutHref = buyNowHref({ slug: bookSlug, skuId: selected.skuId, quantity });
 
   const add = () => {
     confirm.current?.close();
     addToCart.mutate({ skuId: selected.skuId, quantity });
   };
 
+  const askToConfirm = (action: PendingAction) => {
+    setPendingAction(action);
+    confirm.current?.showModal();
+  };
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (newerEdition) {
-      confirm.current?.showModal();
+      askToConfirm("add");
       return;
     }
     add();
+  };
+
+  // "Mua ngay" là link thường (mở tab mới, F5 vẫn được); chỉ chặn lại để hỏi khi đang xem ấn bản cũ.
+  const onBuyNow = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!newerEdition) return;
+    event.preventDefault();
+    askToConfirm("buy");
+  };
+
+  const confirmOldEdition = () => {
+    if (pendingAction === "add") {
+      add();
+      return;
+    }
+    confirm.current?.close();
+    router.push(checkoutHref);
   };
 
   const choose = (next: number) => {
@@ -175,6 +209,15 @@ export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
           {!selected.inStock ? "Tạm hết hàng" : addToCart.isPending ? "Đang thêm…" : "Thêm vào giỏ"}
           {selected.inStock && <ArrowRight size={18} />}
         </button>
+        {selected.inStock && (
+          <Link
+            href={checkoutHref}
+            onClick={onBuyNow}
+            className="border-gold text-gold hover:bg-gold hover:text-ink flex min-h-13.5 min-w-40 flex-1 items-center justify-center gap-2.5 border px-6 text-base font-semibold transition-colors"
+          >
+            <Zap size={18} /> Mua ngay
+          </Link>
+        )}
       </div>
       <p className="text-mist text-sm">Tối đa {MAX_QUANTITY_PER_SKU} cuốn mỗi loại cho một đơn hàng.</p>
 
@@ -223,10 +266,10 @@ export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
             </Link>
             <button
               type="button"
-              onClick={add}
+              onClick={confirmOldEdition}
               className="border-ivory/30 hover:border-gold min-h-13.5 border px-6 transition-colors sm:flex-1"
             >
-              Vẫn thêm ấn bản này
+              {pendingAction === "add" ? "Vẫn thêm ấn bản này" : "Vẫn mua ấn bản này"}
             </button>
           </div>
         </dialog>

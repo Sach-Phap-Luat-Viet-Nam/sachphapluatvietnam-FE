@@ -1,6 +1,5 @@
 /** Số tư vấn qua Zalo (Nguyễn Tài Thành). Đổi số ở đây là đổi cho cả nút và link. */
 const ZALO_PHONE = "0984739739";
-const ZALO_PHONE_DISPLAY = "0984 739 739";
 const ZALO_CONTACT_NAME = "Nguyễn Tài Thành";
 
 /**
@@ -13,13 +12,13 @@ export function ZaloContact() {
       href={`https://zalo.me/${ZALO_PHONE}`}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`Tư vấn qua Zalo với ${ZALO_CONTACT_NAME}, số ${ZALO_PHONE_DISPLAY}`}
+      aria-label={`Tư vấn qua Zalo với ${ZALO_CONTACT_NAME}`}
       className="group fixed right-4 bottom-4 z-40 flex items-center gap-3 sm:right-6 sm:bottom-6"
     >
       <span className="bg-panel/95 border-zalo/50 group-hover:border-zalo hidden flex-col border px-4 py-2 text-right shadow-[0_16px_30px_-12px_rgb(0_0_0/0.8)] transition-colors sm:flex">
         <span className="text-ivory text-sm font-semibold">Tư vấn qua Zalo</span>
         <span className="text-sand text-xs">
-          {ZALO_CONTACT_NAME} · {ZALO_PHONE_DISPLAY}
+          {ZALO_CONTACT_NAME} · =
         </span>
       </span>
       <span className="relative flex size-14 shrink-0 items-center justify-center">

@@ -19,6 +19,7 @@ function customer(id: number, name: string, overrides: Partial<CustomerUser> = {
     twoFactorEnabled: false,
     requiresTwoFactorSetup: false,
     isActive: true,
+    avatarUrl: null,
     phoneNumber: "0901234567",
     birthDate: null,
     occupation: null,

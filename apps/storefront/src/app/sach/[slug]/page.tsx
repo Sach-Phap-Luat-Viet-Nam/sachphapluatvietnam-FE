@@ -211,6 +211,7 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
                 <AddToCartForm
                   // Đổi ấn bản là đổi danh sách SKU: tạo lại form để không giữ SKU của ấn bản trước.
                   key={edition.id}
+                  bookSlug={book.slug}
                   options={edition.skus.map((sku) => ({
                     skuId: sku.id,
                     label: coverTypeLabel(sku.coverType),

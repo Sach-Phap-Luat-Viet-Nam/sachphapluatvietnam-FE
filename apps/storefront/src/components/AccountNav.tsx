@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { LogOut, Package, UserRound } from "lucide-react";
 import { getServerSessionState, getSessionState, logout, restoreSession, subscribeSession } from "@slvn/auth";
+import { Avatar } from "@slvn/ui";
 
 const LOGOUT_ERROR = "Chưa đăng xuất được, vui lòng thử lại.";
 
@@ -17,8 +18,18 @@ export function AccountNav() {
     restoreSession();
   }, []);
 
-  if (session.status !== "authenticated") {
-    // Trong lúc kiểm tra phiên vẫn hiện link Đăng nhập để HTML từ server và client giống nhau, không xê dịch layout.
+  if (session.status === "unknown") {
+    // Chưa biết đã đăng nhập hay chưa (server luôn render ở trạng thái này): hiện khung chờ cùng cỡ với nút Đăng nhập
+    // để khách đã đăng nhập tải lại trang không thấy nút Đăng nhập nháy lên rồi mới đổi, và layout không xê dịch.
+    return (
+      <div role="status" aria-busy="true" className="flex min-h-11 items-center">
+        <span className="sr-only">Đang kiểm tra phiên đăng nhập…</span>
+        <span aria-hidden="true" className="bg-ivory/10 block h-11 w-35 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (session.status === "anonymous") {
     return (
       <Link
         href="/dang-nhap"
@@ -50,9 +61,13 @@ export function AccountNav() {
         title="Tài khoản"
         className="group hover:text-gold flex min-h-11 max-w-60 items-center gap-2.5 transition-colors"
       >
-        <span className="border-gold/60 bg-gold/10 text-gold group-hover:border-gold flex size-9 shrink-0 items-center justify-center rounded-full border">
-          <UserRound size={18} strokeWidth={1.6} />
-        </span>
+        {/* Tên đã có ngay cạnh (hoặc trong sr-only) nên avatar chỉ để trang trí. */}
+        <Avatar
+          name={session.user.fullName}
+          url={session.user.avatarUrl}
+          size={36}
+          className="border-gold/60 bg-gold/10 text-gold group-hover:border-gold border"
+        />
         <span className="truncate font-medium max-sm:sr-only">{session.user.fullName}</span>
         <span className="sr-only">, tài khoản</span>
       </Link>

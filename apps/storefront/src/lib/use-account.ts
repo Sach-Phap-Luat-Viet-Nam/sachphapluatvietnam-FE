@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isApiError } from "@slvn/api-client";
-import { refreshSession } from "@slvn/auth";
+import { isImpersonating, refreshSession } from "@slvn/auth";
+import { removeAvatar, uploadAvatar } from "./avatar-api";
 import {
   createAddress,
   deleteAddress,
@@ -40,6 +41,22 @@ export function useUpdateProfile() {
       if (previous && previous.fullName !== body.fullName) {
         await refreshSession();
       }
+    },
+  });
+}
+
+/**
+ * Đổi (`File`) hoặc bỏ (`null`) ảnh đại diện. Xong thì cập nhật hồ sơ trong cache và refresh phiên để avatar trên header
+ * đổi theo, như khi đổi họ tên. Phiên đăng nhập hộ không refresh được (sẽ kết thúc phiên) nên bỏ qua bước này.
+ */
+export function useChangeAvatar() {
+  const queryClient = useQueryClient();
+  const keys = useAccountKeys();
+  return useMutation({
+    mutationFn: async (file: File | null) => (file ? uploadAvatar(file) : removeAvatar().then(() => null)),
+    onSuccess: async (avatarUrl) => {
+      queryClient.setQueryData<Profile>(keys.profile, (profile) => (profile ? { ...profile, avatarUrl } : profile));
+      if (!isImpersonating()) await refreshSession();
     },
   });
 }
