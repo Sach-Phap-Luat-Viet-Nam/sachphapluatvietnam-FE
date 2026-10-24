@@ -20,8 +20,11 @@ export function AccountNav() {
   if (session.status !== "authenticated") {
     // Trong lúc kiểm tra phiên vẫn hiện link Đăng nhập để HTML từ server và client giống nhau, không xê dịch layout.
     return (
-      <Link href="/dang-nhap" className="link-underline flex min-h-11 items-center gap-2 text-[15px]">
-        <UserRound size={20} strokeWidth={1.6} />
+      <Link
+        href="/dang-nhap"
+        className="border-gold/45 hover:border-gold hover:bg-gold hover:text-ink flex min-h-11 items-center gap-2 border px-4 text-[15px] transition-colors duration-300"
+      >
+        <UserRound size={19} strokeWidth={1.6} />
         <span>Đăng nhập</span>
       </Link>
     );
@@ -40,11 +43,14 @@ export function AccountNav() {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px]">
-      <span className="flex min-h-11 max-w-56 items-center gap-2">
-        <UserRound size={20} strokeWidth={1.6} className="shrink-0" />
-        <span className="truncate">{session.user.fullName}</span>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
+      <span className="flex min-h-11 max-w-60 items-center gap-2.5">
+        <span className="border-gold/60 bg-gold/10 text-gold flex size-9 shrink-0 items-center justify-center rounded-full border">
+          <UserRound size={18} strokeWidth={1.6} />
+        </span>
+        <span className="truncate font-medium">{session.user.fullName}</span>
       </span>
+      <span aria-hidden="true" className="bg-ivory/15 h-6 w-px" />
       <button
         type="button"
         onClick={() => void handleLogout()}
