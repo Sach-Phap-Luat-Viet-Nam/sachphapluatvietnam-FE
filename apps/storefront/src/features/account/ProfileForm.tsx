@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
@@ -13,6 +14,7 @@ import { useUpdateProfile } from "@/lib/use-account";
 import {
   OCCUPATION_LABELS,
   PROFILE_FIELDS,
+  maskBirthDate,
   profileFormSchema,
   profileFormValues,
   toUpdateProfileBody,
@@ -26,6 +28,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting, isDirty },
     reset,
   } = useForm<ProfileFormValues>({
@@ -74,9 +77,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <TextField
           id="birthDate"
           label="Ngày sinh"
-          type="date"
+          inputMode="numeric"
           autoComplete="bday"
-          registration={register("birthDate")}
+          placeholder="dd/mm/yyyy"
+          maxLength={10}
+          registration={register("birthDate", {
+            onChange: (event: ChangeEvent<HTMLInputElement>) =>
+              setValue("birthDate", maskBirthDate(event.target.value)),
+          })}
           error={errors.birthDate?.message}
         />
         <div className="flex flex-col gap-2">
