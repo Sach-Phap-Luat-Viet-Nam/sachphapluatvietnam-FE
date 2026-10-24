@@ -272,7 +272,22 @@
     transform: translateY(-4px) rotate(-6deg);
   }
 
-  /* Thẻ sách: hover thì sách rút lên khỏi kệ và hiện nhãn "Xem nhanh". */
+  /* Section "Mới phát hành": đèn vàng rọi từ trên xuống dải kệ. */
+  .shelf-lamp {
+    background:
+      radial-gradient(70% 60% at 50% 0%, rgb(214 178 104 / 0.16), transparent 70%),
+      linear-gradient(var(--color-panel), var(--color-ink));
+  }
+
+  /* Thẻ sách: hover thì sách rút lên khỏi kệ, quầng sáng sau bìa đậm lên và hiện nhãn "Xem nhanh". */
+  .shelf-glow {
+    opacity: 0.6;
+    transition: opacity 0.6s;
+  }
+  .shelf-card:hover .shelf-glow,
+  .shelf-card:focus-within .shelf-glow {
+    opacity: 1;
+  }
   .shelf-book {
     transition:
       transform 0.6s cubic-bezier(0.2, 0.75, 0.15, 1),
