@@ -52,10 +52,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
-        <span className={LABEL}>Email đăng nhập</span>
-        <span className="text-sand">{profile.email}</span>
-      </div>
       <TextField
         id="fullName"
         label="Họ và tên"
@@ -106,7 +102,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           </select>
         </div>
       </div>
-      <p className="text-mist text-sm">Họ tên và số điện thoại được điền sẵn khi bạn đặt hàng.</p>
       <button type="submit" disabled={isSubmitting} className={cn(SUBMIT, "sm:w-fit sm:px-10")}>
         {isSubmitting ? "Đang lưu…" : "Lưu thông tin"}
       </button>

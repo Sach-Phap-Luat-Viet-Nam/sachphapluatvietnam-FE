@@ -10,6 +10,8 @@ backend ở `docs/features/auth.md` của repo backend (`MeController`); file n�
 App **storefront**, route `/tai-khoan` (`noindex`). Code ở `features/account`; phần gọi API và hook dùng chung với form
 đặt hàng nằm ở `lib/account-api.ts`, `lib/use-account.ts`.
 
+- Bố cục: khối hồ sơ ở đầu trang (ảnh đại diện 152 px có quầng sáng, họ tên, email, đổi/xóa ảnh, lối tắt tới đơn hàng và
+  khuyến mãi), bên dưới là hai khối "Thông tin cá nhân" và "Sổ địa chỉ".
 - Dữ liệu cần access token trong bộ nhớ trình duyệt nên trang tải ở client. Chưa đăng nhập thì hiện "Đăng nhập để xem
   tài khoản" (link `/dang-nhap?next=%2Ftai-khoan`).
 - Query key gắn với người dùng đang đăng nhập (`["account", <user>, ...]`) để đổi tài khoản trong cùng trình duyệt không

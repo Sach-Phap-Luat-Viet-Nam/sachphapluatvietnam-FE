@@ -125,10 +125,13 @@
   .motion-rise {
     animation: rise-in 1s var(--ease-out-soft) both;
   }
+  /* `overflow: hidden` để chữ trượt lên từ dưới; chừa đáy đủ cho phần đuôi của g, y, ọ (line-height của tiêu đề thấp)
+     rồi kéo lại bằng margin âm để khoảng cách dòng không đổi. */
   .motion-line {
     display: block;
     overflow: hidden;
-    padding-bottom: 0.06em;
+    padding-bottom: 0.22em;
+    margin-bottom: -0.16em;
   }
   .motion-line > span {
     display: block;
@@ -256,9 +259,22 @@
     transform: rotate(9deg);
     animation: fan-right 1.4s var(--ease-out-soft) 1s both;
   }
+  /* Đóng dấu xuống rồi liên tục nhún nhẹ, lắc và tỏa vòng sáng để kéo mắt khách tới sách mới. */
   .stamp-in {
     transform: rotate(-14deg);
-    animation: stamp 0.7s cubic-bezier(0.3, 0.6, 0.2, 1.2) 1.9s both;
+    animation:
+      stamp 0.7s cubic-bezier(0.3, 0.6, 0.2, 1.2) 1.9s both,
+      stamp-pulse 3.2s ease-in-out 3s infinite;
+  }
+  .stamp-in::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-burgundy);
+    pointer-events: none;
+    opacity: 0;
+    animation: stamp-ring 3.2s ease-out 3s infinite;
   }
   .foil-text {
     background: linear-gradient(110deg, var(--color-gold) 38%, #fff1cc 50%, var(--color-gold) 62%);
@@ -538,6 +554,38 @@
   }
   75% {
     transform: rotate(-14deg) scale(1.05);
+  }
+}
+/* Dùng `scale`/`rotate` riêng lẻ để chạy song song với `transform: rotate(-14deg)` của `stamp`. */
+@keyframes stamp-pulse {
+  0%,
+  60%,
+  100% {
+    scale: 1;
+    rotate: 0deg;
+  }
+  15% {
+    scale: 1.08;
+    rotate: 4deg;
+  }
+  30% {
+    scale: 1.04;
+    rotate: -4deg;
+  }
+  45% {
+    scale: 1.06;
+    rotate: 2deg;
+  }
+}
+@keyframes stamp-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.92);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
   }
 }
 @keyframes foil {

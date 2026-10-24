@@ -9,6 +9,9 @@ import { AVATAR_ACCEPT, avatarErrorMessage } from "@/lib/avatar-api";
 import { useChangeAvatar } from "@/lib/use-account";
 import { useSession } from "@/lib/use-session";
 
+/** Cạnh ảnh đại diện (px) ở hồ sơ trang tài khoản. */
+const AVATAR_SIZE = 152;
+
 const ACTION =
   "border-border hover:border-gold hover:text-gold flex min-h-11 items-center gap-2 border px-4 text-sm transition-colors";
 
@@ -25,20 +28,30 @@ export function AvatarField({ profile }: { profile: Profile }) {
   const removing = change.isPending && change.variables === null;
 
   return (
-    <div className="flex flex-wrap items-center gap-5">
-      <Avatar
-        name={profile.fullName}
-        url={profile.avatarUrl}
-        size={88}
-        alt={`Ảnh đại diện của ${profile.fullName}`}
-        className="bg-gold/15 text-gold border-gold/50 border"
-      />
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+    <div className="flex flex-col items-center gap-7 sm:flex-row sm:items-center sm:gap-9">
+      {/* Quầng sáng vàng và vòng viền để ảnh đại diện nổi bật trên nền tối. */}
+      <div className="relative shrink-0">
+        <span aria-hidden="true" className="bg-gold/25 absolute -inset-5 rounded-full blur-2xl" />
+        <Avatar
+          name={profile.fullName}
+          url={profile.avatarUrl}
+          size={AVATAR_SIZE}
+          alt={`Ảnh đại diện của ${profile.fullName}`}
+          className="bg-gold/15 text-gold border-gold ring-gold/30 ring-offset-panel relative border-2 shadow-[0_24px_48px_-16px_rgb(0_0_0/0.9)] ring-1 ring-offset-4"
+        />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-2.5 text-center sm:items-start sm:text-left">
+        <div className="min-w-0">
+          <h2 className="font-editorial text-3xl leading-tight font-bold break-words sm:text-4xl">
+            {profile.fullName}
+          </h2>
+          <p className="text-sand mt-1 break-all">{profile.email}</p>
+        </div>
         {readOnly ? (
           <p className="text-mist text-sm">Phiên đăng nhập hộ không đổi được ảnh đại diện của khách.</p>
         ) : (
           <>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="mt-1 flex flex-wrap justify-center gap-2.5 sm:justify-start">
               {/* Nhãn là nút hiển thị; ô chọn file ẩn bên trong vẫn nhận focus bàn phím (viền focus vẽ trên nhãn). */}
               <label
                 className={cn(
