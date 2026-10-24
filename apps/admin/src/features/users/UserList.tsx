@@ -26,6 +26,8 @@ import {
 import type { StaffUser } from "./schemas";
 import { canManage, toCreateStaffBody, toSetRolesBody } from "./user-forms";
 import { CreateStaffForm, PasswordForm, RolesForm } from "./UserForms";
+import { ImpersonateButton } from "./ImpersonateButton";
+import { UserSearch } from "./UserSearch";
 
 /** Đang mở form nào dưới một dòng. */
 type Panel = { id: number; kind: "roles" | "password" } | null;
@@ -36,13 +38,15 @@ export function UserList() {
   const session = useSyncExternalStore(subscribeSession, getSessionState, getServerSessionState);
   const currentUserId = session.status === "authenticated" ? session.user.id : null;
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
+  const [impersonationError, setImpersonationError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const staff = useQuery({
-    queryKey: staffKeys.list(page),
-    queryFn: () => fetchStaff(page),
+    queryKey: staffKeys.list(page, q),
+    queryFn: () => fetchStaff(page, q),
     placeholderData: keepPreviousData,
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey: staffKeys.lists });
@@ -62,6 +66,7 @@ export function UserList() {
   });
   const logout = useMutation({ mutationFn: logoutEverywhere });
   const actionError = active.error ?? logout.error;
+  const actionErrorMessage = actionError ? adminErrorMessage(actionError) : impersonationError;
 
   const closePanel = () => setPanel(null);
 
@@ -93,9 +98,9 @@ export function UserList() {
           {notice}
         </p>
       )}
-      {actionError && (
+      {actionErrorMessage && (
         <p role="alert" className={FORM_ERROR}>
-          {adminErrorMessage(actionError)}
+          {actionErrorMessage}
         </p>
       )}
 
@@ -115,12 +120,21 @@ export function UserList() {
         </section>
       )}
 
+      <UserSearch
+        id="staff-search"
+        label="Tìm nhân viên"
+        onSearch={(value) => {
+          setQ(value);
+          setPage(1);
+        }}
+      />
+
       {staff.isError ? (
         <ErrorStatus error={staff.error} onRetry={() => void staff.refetch()} />
       ) : staff.isPending ? (
         <LoadingStatus />
       ) : staff.data.items.length === 0 ? (
-        <p className={`${CARD} text-muted p-6`}>Chưa có nhân viên nào.</p>
+        <p className={`${CARD} text-muted p-6`}>{q ? "Không có nhân viên phù hợp." : "Chưa có nhân viên nào."}</p>
       ) : (
         <>
           <ul aria-label="Danh sách nhân viên" className={`${CARD} divide-border divide-y`}>
@@ -151,14 +165,26 @@ export function UserList() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`Đổi vai trò của ${user.fullName}`}
-                      onClick={() => setPanel({ id: user.id, kind: "roles" })}
-                    >
-                      Đổi vai trò
-                    </Button>
+                    {/* Không đổi vai trò của chính mình hay Super Admin khác (backend trả `CANNOT_MANAGE_USER`). */}
+                    {manageable && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Đổi vai trò của ${user.fullName}`}
+                        onClick={() => setPanel({ id: user.id, kind: "roles" })}
+                      >
+                        Đổi vai trò
+                      </Button>
+                    )}
+                    {manageable && user.isActive && (
+                      <ImpersonateButton
+                        account={user}
+                        onResult={(result) => {
+                          setNotice(result.ok ? result.message : null);
+                          setImpersonationError(result.ok ? null : result.message);
+                        }}
+                      />
+                    )}
                     {manageable && (
                       <>
                         <Button

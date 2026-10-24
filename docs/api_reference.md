@@ -514,10 +514,10 @@ Vai trò `marketing` đã có nhưng chưa có API nào dành cho nó; khách h�
 ```
 
 - `POST`: `roles` không rỗng, chỉ gồm vai trò nhân viên; mật khẩu 8–128 ký tự (mật khẩu tạm, nhân viên tự đổi qua `/auth/password/change`). Nhân viên mới phải bật 2FA ở lần đăng nhập đầu.
-- `PUT roles`: nhận mọi vai trò kể cả `customer`; Super Admin không tự gỡ `super_admin` của mình được.
+- `PUT roles`: nhận mọi vai trò kể cả `customer`; chỉ đổi được tài khoản dưới cấp (không phải chính mình, không phải Super Admin).
 - Đổi vai trò có hiệu lực từ lần refresh token kế tiếp của người đó (tối đa 15 phút).
 
-Lỗi: `EMAIL_TAKEN` (409), `USER_NOT_FOUND` (404), `CANNOT_REMOVE_OWN_ADMIN` (422), `VALIDATION_ERROR` (400, vai trò không hợp lệ).
+Lỗi: `EMAIL_TAKEN` (409), `USER_NOT_FOUND` (404), `CANNOT_MANAGE_USER` (422), `VALIDATION_ERROR` (400, vai trò không hợp lệ).
 
 ## Admin — Catalog
 
@@ -786,49 +786,49 @@ Mọi enum gửi và nhận dạng chuỗi snake\_case đúng như cột Giá tr
 
 FE rẽ nhánh theo `code` (ổn định), không theo `title` (có thể đổi câu chữ). Lỗi nghiệp vụ có `title` tiếng Việt hiển thị được cho khách; lỗi chung (nhóm đầu) nên dùng câu chữ của FE.
 
-| `code`                                     | HTTP      | Nhóm          | FE xử lý                                                                              |
-| ------------------------------------------ | --------- | ------------- | ------------------------------------------------------------------------------------- |
-| `VALIDATION_ERROR`                         | 400       | Chung         | Hiển thị lỗi theo từng field trong `errors`                                           |
-| `UNAUTHORIZED`                             | 401       | Chung         | Thử `/auth/refresh` một lần, thất bại thì về màn đăng nhập                            |
-| `FORBIDDEN`                                | 403       | Chung         | Không đủ quyền hoặc nhân viên chưa bật 2FA → màn bật 2FA nếu `requiresTwoFactorSetup` |
-| `NOT_FOUND`                                | 404       | Chung         | Trang 404 / thông báo không tìm thấy                                                  |
-| `METHOD_NOT_ALLOWED`                       | 405       | Chung         | Lỗi tích hợp (sai method)                                                             |
-| `CONFLICT`                                 | 409       | Chung         | Hiển thị `title`                                                                      |
-| `TOO_MANY_REQUESTS`                        | 429       | Chung         | Báo “thao tác quá nhanh”, chờ rồi thử lại                                             |
-| `INTERNAL_ERROR`                           | 500       | Chung         | Thông báo chung, hiển thị `traceId` để khách báo CSKH                                 |
-| `INVALID_CREDENTIALS`                      | 401       | Auth          | Sai email/mật khẩu; **không** gọi refresh                                             |
-| `ACCOUNT_LOCKED`                           | 423       | Auth          | Khóa 15 phút                                                                          |
-| `EMAIL_TAKEN`                              | 409       | Auth          | Gợi ý đăng nhập                                                                       |
-| `INVALID_REFRESH_TOKEN`                    | 401       | Auth          | Xóa phiên, về màn đăng nhập                                                           |
-| `TWO_FACTOR_TOKEN_INVALID`                 | 401       | Auth          | Quay lại bước nhập mật khẩu                                                           |
-| `OTP_INVALID`                              | 400       | Auth          | Mã 6 số sai, cho nhập lại                                                             |
-| `TWO_FACTOR_ALREADY_ENABLED`               | 409       | Auth          | Đã bật 2FA                                                                            |
-| `USER_NOT_FOUND`                           | 404       | Auth          | —                                                                                     |
-| `ROLE_INVALID` / `CANNOT_REMOVE_OWN_ADMIN` | 422       | Auth          | Hiển thị `title`                                                                      |
-| `IDENTITY_ERROR`                           | 422       | Auth          | Lỗi Identity hiếm gặp, hiển thị `title`                                               |
-| `SLUG_DUPLICATE` / `SLUG_INVALID`          | 409 / 422 | Catalog       | Báo ở field `slug`                                                                    |
-| `ISBN_DUPLICATE` / `ISBN_INVALID`          | 409 / 422 | Catalog       | Báo ở field `isbn`                                                                    |
-| `SKU_CODE_DUPLICATE` / `SKU_CODE_INVALID`  | 409 / 422 | Catalog       | Báo ở field `skuCode`                                                                 |
-| `SKU_COVER_DUPLICATE`                      | 409       | Catalog       | Ấn bản đã có SKU loại bìa này                                                         |
-| `PRICE_INVALID`                            | 422       | Catalog       | Báo ở field giá                                                                       |
-| `EDITION_NOT_FOUND`                        | 404       | Catalog       | —                                                                                     |
-| `CATEGORY_PARENT_INVALID`                  | 422       | Catalog       | Danh mục cha không hợp lệ                                                             |
-| `CATEGORY_HAS_CHILDREN`                    | 409       | Catalog       | Chuyển/xóa danh mục con trước                                                         |
-| `REFERENCE_NOT_FOUND`                      | 422       | Catalog, Kho  | Tải lại danh sách chọn (id đã bị xóa)                                                 |
-| `OUT_OF_STOCK`                             | 409       | Kho, Giỏ, Đơn | Báo hết hàng, tải lại giỏ                                                             |
-| `RECEIPT_NOT_DRAFT`                        | 409       | Kho           | Tải lại phiếu                                                                         |
-| `RECEIPT_SELF_APPROVAL`                    | 403       | Kho           | Cần người khác duyệt                                                                  |
-| `BATCH_CODE_DUPLICATE`                     | 409       | Kho           | Báo ở dòng có mã lô trùng                                                             |
-| `RECEIPT_EMPTY`                            | 422       | Kho           | Thêm dòng                                                                             |
-| `MAX_QTY_EXCEEDED`                         | 422       | Giỏ, Đơn      | > 20 cuốn/SKU → gợi ý báo giá sỉ                                                      |
-| `SKU_NOT_AVAILABLE`                        | 422       | Giỏ, Đơn      | Sách ngừng bán, xóa khỏi giỏ                                                          |
-| `CART_FULL`                                | 422       | Giỏ           | Đã 50 loại sách                                                                       |
-| `CART_EMPTY`                               | 422       | Đơn           | Về trang giỏ                                                                          |
-| `PAYMENT_METHOD_NOT_SUPPORTED`             | 422       | Đơn           | Chỉ cho chọn COD / chuyển khoản                                                       |
-| `IDEMPOTENCY_KEY_REUSED`                   | 409       | Đơn           | Sinh key mới rồi gửi lại                                                              |
-| `ORDER_NOT_CANCELLABLE`                    | 422       | Đơn           | Ẩn nút hủy, hướng dẫn liên hệ CSKH                                                    |
-| `ORDER_INVALID_TRANSITION`                 | 409       | Admin đơn     | Tải lại đơn (người khác vừa đổi), dựng lại nút từ `nextStatuses`                      |
-| `ORDER_NOT_PAID`                           | 422       | Admin đơn     | Không hoàn tiền đơn chưa thanh toán                                                   |
+| `code`                                    | HTTP      | Nhóm          | FE xử lý                                                                              |
+| ----------------------------------------- | --------- | ------------- | ------------------------------------------------------------------------------------- |
+| `VALIDATION_ERROR`                        | 400       | Chung         | Hiển thị lỗi theo từng field trong `errors`                                           |
+| `UNAUTHORIZED`                            | 401       | Chung         | Thử `/auth/refresh` một lần, thất bại thì về màn đăng nhập                            |
+| `FORBIDDEN`                               | 403       | Chung         | Không đủ quyền hoặc nhân viên chưa bật 2FA → màn bật 2FA nếu `requiresTwoFactorSetup` |
+| `NOT_FOUND`                               | 404       | Chung         | Trang 404 / thông báo không tìm thấy                                                  |
+| `METHOD_NOT_ALLOWED`                      | 405       | Chung         | Lỗi tích hợp (sai method)                                                             |
+| `CONFLICT`                                | 409       | Chung         | Hiển thị `title`                                                                      |
+| `TOO_MANY_REQUESTS`                       | 429       | Chung         | Báo “thao tác quá nhanh”, chờ rồi thử lại                                             |
+| `INTERNAL_ERROR`                          | 500       | Chung         | Thông báo chung, hiển thị `traceId` để khách báo CSKH                                 |
+| `INVALID_CREDENTIALS`                     | 401       | Auth          | Sai email/mật khẩu; **không** gọi refresh                                             |
+| `ACCOUNT_LOCKED`                          | 423       | Auth          | Khóa 15 phút                                                                          |
+| `EMAIL_TAKEN`                             | 409       | Auth          | Gợi ý đăng nhập                                                                       |
+| `INVALID_REFRESH_TOKEN`                   | 401       | Auth          | Xóa phiên, về màn đăng nhập                                                           |
+| `TWO_FACTOR_TOKEN_INVALID`                | 401       | Auth          | Quay lại bước nhập mật khẩu                                                           |
+| `OTP_INVALID`                             | 400       | Auth          | Mã 6 số sai, cho nhập lại                                                             |
+| `TWO_FACTOR_ALREADY_ENABLED`              | 409       | Auth          | Đã bật 2FA                                                                            |
+| `USER_NOT_FOUND`                          | 404       | Auth          | —                                                                                     |
+| `ROLE_INVALID` / `CANNOT_MANAGE_USER`     | 422       | Auth          | Hiển thị `title`                                                                      |
+| `IDENTITY_ERROR`                          | 422       | Auth          | Lỗi Identity hiếm gặp, hiển thị `title`                                               |
+| `SLUG_DUPLICATE` / `SLUG_INVALID`         | 409 / 422 | Catalog       | Báo ở field `slug`                                                                    |
+| `ISBN_DUPLICATE` / `ISBN_INVALID`         | 409 / 422 | Catalog       | Báo ở field `isbn`                                                                    |
+| `SKU_CODE_DUPLICATE` / `SKU_CODE_INVALID` | 409 / 422 | Catalog       | Báo ở field `skuCode`                                                                 |
+| `SKU_COVER_DUPLICATE`                     | 409       | Catalog       | Ấn bản đã có SKU loại bìa này                                                         |
+| `PRICE_INVALID`                           | 422       | Catalog       | Báo ở field giá                                                                       |
+| `EDITION_NOT_FOUND`                       | 404       | Catalog       | —                                                                                     |
+| `CATEGORY_PARENT_INVALID`                 | 422       | Catalog       | Danh mục cha không hợp lệ                                                             |
+| `CATEGORY_HAS_CHILDREN`                   | 409       | Catalog       | Chuyển/xóa danh mục con trước                                                         |
+| `REFERENCE_NOT_FOUND`                     | 422       | Catalog, Kho  | Tải lại danh sách chọn (id đã bị xóa)                                                 |
+| `OUT_OF_STOCK`                            | 409       | Kho, Giỏ, Đơn | Báo hết hàng, tải lại giỏ                                                             |
+| `RECEIPT_NOT_DRAFT`                       | 409       | Kho           | Tải lại phiếu                                                                         |
+| `RECEIPT_SELF_APPROVAL`                   | 403       | Kho           | Cần người khác duyệt                                                                  |
+| `BATCH_CODE_DUPLICATE`                    | 409       | Kho           | Báo ở dòng có mã lô trùng                                                             |
+| `RECEIPT_EMPTY`                           | 422       | Kho           | Thêm dòng                                                                             |
+| `MAX_QTY_EXCEEDED`                        | 422       | Giỏ, Đơn      | > 20 cuốn/SKU → gợi ý báo giá sỉ                                                      |
+| `SKU_NOT_AVAILABLE`                       | 422       | Giỏ, Đơn      | Sách ngừng bán, xóa khỏi giỏ                                                          |
+| `CART_FULL`                               | 422       | Giỏ           | Đã 50 loại sách                                                                       |
+| `CART_EMPTY`                              | 422       | Đơn           | Về trang giỏ                                                                          |
+| `PAYMENT_METHOD_NOT_SUPPORTED`            | 422       | Đơn           | Chỉ cho chọn COD / chuyển khoản                                                       |
+| `IDEMPOTENCY_KEY_REUSED`                  | 409       | Đơn           | Sinh key mới rồi gửi lại                                                              |
+| `ORDER_NOT_CANCELLABLE`                   | 422       | Đơn           | Ẩn nút hủy, hướng dẫn liên hệ CSKH                                                    |
+| `ORDER_INVALID_TRANSITION`                | 409       | Admin đơn     | Tải lại đơn (người khác vừa đổi), dựng lại nút từ `nextStatuses`                      |
+| `ORDER_NOT_PAID`                          | 422       | Admin đơn     | Không hoàn tiền đơn chưa thanh toán                                                   |
 
 ## Luồng gợi ý và việc chưa có
 

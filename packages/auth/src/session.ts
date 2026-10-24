@@ -21,12 +21,29 @@ export const authResponseSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number(),
   user: sessionUserSchema,
+  /** `admin`: Super Admin đăng nhập hộ (fast login). Response cũ chưa có field này coi là `portal`. */
+  loginVia: z.enum(["portal", "admin"]).default("portal"),
+  impersonatorId: z.number().nullish(),
 });
-export type AuthSession = z.infer<typeof authResponseSchema>;
+export type AuthSession = z.input<typeof authResponseSchema>;
 
-/** `unknown`: chưa kiểm tra cookie; `anonymous`: chưa đăng nhập; `authenticated`: đã có access token. */
+/** Phiên đăng nhập hộ: chỉ có access token (không refresh, không cookie), hết hạn ở `expiresAt` (epoch ms). */
+export interface Impersonation {
+  impersonatorId: number;
+  expiresAt: number;
+}
+
+/** `expired`: token đăng nhập hộ hết hạn hoặc bị từ chối (401); `exited`: admin bấm Thoát đăng nhập hộ. */
+export type ImpersonationEnd = "expired" | "exited";
+
+/**
+ * `unknown`: chưa kiểm tra cookie; `anonymous`: chưa đăng nhập (`impersonationEnded` khi tab vừa kết thúc đăng nhập
+ * hộ); `authenticated`: đã có access token (`impersonation` khi là phiên đăng nhập hộ).
+ */
 export type SessionState =
-  { status: "unknown" } | { status: "anonymous" } | { status: "authenticated"; user: SessionUser };
+  | { status: "unknown" }
+  | { status: "anonymous"; impersonationEnded?: ImpersonationEnd }
+  | { status: "authenticated"; user: SessionUser; impersonation?: Impersonation };
 
 const UNKNOWN: SessionState = { status: "unknown" };
 const ANONYMOUS: SessionState = { status: "anonymous" };
@@ -38,10 +55,24 @@ const ANONYMOUS: SessionState = { status: "anonymous" };
 const SESSION_HINT_KEY = "slvn:has-session";
 /** Refresh token xoay vòng: hai tab refresh cùng lúc bằng một cookie bị backend coi là dùng lại và thu hồi mọi phiên. */
 const REFRESH_LOCK = "slvn:auth-refresh";
+/**
+ * Phiên đăng nhập hộ lưu theo tab (`sessionStorage`) để giữ qua F5. Không dùng `localStorage` vì chia sẻ giữa các
+ * tab: tab của chính admin sẽ bị đổi sang danh tính người khác.
+ */
+const IMPERSONATION_KEY = "slvn:impersonation";
+
+const storedImpersonationSchema = z.object({
+  accessToken: z.string(),
+  expiresAt: z.number(),
+  impersonatorId: z.number(),
+  user: sessionUserSchema,
+});
+type StoredImpersonation = z.infer<typeof storedImpersonationSchema>;
 
 let state: SessionState = UNKNOWN;
 let accessToken: string | null = null;
 let refreshing: Promise<boolean> | null = null;
+let impersonationTimer: ReturnType<typeof setTimeout> | null = null;
 const listeners = new Set<() => void>();
 
 function setState(next: SessionState): void {
@@ -83,6 +114,76 @@ export function getSessionState(): SessionState {
 /** Server không biết phiên của khách nên luôn render như chưa kiểm tra. */
 export function getServerSessionState(): SessionState {
   return UNKNOWN;
+}
+
+function readImpersonation(): StoredImpersonation | null {
+  try {
+    const raw = sessionStorage.getItem(IMPERSONATION_KEY);
+    const parsed = raw === null ? null : storedImpersonationSchema.safeParse(JSON.parse(raw));
+    return parsed?.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeImpersonation(value: StoredImpersonation | null): void {
+  try {
+    if (value) {
+      sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(value));
+    } else {
+      sessionStorage.removeItem(IMPERSONATION_KEY);
+    }
+  } catch {
+    // Trình duyệt chặn storage: phiên đăng nhập hộ chỉ sống tới khi tải lại trang.
+  }
+}
+
+function activateImpersonation(stored: StoredImpersonation): void {
+  accessToken = stored.accessToken;
+  if (impersonationTimer) {
+    clearTimeout(impersonationTimer);
+  }
+  impersonationTimer = setTimeout(() => endImpersonation("expired"), Math.max(0, stored.expiresAt - Date.now()));
+  setState({
+    status: "authenticated",
+    user: stored.user,
+    impersonation: { impersonatorId: stored.impersonatorId, expiresAt: stored.expiresAt },
+  });
+}
+
+/** Tab hiện tại đang là phiên đăng nhập hộ: không được gọi `/auth/refresh` hay `/auth/logout` (cookie là của admin). */
+export function isImpersonating(): boolean {
+  return state.status === "authenticated" && state.impersonation !== undefined;
+}
+
+/**
+ * Bắt đầu phiên đăng nhập hộ trong tab này từ `AuthResponse` của `POST /admin/users/{id}/impersonate`. Không ghi
+ * cờ "đã đăng nhập" vào `localStorage` để tab khác (của chính admin) không bị ảnh hưởng.
+ */
+export function startImpersonation(response: unknown, now: number = Date.now()): void {
+  const session = authResponseSchema.parse(response);
+  if (session.loginVia !== "admin" || session.impersonatorId == null) {
+    throw new Error("Not an impersonation session");
+  }
+  const stored: StoredImpersonation = {
+    accessToken: session.accessToken,
+    expiresAt: now + session.expiresIn * 1000,
+    impersonatorId: session.impersonatorId,
+    user: session.user,
+  };
+  writeImpersonation(stored);
+  activateImpersonation(stored);
+}
+
+/** Kết thúc phiên đăng nhập hộ: chỉ xóa token ở tab này, không gọi API (token vẫn hợp lệ tới khi hết hạn). */
+export function endImpersonation(reason: ImpersonationEnd = "exited"): void {
+  if (impersonationTimer) {
+    clearTimeout(impersonationTimer);
+    impersonationTimer = null;
+  }
+  writeImpersonation(null);
+  accessToken = null;
+  setState({ status: "anonymous", impersonationEnded: reason });
 }
 
 /** Lưu access token vào bộ nhớ sau khi đăng nhập, bật 2FA hoặc refresh. */
@@ -131,6 +232,11 @@ async function authorizedFetch(request: Request): Promise<Response> {
   if (response.status !== 401 || new URL(request.url).pathname.startsWith("/api/v1/auth/")) {
     return response;
   }
+  if (isImpersonating()) {
+    // Phiên đăng nhập hộ không có refresh token: refresh sẽ trả phiên của chính admin (cookie trên trình duyệt).
+    endImpersonation("expired");
+    return response;
+  }
   return (await refreshSession()) ? globalThis.fetch(withAccessToken(retry)) : response;
 }
 
@@ -160,6 +266,10 @@ async function requestRefresh(): Promise<boolean> {
  * Mọi lời gọi cùng lúc dùng chung một request.
  */
 export function refreshSession(): Promise<boolean> {
+  if (isImpersonating()) {
+    endImpersonation("expired");
+    return Promise.resolve(false);
+  }
   refreshing ??= withRefreshLock(requestRefresh).finally(() => {
     refreshing = null;
   });
@@ -169,6 +279,15 @@ export function refreshSession(): Promise<boolean> {
 /** Khôi phục phiên khi tải trang. Chỉ gọi backend nếu trình duyệt này từng đăng nhập. */
 export function restoreSession(): void {
   if (state.status !== "unknown") {
+    return;
+  }
+  const impersonation = readImpersonation();
+  if (impersonation) {
+    if (impersonation.expiresAt > Date.now()) {
+      activateImpersonation(impersonation);
+    } else {
+      endImpersonation("expired");
+    }
     return;
   }
   if (!readHint()) {
@@ -184,6 +303,10 @@ export function restoreSession(): void {
  * khách thử lại, tránh hiện "đã đăng xuất" trong khi cookie vẫn còn (máy dùng chung).
  */
 export async function logout(): Promise<void> {
+  if (isImpersonating()) {
+    endImpersonation("exited");
+    return;
+  }
   try {
     await unwrap(authApi().POST("/api/v1/auth/logout"));
   } catch (error) {

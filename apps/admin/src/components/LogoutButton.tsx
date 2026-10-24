@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { LogOut } from "lucide-react";
-import { logout } from "@slvn/auth";
+import { getServerSessionState, getSessionState, logout, subscribeSession } from "@slvn/auth";
 import { cn } from "@slvn/ui";
 
 const LOGOUT_ERROR = "Chưa đăng xuất được, vui lòng thử lại.";
@@ -17,6 +17,9 @@ export interface LogoutButtonProps {
 export function LogoutButton({ className, errorClassName = "text-danger" }: LogoutButtonProps) {
   const [loggingOut, setLoggingOut] = useState(false);
   const [failed, setFailed] = useState(false);
+  // Tab đăng nhập hộ: `logout` chỉ xóa token ở tab này, không gọi `/auth/logout` (sẽ đăng xuất chính admin).
+  const session = useSyncExternalStore(subscribeSession, getSessionState, getServerSessionState);
+  const impersonating = session.status === "authenticated" && session.impersonation !== undefined;
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -43,7 +46,7 @@ export function LogoutButton({ className, errorClassName = "text-danger" }: Logo
         )}
       >
         <LogOut size={18} aria-hidden="true" />
-        {loggingOut ? "Đang đăng xuất…" : "Đăng xuất"}
+        {loggingOut ? "Đang đăng xuất…" : impersonating ? "Thoát đăng nhập hộ" : "Đăng xuất"}
       </button>
       {failed && (
         <p role="alert" className={cn("text-sm", errorClassName)}>

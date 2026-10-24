@@ -71,7 +71,7 @@ describe("LoginForm (admin)", () => {
     await submitCredentials(user);
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/kho"));
-    expect(body).toEqual({ email: "kho@sachluat.vn", password: "mat-khau-dung", rememberMe: false });
+    expect(body).toEqual({ email: "kho@sachluat.vn", password: "mat-khau-dung", rememberMe: false, portal: "admin" });
   });
 
   it("đưa nhân viên chưa bật 2FA sang màn bật 2FA", async () => {

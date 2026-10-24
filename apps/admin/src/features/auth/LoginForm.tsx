@@ -61,7 +61,7 @@ export function LoginForm() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const result = await login(values);
+      const result = await login(values, "admin");
       if (result.status === "two-factor") {
         setTwoFactorToken(result.twoFactorToken);
         return;

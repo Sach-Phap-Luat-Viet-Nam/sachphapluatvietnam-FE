@@ -21,6 +21,39 @@ export const staffPageSchema = z.object({
 });
 export type StaffPage = z.infer<typeof staffPageSchema>;
 
+export const customerUserSchema = staffUserSchema.extend({
+  phoneNumber: z.string().nullable(),
+  birthDate: z.string().nullable(),
+  occupation: z.string().nullable(),
+});
+export type CustomerUser = z.infer<typeof customerUserSchema>;
+
+export const customerPageSchema = z.object({
+  items: z.array(customerUserSchema),
+  meta: z.object({ page: z.number(), limit: z.number(), total: z.number() }),
+});
+export type CustomerPage = z.infer<typeof customerPageSchema>;
+
+const addressSchema = z.object({
+  id: z.number(),
+  recipientName: z.string(),
+  phone: z.string(),
+  province: z.string(),
+  ward: z.string(),
+  streetAddress: z.string(),
+  isDefault: z.boolean(),
+});
+
+/** `AdminCustomerResponse`: tài khoản, sổ địa chỉ (mặc định đứng đầu), thông tin hóa đơn (null khi chưa lưu). */
+export const customerDetailSchema = z.object({
+  account: customerUserSchema,
+  addresses: z.array(addressSchema),
+  invoiceInfo: z
+    .object({ companyName: z.string(), taxCode: z.string(), address: z.string(), email: z.string() })
+    .nullable(),
+});
+export type CustomerDetail = z.infer<typeof customerDetailSchema>;
+
 export const logoutResultSchema = z.object({ revokedSessions: z.number() });
 
 const PASSWORD_MIN = 8;

@@ -1,20 +1,43 @@
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
-import { logoutResultSchema, staffPageSchema, staffUserSchema } from "./schemas";
-import type { StaffPage, StaffUser } from "./schemas";
+import {
+  customerDetailSchema,
+  customerPageSchema,
+  logoutResultSchema,
+  staffPageSchema,
+  staffUserSchema,
+} from "./schemas";
+import type { CustomerDetail, CustomerPage, StaffPage, StaffUser } from "./schemas";
 import type { toCreateStaffBody } from "./user-forms";
 
 // API Admin người dùng (docs/features/auth.md của backend), policy `users_admin`: chỉ `super_admin`, bắt buộc 2FA.
-// Các route sau `/roles` chưa có trong OpenAPI đã sinh (khai báo ở packages/api-client/src/pending-paths.ts).
 
 export const STAFF_PAGE_SIZE = 20;
 
-/** Danh sách nhân viên (tài khoản có ít nhất một vai trò nhân viên). */
-export async function fetchStaff(page: number): Promise<StaffPage> {
+/** Danh sách nhân viên (tài khoản có ít nhất một vai trò nhân viên). `q` tìm trong email, họ tên, số điện thoại. */
+export async function fetchStaff(page: number, q = ""): Promise<StaffPage> {
   const data = await unwrap(
-    browserApi().GET("/api/v1/admin/users", { params: { query: { Page: page, Limit: STAFF_PAGE_SIZE } } }),
+    browserApi().GET("/api/v1/admin/users", {
+      params: { query: { Q: q || undefined, Page: page, Limit: STAFF_PAGE_SIZE } },
+    }),
   );
   return staffPageSchema.parse(data);
+}
+
+/** Khách hàng (vai trò `customer`), mới đăng ký trước. */
+export async function fetchCustomers(page: number, q = ""): Promise<CustomerPage> {
+  const data = await unwrap(
+    browserApi().GET("/api/v1/admin/customers", {
+      params: { query: { Q: q || undefined, Page: page, Limit: STAFF_PAGE_SIZE } },
+    }),
+  );
+  return customerPageSchema.parse(data);
+}
+
+/** Chi tiết khách: tài khoản, sổ địa chỉ, thông tin hóa đơn. Id không phải khách hàng → `USER_NOT_FOUND`. */
+export async function fetchCustomer(id: number): Promise<CustomerDetail> {
+  const data = await unwrap(browserApi().GET("/api/v1/admin/customers/{id}", { params: { path: { id } } }));
+  return customerDetailSchema.parse(data);
 }
 
 export async function createStaff(body: ReturnType<typeof toCreateStaffBody>): Promise<StaffUser> {
@@ -48,7 +71,18 @@ export async function logoutEverywhere(id: number): Promise<number> {
   return logoutResultSchema.parse(data).revokedSessions;
 }
 
+/** `AuthResponse` của tài khoản đích (`loginVia: "admin"`), chưa parse: tab đăng nhập hộ tự kiểm tra. */
+export async function impersonate(id: number): Promise<unknown> {
+  return unwrap(browserApi().POST("/api/v1/admin/users/{id}/impersonate", { params: { path: { id } } }));
+}
+
 export const staffKeys = {
   lists: ["staff"] as const,
-  list: (page: number) => ["staff", "list", page] as const,
+  list: (page: number, q = "") => ["staff", "list", page, q] as const,
+};
+
+export const customerKeys = {
+  all: ["customers"] as const,
+  list: (page: number, q: string) => ["customers", "list", page, q] as const,
+  detail: (id: number) => ["customers", "detail", id] as const,
 };

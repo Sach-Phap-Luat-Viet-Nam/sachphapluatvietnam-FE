@@ -157,13 +157,13 @@ Khi `loginVia === "admin"`, mọi trang của tab vào hộ phải hiện một 
 - Chưa có nhật ký thao tác xem được trên giao diện. Backend mới ghi log mỗi lần vào hộ (id admin, id tài khoản đích).
 - Không vào hộ lồng nhau được: phiên vào hộ không có vai trò `super_admin` nên API impersonate trả `403`.
 
-Checklist cho FE:
+Checklist cho FE (đã làm, xem `admin-users.md`; trang nhận phiên đặt tên `/dang-nhap-ho` thay cho `/impersonate`):
 
-- [ ] Thêm `loginVia`, `impersonatorId` vào type `AuthResponse`
-- [ ] Admin: nút "Đăng nhập hộ" kèm hộp xác nhận, chỉ hiện đúng điều kiện
-- [ ] Trang `/impersonate` ở cả Storefront và Admin: đọc fragment, xóa fragment, lưu token theo tab
-- [ ] Tab vào hộ không gọi `/auth/refresh` và `/auth/logout`
-- [ ] Banner cố định, đồng hồ đếm ngược, tiền tố tiêu đề tab
-- [ ] Xử lý `401` và hết hạn: xóa token, báo hết phiên
-- [ ] Hiển thị lỗi theo `code`: `USER_NOT_FOUND`, `CANNOT_IMPERSONATE`, `FORBIDDEN`
-- [ ] Kiểm tra proxy Next.js giữ nguyên header `Authorization`
+- [x] Thêm `loginVia`, `impersonatorId` vào type `AuthResponse`
+- [x] Admin: nút "Đăng nhập hộ" kèm hộp xác nhận, chỉ hiện đúng điều kiện
+- [x] Trang `/impersonate` ở cả Storefront và Admin: đọc fragment, xóa fragment, lưu token theo tab
+- [x] Tab vào hộ không gọi `/auth/refresh` và `/auth/logout`
+- [x] Banner cố định, đồng hồ đếm ngược, tiền tố tiêu đề tab
+- [x] Xử lý `401` và hết hạn: xóa token, báo hết phiên
+- [x] Hiển thị lỗi theo `code`: `USER_NOT_FOUND`, `CANNOT_IMPERSONATE`, `FORBIDDEN`
+- [x] Kiểm tra proxy Next.js giữ nguyên header `Authorization`

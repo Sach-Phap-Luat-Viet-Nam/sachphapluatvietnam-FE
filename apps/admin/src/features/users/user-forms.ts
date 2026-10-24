@@ -29,7 +29,7 @@ export function toSetRolesBody(user: Pick<StaffUser, "roles">, staffRoles: reado
   return { roles: [...user.roles.filter((role) => !isStaffRole(role)), ...staffRoles] };
 }
 
-/** Super Admin không bị đổi mật khẩu, vô hiệu hóa hay bị chính mình thao tác (backend trả `CANNOT_MANAGE_USER`). */
+/** Chỉ thao tác tài khoản dưới cấp: không phải chính mình, không phải Super Admin (backend trả `CANNOT_MANAGE_USER`). */
 export function canManage(user: Pick<StaffUser, "id" | "roles">, currentUserId: number): boolean {
   return user.id !== currentUserId && !user.roles.includes("super_admin");
 }

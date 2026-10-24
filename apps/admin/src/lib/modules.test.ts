@@ -4,7 +4,15 @@ const ids = (roles: string[]) => modulesForRoles(roles).map((module) => module.i
 
 describe("modulesForRoles", () => {
   it("Super Admin thấy mọi phần", () => {
-    expect(ids(["super_admin"])).toEqual(["overview", "catalog", "content", "inventory", "orders", "users"]);
+    expect(ids(["super_admin"])).toEqual([
+      "overview",
+      "catalog",
+      "content",
+      "inventory",
+      "orders",
+      "users",
+      "customers",
+    ]);
   });
 
   it("theo đúng bảng phân quyền của từng vai trò", () => {

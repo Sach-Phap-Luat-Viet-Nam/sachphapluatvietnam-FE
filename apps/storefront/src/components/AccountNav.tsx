@@ -71,7 +71,10 @@ export function AccountNav() {
         className="link-underline text-mist hover:text-gold flex min-h-11 items-center gap-2 disabled:opacity-60 max-sm:w-10 max-sm:justify-center"
       >
         <LogOut size={18} strokeWidth={1.6} />
-        <span className="max-sm:sr-only">{loggingOut ? "Đang đăng xuất…" : "Đăng xuất"}</span>
+        {/* Tab đăng nhập hộ: `logout` chỉ xóa token ở tab này, không gọi `/auth/logout`. */}
+        <span className="max-sm:sr-only">
+          {loggingOut ? "Đang đăng xuất…" : session.impersonation ? "Thoát đăng nhập hộ" : "Đăng xuất"}
+        </span>
       </button>
       {logoutFailed && (
         <p role="alert" className="text-danger w-full text-sm">

@@ -3,6 +3,8 @@ import { isApiError } from "@slvn/api-client";
 const MESSAGES_BY_CODE: Record<string, string> = {
   INVALID_CREDENTIALS: "Email hoặc mật khẩu không đúng.",
   ACCOUNT_LOCKED: "Tài khoản tạm khóa 15 phút do nhập sai nhiều lần. Anh/chị vui lòng thử lại sau.",
+  ACCOUNT_DISABLED: "Tài khoản đã bị khóa. Anh/chị vui lòng liên hệ quản trị viên.",
+  SUPER_ADMIN_PORTAL_FORBIDDEN: "Tài khoản Super Admin chỉ đăng nhập ở trang quản trị.",
   OTP_INVALID: "Mã xác thực không đúng. Anh/chị vui lòng nhập lại.",
   TWO_FACTOR_TOKEN_INVALID: "Phiên xác thực đã hết 5 phút. Anh/chị vui lòng đăng nhập lại.",
 };

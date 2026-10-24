@@ -84,7 +84,7 @@ describe("UserList", () => {
 
     const self = await rowOf("Quản trị viên");
     expect(within(self).getByText("Bạn")).toBeVisible();
-    expect(within(self).getByRole("button", { name: /Đổi vai trò/ })).toBeVisible();
+    expect(within(self).queryByRole("button", { name: /Đổi vai trò/ })).not.toBeInTheDocument();
     expect(within(self).queryByRole("button", { name: /Đặt mật khẩu/ })).not.toBeInTheDocument();
     expect(within(self).queryByRole("button", { name: "Vô hiệu hóa" })).not.toBeInTheDocument();
     expect(within(self).queryByRole("button", { name: "Đăng xuất hộ" })).not.toBeInTheDocument();
@@ -242,6 +242,34 @@ describe("UserList", () => {
     await user.click(within(row).getByRole("button", { name: "Vô hiệu hóa" }));
     await user.click(within(row).getByRole("button", { name: "Vô hiệu hóa" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Không thể đổi mật khẩu hoặc trạng thái");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không thể đổi vai trò, mật khẩu hoặc trạng thái");
+  });
+
+  it("tìm nhân viên theo từ khóa", async () => {
+    let query: URLSearchParams | null = null;
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/users`, ({ request }) => {
+        query = new URL(request.url).searchParams;
+        return HttpResponse.json({ items: [ADMIN, KEEPER], meta: { page: 1, limit: 20, total: 2 } });
+      }),
+    );
+    const user = userEvent.setup();
+    renderList();
+
+    await rowOf("Thủ kho");
+    await user.type(screen.getByLabelText("Email, họ tên hoặc số điện thoại"), " kho ");
+    await user.click(screen.getByRole("button", { name: "Tìm" }));
+
+    await vi.waitFor(() => expect(query?.get("Q")).toBe("kho"));
+  });
+
+  it("có nút đăng nhập hộ với nhân viên dưới cấp đang hoạt động", async () => {
+    useUsers([ADMIN, KEEPER]);
+    renderList();
+
+    expect(within(await rowOf("Thủ kho")).getByRole("button", { name: "Đăng nhập hộ" })).toBeVisible();
+    expect(
+      within(await rowOf("Quản trị viên")).queryByRole("button", { name: "Đăng nhập hộ" }),
+    ).not.toBeInTheDocument();
   });
 });
