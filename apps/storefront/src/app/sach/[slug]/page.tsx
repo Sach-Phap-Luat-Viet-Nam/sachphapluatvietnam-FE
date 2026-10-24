@@ -24,7 +24,7 @@ import {
 } from "@/features/catalog/book-detail";
 import { bookTypeLabel, param } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
-import { descriptionText, sanitizeDescription } from "@/features/catalog/description";
+import { descriptionText, formatRichText } from "@/features/catalog/description";
 import { AddToCartForm } from "@/features/ordering/AddToCartForm";
 
 interface BookPageProps {
@@ -34,7 +34,7 @@ interface BookPageProps {
 
 /** Kiểu chữ cho HTML mô tả đã lọc (chỉ còn p, ul/ol, h2–h4, strong/em, blockquote, a). */
 const DESCRIPTION_CLASS =
-  "text-sand max-w-3xl leading-8 [&_a]:text-gold [&_a]:underline [&_blockquote]:border-gold/40 [&_blockquote]:mt-4 [&_blockquote]:border-l [&_blockquote]:pl-5 [&_blockquote]:italic [&_h2]:font-editorial [&_h2]:text-ivory [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-ivory [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h4]:text-ivory [&_h4]:mt-5 [&_h4]:font-semibold [&_li]:mt-1.5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-4 [&_p:first-child]:mt-0 [&_strong]:text-ivory [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6";
+  "text-sand max-w-3xl leading-8 [&_a]:text-gold [&_a]:underline [&_blockquote]:border-gold/40 [&_blockquote]:mt-4 [&_blockquote]:border-l [&_blockquote]:pl-5 [&_blockquote]:italic [&_h2]:font-editorial [&_h2]:text-ivory [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-ivory [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h4]:text-ivory [&_h4]:mt-5 [&_h4]:font-semibold [&_hr]:border-gold/20 [&_hr]:my-6 [&_li]:mt-1.5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-4 [&_p:first-child]:mt-0 [&_strong]:text-ivory [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6";
 
 export async function generateMetadata({ params, searchParams }: BookPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -74,7 +74,8 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
   const latest = latestEdition(book);
   const newer = !edition.isLatest && latest && latest.id !== edition.id ? latest : null;
   const purchase = purchaseState(edition);
-  const description = sanitizeDescription(book.description);
+  const description = formatRichText(book.description);
+  const tableOfContents = formatRichText(edition.tableOfContents);
   const facts = publishingFacts(edition);
   const preview = safePreviewUrl(edition.previewFileUrl);
   const category = book.categories[0];
@@ -161,6 +162,19 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
               </p>
             )}
             {audiences && <p className="text-mist mt-2 text-sm">Dành cho: {audiences}</p>}
+            {book.categories.length > 0 && (
+              <p className="text-mist mt-1 flex flex-wrap gap-x-2 text-sm">
+                Danh mục:
+                {book.categories.map((item, index) => (
+                  <span key={item.id}>
+                    <Link href={`/sach?category=${encodeURIComponent(item.slug)}`} className="link-underline text-sand">
+                      {item.name}
+                    </Link>
+                    {index < book.categories.length - 1 && ","}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
 
           {book.editions.length > 1 && (
@@ -198,7 +212,9 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
                     label: coverTypeLabel(sku.coverType),
                     salePrice: sku.salePrice,
                     listPrice: sku.listPrice,
+                    regularSalePrice: sku.regularSalePrice ?? null,
                     discountPercent: sku.discountPercent,
+                    saleEndsAt: sku.saleEndsAt ?? null,
                     inStock: sku.inStock,
                   }))}
                   newerEdition={newer && { name: editionLabel(newer), href: editionHref(book.slug, newer) }}
@@ -246,21 +262,21 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
         </div>
       </Container>
 
-      {(description || edition.tableOfContents) && (
+      {(description || tableOfContents) && (
         <Container className="flex flex-col gap-10 pb-12">
           {description && (
             <section aria-labelledby="gioi-thieu">
               <h2 id="gioi-thieu" className="font-editorial text-3xl font-bold">
                 Giới thiệu sách
               </h2>
-              {/* HTML do Admin nhập, đã lọc bằng sanitize-html trên server (features/catalog/description.ts). */}
+              {/* Admin nhập HTML hoặc chữ thuần, đã chuyển và lọc bằng sanitize-html trên server (description.ts). */}
               <div className={cn(DESCRIPTION_CLASS, "mt-5")} dangerouslySetInnerHTML={{ __html: description }} />
             </section>
           )}
-          {edition.tableOfContents && (
+          {tableOfContents && (
             <details className="border-gold/30 max-w-3xl border px-6 py-5">
               <summary className="font-editorial text-2xl font-bold">Mục lục</summary>
-              <p className="text-sand mt-4 leading-8 whitespace-pre-line">{edition.tableOfContents}</p>
+              <div className={cn(DESCRIPTION_CLASS, "mt-4")} dangerouslySetInnerHTML={{ __html: tableOfContents }} />
             </details>
           )}
         </Container>

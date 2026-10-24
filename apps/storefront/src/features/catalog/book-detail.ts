@@ -1,4 +1,4 @@
-import { formatDate } from "@slvn/utils";
+import { formatDate, vnDateKey } from "@slvn/utils";
 import type { BookDetail, Edition } from "./schemas";
 
 /** Query chọn ấn bản trên trang chi tiết: `/sach/<slug>?an-ban=<id>` (docs/api_reference.md, mục Catalog). */
@@ -101,6 +101,11 @@ export function safePreviewUrl(url: string | null): string | null {
 
 const SCHEMA = "https://schema.org";
 
+function saleEndDate(saleEndsAt: string): string | undefined {
+  const date = new Date(saleEndsAt);
+  return Number.isNaN(date.getTime()) ? undefined : vnDateKey(date);
+}
+
 function offerAvailability(edition: Edition, inStock: boolean): string {
   if (edition.status === "discontinued") return `${SCHEMA}/Discontinued`;
   return purchaseState(edition).buyable && inStock ? `${SCHEMA}/InStock` : `${SCHEMA}/OutOfStock`;
@@ -143,6 +148,8 @@ export function bookJsonLd(book: BookDetail, edition: Edition, description: stri
           sku: sku.skuCode,
           price: sku.salePrice,
           priceCurrency: "VND",
+          // Giá khuyến mãi hẹn giờ: báo ngày hết hạn (theo giờ Việt Nam) để công cụ tìm kiếm không hiện giá cũ.
+          priceValidUntil: sku.saleEndsAt ? saleEndDate(sku.saleEndsAt) : undefined,
           availability: offerAvailability(edition, sku.inStock),
           itemCondition: `${SCHEMA}/NewCondition`,
           url: editionHref(book.slug, edition),

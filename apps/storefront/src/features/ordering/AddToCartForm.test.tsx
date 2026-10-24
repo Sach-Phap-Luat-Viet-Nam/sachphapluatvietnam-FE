@@ -15,7 +15,9 @@ const PAPERBACK: PurchaseOption = {
   label: "Bìa mềm",
   salePrice: 150000,
   listPrice: 200000,
+  regularSalePrice: null,
   discountPercent: 25,
+  saleEndsAt: null,
   inStock: true,
 };
 const HARDCOVER: PurchaseOption = { ...PAPERBACK, skuId: 101, label: "Bìa cứng", salePrice: 250000, listPrice: 250000 };
@@ -119,6 +121,42 @@ describe("AddToCartForm", () => {
   it("disables buying a cover that is out of stock", () => {
     renderForm(<AddToCartForm options={[{ ...PAPERBACK, inStock: false }]} newerEdition={null} />);
     expect(screen.getByRole("button", { name: "Tạm hết hàng" })).toBeDisabled();
+  });
+
+  it("shows the regular price and when a timed promotion ends", () => {
+    renderForm(
+      <AddToCartForm
+        options={[
+          {
+            ...PAPERBACK,
+            listPrice: 250000,
+            regularSalePrice: 199000,
+            salePrice: 150000,
+            discountPercent: 40,
+            saleEndsAt: "2026-11-08T00:00:00Z",
+          },
+        ]}
+        newerEdition={null}
+      />,
+    );
+    expect(screen.getByText("150.000 ₫", { selector: "span.text-3xl" })).toBeVisible();
+    expect(screen.getByText("-40%")).toBeVisible();
+    expect(screen.getByText(/Giá thường 199.000 ₫/)).toBeVisible();
+    // 00:00 UTC là 07:00 giờ Việt Nam.
+    const saleEnds = screen.getByText(/^Giá ưu đãi đến/);
+    expect(saleEnds).toHaveTextContent("08/11/2026");
+    expect(saleEnds).toHaveTextContent("07:00");
+  });
+
+  it("hides promotion details when the price is the regular one", () => {
+    renderForm(
+      <AddToCartForm
+        options={[{ ...PAPERBACK, listPrice: 395000, salePrice: 395000, regularSalePrice: 395000, discountPercent: 0 }]}
+        newerEdition={null}
+      />,
+    );
+    expect(screen.queryByText(/Giá thường/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Giá ưu đãi đến/)).not.toBeInTheDocument();
   });
 
   it("keeps the quantity between 1 and 20", async () => {

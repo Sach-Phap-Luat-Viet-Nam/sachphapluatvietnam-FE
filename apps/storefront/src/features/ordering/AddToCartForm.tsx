@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Check, Minus, Plus, X } from "lucide-react";
 import { cn } from "@slvn/ui";
-import { formatDiscount, formatPrice } from "@slvn/utils";
+import { formatDateTime, formatDiscount, formatPrice } from "@slvn/utils";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { MAX_QUANTITY_PER_SKU } from "./cart";
 import { orderingErrorMessage } from "./errors";
@@ -15,9 +15,15 @@ export interface PurchaseOption {
   skuId: number;
   /** Loại bìa đã dịch, ví dụ "Bìa mềm". */
   label: string;
+  /** Giá đang áp dụng (đã gồm khuyến mãi). */
   salePrice: number;
+  /** Giá bìa. */
   listPrice: number;
+  /** Giá bán thường khi hết khuyến mãi, `null` khi không có. */
+  regularSalePrice: number | null;
   discountPercent: number | null;
+  /** Hạn khuyến mãi (ISO UTC), `null` khi không hẹn giờ. */
+  saleEndsAt: string | null;
   inStock: boolean;
 }
 
@@ -43,6 +49,11 @@ export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
   const selected = options.find((option) => option.skuId === skuId);
   if (!selected) return null;
   const discount = formatDiscount(selected.discountPercent);
+  // Giá thường chỉ hiện khi đang khuyến mãi và khác giá bìa (giá bìa đã gạch ngang ở trên).
+  const regular = selected.regularSalePrice;
+  const regularPrice =
+    regular !== null && regular > selected.salePrice && regular !== selected.listPrice ? regular : null;
+  const saleEnds = formatDateTime(selected.saleEndsAt);
 
   const add = () => {
     confirm.current?.close();
@@ -70,12 +81,24 @@ export function AddToCartForm({ options, newerEdition }: AddToCartFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-gold-pale text-3xl font-semibold">{formatPrice(selected.salePrice)}</span>
-        {selected.listPrice > selected.salePrice && (
-          <span className="text-mist line-through">{formatPrice(selected.listPrice)}</span>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-gold-pale text-3xl font-semibold">{formatPrice(selected.salePrice)}</span>
+          {selected.listPrice > selected.salePrice && (
+            <span className="text-mist line-through">
+              <span className="sr-only">Giá bìa </span>
+              {formatPrice(selected.listPrice)}
+            </span>
+          )}
+          {discount && <span className="bg-burgundy text-ivory px-2 py-0.5 text-sm">{discount}</span>}
+        </div>
+        {(regularPrice !== null || saleEnds) && (
+          <p className="text-sand text-sm">
+            {regularPrice !== null && <>Giá thường {formatPrice(regularPrice)}</>}
+            {regularPrice !== null && saleEnds && " · "}
+            {saleEnds && <span className="text-upcoming">Giá ưu đãi đến {saleEnds}</span>}
+          </p>
         )}
-        {discount && <span className="bg-burgundy text-ivory px-2 py-0.5 text-sm">{discount}</span>}
       </div>
 
       {options.length > 1 && (

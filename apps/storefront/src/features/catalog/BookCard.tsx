@@ -4,7 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, X } from "lucide-react";
 import { cn } from "@slvn/ui";
-import { formatDiscount, formatPrice } from "@slvn/utils";
+import { formatDateTime, formatDiscount, formatPrice } from "@slvn/utils";
 import { bookPath } from "./book-detail";
 import { availability, bookTypeLabel } from "./catalog";
 import type { AvailabilityTone } from "./catalog";
@@ -38,6 +38,7 @@ function BookPrice({ book }: Pick<BookCardProps, "book">) {
 export function BookCard({ book, index }: BookCardProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const discount = formatDiscount(book.discountPercent);
+  const saleEnds = formatDateTime(book.saleEndsAt);
   const status = availability(book);
   const isUpcoming = status.tone === "upcoming";
   const badge = discount ? `Giảm ${discount.slice(1)}` : isUpcoming ? status.label : null;
@@ -144,6 +145,7 @@ export function BookCard({ book, index }: BookCardProps) {
               <BookPrice book={book} />
               <span className={cn("text-sm", TONE_CLASSES[status.tone])}>{status.label}</span>
             </div>
+            {saleEnds && <p className="text-upcoming mt-2 text-sm">Giá ưu đãi đến {saleEnds}</p>}
             <Link
               href={bookPath(book.slug)}
               className="btn-sweep bg-gold text-ink mt-6 flex min-h-12 items-center justify-center gap-2.5 px-6 font-semibold"

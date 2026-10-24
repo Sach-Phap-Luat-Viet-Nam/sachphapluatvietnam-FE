@@ -16,6 +16,8 @@ export const bookSummarySchema = z.object({
   salePrice: z.number().nullable(),
   listPrice: z.number().nullable(),
   discountPercent: z.number().nullable(),
+  /** Thời điểm hết khuyến mãi của giá đang hiện (UTC). */
+  saleEndsAt: z.string().nullish(),
   inStock: z.boolean(),
 });
 export type BookSummary = z.infer<typeof bookSummarySchema>;
@@ -32,9 +34,16 @@ export const skuSchema = z.object({
   id: z.number(),
   skuCode: z.string(),
   coverType: z.string(),
+  /** Giá bìa. */
   listPrice: z.number(),
+  /** Giá đang áp dụng (đã gồm khuyến mãi nếu có). */
   salePrice: z.number(),
+  /** Giá bán thường khi không có khuyến mãi; bằng `salePrice` nếu không khuyến mãi. */
+  regularSalePrice: z.number().nullish(),
+  /** `salePrice` so với giá bìa. */
   discountPercent: z.number().nullable(),
+  /** Thời điểm hết khuyến mãi (UTC), `null` khi không có khuyến mãi hẹn giờ. */
+  saleEndsAt: z.string().nullish(),
   allowPreorder: z.boolean(),
   inStock: z.boolean(),
 });

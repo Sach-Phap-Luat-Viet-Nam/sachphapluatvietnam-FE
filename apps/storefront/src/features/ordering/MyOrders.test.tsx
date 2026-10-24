@@ -53,11 +53,11 @@ afterAll(() => server.close());
 describe("MyOrders", () => {
   it("lists the member's orders with the access token", async () => {
     let authorization: string | null = null;
-    let query: URLSearchParams | null = null;
+    let requestedPage: string | null = null;
     server.use(
       http.get(`${ORIGIN}/api/v1/orders`, ({ request }) => {
         authorization = request.headers.get("Authorization");
-        query = new URL(request.url).searchParams;
+        requestedPage = new URL(request.url).searchParams.get("Page");
         return HttpResponse.json({
           items: [summary("SLVN2610230002", "shipping"), summary("SLVN2610230001", "cancelled")],
           meta: { page: 2, limit: 10, total: 25 },
@@ -74,7 +74,7 @@ describe("MyOrders", () => {
     expect(first).toHaveTextContent("3 cuốn · COD");
     expect(screen.getByRole("link", { name: /SLVN2610230001/ })).toHaveTextContent("Đã hủy");
     expect(authorization).toBe("Bearer token-1");
-    expect(query?.get("Page")).toBe("2");
+    expect(requestedPage).toBe("2");
 
     const pagination = screen.getByRole("navigation", { name: "Phân trang đơn hàng" });
     expect(pagination).toHaveTextContent("Trang 2/3");

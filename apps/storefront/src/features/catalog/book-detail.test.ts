@@ -163,6 +163,15 @@ describe("bookJsonLd", () => {
     ]);
   });
 
+  it("adds priceValidUntil for timed promotions in Vietnam time", () => {
+    const promo = edition({
+      skus: edition().skus.map((sku) => ({ ...sku, saleEndsAt: "2026-11-07T18:00:00Z" })),
+    });
+    // 18:00 UTC ngày 07/11 là 01:00 ngày 08/11 giờ Việt Nam.
+    expect(JSON.stringify(bookJsonLd(book([promo]), promo, ""))).toContain('"priceValidUntil":"2026-11-08"');
+    expect(JSON.stringify(bookJsonLd(book([edition()]), edition(), ""))).not.toContain("priceValidUntil");
+  });
+
   it("marks out-of-stock and discontinued offers", () => {
     const soldOut = edition({ skus: edition().skus.map((sku) => ({ ...sku, inStock: false })) });
     expect(JSON.stringify(bookJsonLd(book([soldOut]), soldOut, ""))).toContain("https://schema.org/OutOfStock");
