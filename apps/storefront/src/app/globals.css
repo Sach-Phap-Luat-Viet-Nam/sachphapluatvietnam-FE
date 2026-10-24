@@ -72,6 +72,10 @@
   ::selection {
     @apply bg-gold text-ink;
   }
+  /* Playfair mặc định dùng số old-style (cao thấp lệch nhau); mã đơn, giá tiền, ngày cần số thẳng hàng. */
+  .font-editorial {
+    font-variant-numeric: lining-nums;
+  }
 }
 
 /*
