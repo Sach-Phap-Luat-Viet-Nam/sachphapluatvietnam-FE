@@ -4,21 +4,32 @@ import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Banknote, BookCheck, Truck, X } from "lucide-react";
 import { cn } from "@slvn/ui";
+import { freeShippingText } from "@/features/ordering/shipping-threshold";
 
-// Chỉ nêu điều đã có trong hệ thống: phí ship và thanh toán (BR-14), nhãn "Cập nhật đến" (FR-22).
-const MESSAGES: readonly { icon: LucideIcon; text: string }[] = [
-  { icon: Truck, text: "Miễn phí vận chuyển cho đơn từ 300.000đ" },
-  { icon: Banknote, text: "Thanh toán khi nhận hàng hoặc chuyển khoản" },
-  { icon: BookCheck, text: "Mỗi cuốn ghi rõ văn bản được cập nhật đến đâu" },
-];
+interface Message {
+  icon: LucideIcon;
+  text: string;
+}
+
+// Chỉ nêu điều đã có trong hệ thống: phí ship và thanh toán (BR-14), nhãn "Cập nhật đến" (FR-22). Ngưỡng miễn phí vận
+// chuyển lấy từ backend, không ghi cứng.
+function buildMessages(freeShippingThreshold: number | null): Message[] {
+  const shipping = freeShippingText(freeShippingThreshold);
+  return [
+    ...(shipping ? [{ icon: Truck, text: shipping }] : []),
+    { icon: Banknote, text: "Thanh toán khi nhận hàng hoặc chuyển khoản" },
+    { icon: BookCheck, text: "Mỗi cuốn ghi rõ văn bản được cập nhật đến đâu" },
+  ];
+}
+
 /** Số lần lặp mỗi dãy để băng chữ luôn dài hơn màn hình rộng. */
 const ROW_REPEAT = 3;
-const ROW = Array.from({ length: ROW_REPEAT }, () => MESSAGES).flat();
 
-function PromoRow({ hidden }: { hidden?: boolean }) {
+function PromoRow({ messages, hidden }: { messages: readonly Message[]; hidden?: boolean }) {
+  const row = Array.from({ length: ROW_REPEAT }, () => messages).flat();
   return (
     <ul aria-hidden={hidden || undefined} className="flex">
-      {ROW.map(({ icon: Icon, text }, index) => (
+      {row.map(({ icon: Icon, text }, index) => (
         // Dãy lặp lại cùng nội dung nên dùng index làm key.
         <li key={index} className="flex items-center gap-2 pr-10 whitespace-nowrap">
           <Icon size={15} strokeWidth={1.6} className="text-gold-pale shrink-0" />
@@ -34,8 +45,9 @@ function PromoRow({ hidden }: { hidden?: boolean }) {
  * Thanh khuyến mãi chạy chữ trên đầu trang, dừng khi rê chuột hoặc focus. Đóng thì thu gọn lại và giữ đóng khi khách
  * chuyển trang trong site (Header nằm trong layout gốc); tải lại trang thì hiện lại.
  */
-export function PromoBar() {
+export function PromoBar({ freeShippingThreshold }: { freeShippingThreshold: number | null }) {
   const [open, setOpen] = useState(true);
+  const messages = buildMessages(freeShippingThreshold);
 
   return (
     <div
@@ -53,8 +65,8 @@ export function PromoBar() {
           {/* Hai dãy giống nhau nối đuôi để vòng chạy liền mạch; dãy thứ hai ẩn với trình đọc màn hình. */}
           <div className="marquee min-w-0 flex-1 overflow-hidden mask-x-from-92% mask-x-to-100% py-2">
             <div className="marquee-track [animation-duration:40s]">
-              <PromoRow />
-              <PromoRow hidden />
+              <PromoRow messages={messages} />
+              <PromoRow messages={messages} hidden />
             </div>
           </div>
           <button

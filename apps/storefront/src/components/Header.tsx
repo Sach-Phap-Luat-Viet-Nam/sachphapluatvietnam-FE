@@ -1,15 +1,17 @@
 import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
+import { getFreeShippingThreshold } from "@/features/ordering/shipping-threshold-server";
 import { CartLink } from "@/features/ordering/CartLink";
 import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
 import { PromoBar } from "./PromoBar";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function Header() {
+export async function Header() {
+  const freeShippingThreshold = await getFreeShippingThreshold();
   return (
     <header className="motion-drop bg-ink-deep relative z-20">
-      <PromoBar />
+      <PromoBar freeShippingThreshold={freeShippingThreshold} />
       <Container className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4 py-4 sm:gap-x-8 sm:py-5">
         <BrandMark />
         <form

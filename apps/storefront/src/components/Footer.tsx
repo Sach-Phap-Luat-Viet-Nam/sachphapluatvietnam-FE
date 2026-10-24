@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Container } from "@slvn/ui";
+import { freeShippingText } from "@/features/ordering/shipping-threshold";
+import { getFreeShippingThreshold } from "@/features/ordering/shipping-threshold-server";
 import { FooterLoginLink } from "./FooterLoginLink";
 
 const HEADING = "text-gold text-[11px] tracking-[0.26em]";
 
-export function Footer() {
+export async function Footer() {
+  const shipping = freeShippingText(await getFreeShippingThreshold());
   return (
     <footer className="border-gold/25 bg-ink-deep border-t">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-3">
@@ -31,7 +34,7 @@ export function Footer() {
         </nav>
         <div className="text-sand flex flex-col gap-2.5 text-sm">
           <span className={HEADING}>GIAO HÀNG VÀ THANH TOÁN</span>
-          <span>Miễn phí vận chuyển cho đơn từ 300.000đ</span>
+          {shipping && <span>{shipping}</span>}
           <span>Thanh toán khi nhận hàng (COD) hoặc chuyển khoản</span>
         </div>
       </Container>

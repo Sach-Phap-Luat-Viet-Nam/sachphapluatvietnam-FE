@@ -365,15 +365,15 @@
     transform: translateY(-4px) rotate(-6deg);
   }
 
-  /* Thanh ưu đãi: vệt sáng quét ngang định kỳ. */
+  /* Thanh ưu đãi: vệt sáng quét ngang, cứ vài giây lại lướt qua một lần (vệt rộng, sáng hơn trước). */
   .promo-sheen::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(100deg, transparent 40%, rgb(255 241 204 / 0.18) 50%, transparent 60%);
+    background: linear-gradient(100deg, transparent 38%, rgb(255 241 204 / 0.34) 50%, transparent 62%);
     background-size: 250% 100%;
-    animation: foil 7s ease-in-out 1.5s infinite;
+    animation: promo-sheen 3.4s ease-in-out 0.8s infinite;
   }
 
   /* Section "Mới phát hành": đèn vàng rọi từ trên xuống dải kệ. */
@@ -586,6 +586,16 @@
   100% {
     opacity: 0;
     transform: scale(1.45);
+  }
+}
+/* Quét trong khoảng 45% đầu của chu kỳ, phần còn lại nghỉ để mắt kịp thấy vệt sáng. */
+@keyframes promo-sheen {
+  0% {
+    background-position: 160% 0;
+  }
+  45%,
+  100% {
+    background-position: -60% 0;
   }
 }
 @keyframes foil {
