@@ -12,6 +12,7 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
   trong app này; theme chung của package vẫn sáng cho admin. Font nạp bằng `next/font` ở `layout.tsx`.
 - **Header**: logo, ô tìm kiếm (form GET tới `/sach`), link Đăng nhập (đã đăng nhập thì hiện tên và nút Đăng xuất). Chưa hiện giỏ hàng vì chức năng giỏ chưa làm.
 - **Footer**: chỉ link tới trang đã có và thông tin giao hàng/thanh toán có thật (BR-14); chưa có hotline, địa chỉ.
+  Link "Đăng nhập" (`FooterLoginLink`) ẩn khi khách đã đăng nhập; trong lúc đang kiểm tra phiên vẫn hiện.
 - **`/sach`** render trên server, phân trang **24 sách/trang**:
   - Thanh danh mục đánh số `00 Tất cả · 01 …` (danh mục gốc); chọn danh mục có con thì hiện hàng danh mục con.
   - Sidebar bộ lọc (desktop) hoặc nút "Bộ lọc (n)" mở bảng trượt từ dưới lên (mobile, `<dialog>`). Bộ lọc là form GET

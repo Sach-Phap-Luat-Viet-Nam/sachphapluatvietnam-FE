@@ -77,4 +77,5 @@ test("navigates to login, validates fields and signs in", async ({ page }, testI
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
   await expect(page.getByText("Khách Demo")).toBeVisible();
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Đăng nhập" })).toHaveCount(0);
 });

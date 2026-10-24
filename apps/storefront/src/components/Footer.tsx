@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@slvn/ui";
+import { FooterLoginLink } from "./FooterLoginLink";
 
 const HEADING = "text-gold text-[11px] tracking-[0.26em]";
 
@@ -23,9 +24,7 @@ export function Footer() {
           <Link href="/sach?sort=newest" className="link-underline w-fit">
             Mới phát hành
           </Link>
-          <Link href="/dang-nhap" className="link-underline w-fit">
-            Đăng nhập
-          </Link>
+          <FooterLoginLink />
         </nav>
         <div className="text-sand flex flex-col gap-2.5 text-sm">
           <span className={HEADING}>GIAO HÀNG VÀ THANH TOÁN</span>
