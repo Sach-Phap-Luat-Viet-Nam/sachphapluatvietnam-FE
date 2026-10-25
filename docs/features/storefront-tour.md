@@ -50,22 +50,26 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
   các hộp thoại khác.
 - Hộp text theo theme "Thư viện đêm" (`.tour-popover` trong `globals.css`, ngoài `@layer` để thắng `driver.css`):
   tiêu đề Lora màu vàng, nút chính nền vàng, cỡ chữ nội dung 16px, nút cao 44px. Không có mũi tên.
-- Nhân vật hướng dẫn ở cột trái hộp text (88px, mobile 64px), mỗi bước một tư thế (`wave`, `point`, `book`, `cheer`).
+- Nhân vật hướng dẫn ở cột trái hộp text (88px, mobile 64px), mỗi bước một tư thế (xem mục "Ảnh nhân vật").
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
 - Bật giảm chuyển động (`prefers-reduced-motion`) thì tắt hiệu ứng và cuộn mượt.
 
 ### Ảnh nhân vật
 
-Hiện có một ảnh `public/tour/guide-presenter.webp` (nhân viên tay mở giới thiệu, 264×330, 16 KB) dùng cho mọi tư thế.
-Ảnh gốc 1024×1536 PNG (1,9 MB) được cắt từ đầu tới ngang thắt lưng theo tỉ lệ 4:5 (vùng `y` 120–1400) rồi thu nhỏ và
-chuyển sang WebP giữ nền trong suốt.
+Bốn ảnh trong `public/tour/`, khai báo ở `GUIDE_IMAGES` (`features/tour/steps.ts`):
 
-Thêm ảnh cho từng tư thế:
+| Tư thế (`pose`) | File                 | Cử chỉ                           | Dùng ở bước                                       |
+| --------------- | -------------------- | -------------------------------- | ------------------------------------------------- |
+| `welcome`       | `guide-welcome.webp` | Tay mở giới thiệu                | Lời chào                                          |
+| `point`         | `guide-point.webp`   | Nháy mắt, hai tay chỉ sang phải  | Các nút: ưu đãi, tìm, sáng/tối, giỏ, tài khoản…   |
+| `present`       | `guide-present.webp` | Một tay chỉ, một tay mở bên phải | Khu nội dung: tủ sách, danh mục, ưu đãi, thẻ sách |
+| `cheer`         | `guide-cheer.webp`   | Like và OK                       | Kết thúc                                          |
 
-1. Ảnh **nền trong suốt, tỉ lệ 4:5**, xuất 264×330 (gấp 3 cỡ hiển thị 88×110), WebP, dung lượng nhỏ (< 60 KB).
-2. Đặt vào `apps/storefront/public/tour/`, ví dụ `guide-wave.webp`, `guide-cheer.webp`.
-3. Đổi đường dẫn trong `GUIDE_IMAGES` (`features/tour/steps.ts`).
+Cách làm từ ảnh gốc (PNG nền trong suốt, 1,7–2 MB mỗi ảnh): cắt từ đầu tới ngang thắt lưng theo tỉ lệ 4:5 (ảnh
+1024×1536 lấy vùng `y` 120–1400; ảnh 1269×1239 giữ trọn chiều cao, đặt sát đáy khung và chừa trống phía trên), thu về
+264×330 (gấp 3 cỡ hiển thị 88×110) rồi xuất WebP giữ nền trong suốt, mỗi file khoảng 15 KB. Thêm hoặc thay ảnh thì làm
+theo cùng quy cách rồi đổi đường dẫn trong `GUIDE_IMAGES`.
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
@@ -77,7 +81,6 @@ Không thêm biến mới. Package mới: `driver.js` (MIT) ở `apps/storefront
 
 ## Hạn chế / việc còn lại
 
-- Mới có một ảnh nhân vật cho cả 4 tư thế (vẫy chào, chỉ tay, cầm sách, chúc mừng).
 - Dấu đã xem theo thiết bị: khách đổi trình duyệt/máy hoặc xóa dữ liệu trình duyệt sẽ thấy lại hướng dẫn.
 - Chỉ có hướng dẫn ở trang chủ; các trang khác (giỏ hàng, thanh toán, tài khoản) chưa có.
 - Ảnh nhân vật chèn bằng thẻ `img` thường (hộp text do `driver.js` dựng bằng DOM nên không dùng được `next/image`).

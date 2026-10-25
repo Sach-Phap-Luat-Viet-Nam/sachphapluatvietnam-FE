@@ -1,8 +1,11 @@
 import type { Alignment, Side } from "driver.js";
 import type { TourTarget } from "@/lib/tour-anchor";
 
-/** Tư thế của nhân vật hướng dẫn ở từng bước. */
-export type GuidePose = "wave" | "point" | "book" | "cheer";
+/**
+ * Tư thế của nhân vật hướng dẫn ở từng bước: `welcome` tay mở chào, `point` chỉ vào một nút, `present` giới thiệu một
+ * khu nội dung, `cheer` khen ngợi lúc kết thúc.
+ */
+export type GuidePose = "welcome" | "point" | "present" | "cheer";
 
 export interface TourStep {
   /** `null`: bước giới thiệu chung, hộp text nằm giữa màn hình. */
@@ -15,21 +18,21 @@ export interface TourStep {
 }
 
 /**
- * Ảnh nhân vật theo tư thế, đặt trong `public/tour/` (WebP nền trong suốt, tỉ lệ 4:5, 264×330 cho màn hình độ phân giải
- * cao). Hiện mới có một ảnh (tay mở giới thiệu) dùng chung cho mọi tư thế; có thêm ảnh thì đổi đường dẫn ở đây.
+ * Ảnh nhân vật theo tư thế, đặt trong `public/tour/`: WebP nền trong suốt, tỉ lệ 4:5, 264×330 (gấp 3 cỡ hiển thị để nét
+ * trên màn hình độ phân giải cao), người đặt sát đáy khung.
  */
 export const GUIDE_IMAGES: Record<GuidePose, string> = {
-  wave: "/tour/guide-presenter.webp",
-  point: "/tour/guide-presenter.webp",
-  book: "/tour/guide-presenter.webp",
-  cheer: "/tour/guide-presenter.webp",
+  welcome: "/tour/guide-welcome.webp",
+  point: "/tour/guide-point.webp",
+  present: "/tour/guide-present.webp",
+  cheer: "/tour/guide-cheer.webp",
 };
 
 /** Các bước ở trang chủ, xếp từ trên xuống dưới để trang chỉ cuộn một chiều. */
 export const TOUR_STEPS: readonly TourStep[] = [
   {
     target: null,
-    pose: "wave",
+    pose: "welcome",
     title: "Chào mừng bạn đến Sách Luật Việt Nam",
     description:
       "Mình là trợ lý của tủ sách. Chỉ mất khoảng một phút, mình dẫn bạn xem qua các chức năng chính nhé. Bạn có thể bỏ qua bất cứ lúc nào.",
@@ -78,7 +81,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "explore",
-    pose: "book",
+    pose: "present",
     side: "top",
     align: "start",
     title: "Khám phá tủ sách",
@@ -86,7 +89,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "categories",
-    pose: "book",
+    pose: "present",
     side: "bottom",
     align: "start",
     title: "Danh mục",
@@ -95,14 +98,14 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "offers",
-    pose: "point",
+    pose: "present",
     side: "top",
     title: "Ưu đãi đang chạy",
     description: "Lỡ tắt quảng cáo lúc mới vào? Bấm vào thẻ ở đây để xem lại chương trình khuyến mãi.",
   },
   {
     target: "book",
-    pose: "book",
+    pose: "present",
     side: "right",
     align: "start",
     title: "Xem nhanh và mua",
@@ -131,8 +134,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     side: "top",
     align: "start",
     title: "Vậy là xong!",
-    description:
-      "Muốn xem lại hướng dẫn này thì bấm “Xem hướng dẫn sử dụng” ở cuối trang. Chúc bạn tìm được cuốn sách ưng ý!",
+    description: "Muốn xem lại hướng dẫn này thì bấm vào nút này. Chúc bạn tìm được cuốn sách ưng ý!",
   },
 ];
 

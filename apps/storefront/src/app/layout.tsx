@@ -11,6 +11,7 @@ import { ZaloContact } from "@/components/ZaloContact";
 import { ImpersonationBanner } from "@/features/impersonation/ImpersonationBanner";
 import { PromoPopup } from "@/features/popup/PromoPopup";
 import { GuidedTour } from "@/features/tour/GuidedTour";
+import { TourReplayFab } from "@/features/tour/TourReplayButton";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Footer />
           <GuidedTour />
           <PromoPopup />
+          <TourReplayFab />
           <ZaloContact />
         </QueryProvider>
       </body>
