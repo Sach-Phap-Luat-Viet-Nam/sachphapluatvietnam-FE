@@ -784,18 +784,18 @@
  * Hướng dẫn sử dụng (driver.js, features/tour). Không đặt trong @layer: driver.css không thuộc layer nào nên luôn thắng
  * style trong layer; thêm `.driver-popover` vào selector để thắng `all: unset` của thư viện.
  *
- * Nhân vật nằm NGOÀI hộp text: `overflow: visible` trên hộp, ảnh đặt tuyệt đối nhô lên trên-trái, một phần đè ra
- * ngoài viền (giống mascot nhô ra khỏi khung) thay vì nằm thụt vào bên trong như một cột nội dung.
+ * Nhân vật nằm NGOÀI hộp text, nhô lên góc trên-trái và đè một phần ra ngoài viền trên lẫn viền trái (không đổi
+ * margin/kích thước hộp: driver.js định vị hộp theo phần tử mục tiêu, đổi margin hộp dễ làm hộp tràn viewport ở các
+ * bước `align: "end"`). Ảnh dùng `position: fixed` theo viewport, tự tính tọa độ bám theo hộp ở `GuidedTour.tsx` và
+ * tự kẹp trong viewport nên không bị cắt khi hộp mở gần mép màn hình.
  */
 .driver-popover.tour-popover {
   --driver-popover-font-family: var(--font-sans);
   --tour-guide-size: 6.5rem;
   --tour-pad: 1.25rem;
-  overflow: visible;
   width: min(27rem, calc(100vw - 2rem));
   min-width: 0;
   max-width: none;
-  margin-top: var(--tour-guide-size);
   padding: var(--tour-pad) var(--tour-pad) 1rem;
   border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
   border-radius: 0;
@@ -803,13 +803,13 @@
   color: var(--color-ivory);
   box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.95);
 }
-.driver-popover.tour-popover .tour-guide {
-  position: absolute;
-  bottom: 100%;
-  left: 1rem;
-  width: var(--tour-guide-size);
+.tour-guide {
+  position: fixed;
+  z-index: 1000000001;
+  width: var(--tour-guide-size, 6.5rem);
   height: auto;
   filter: drop-shadow(0 18px 20px rgb(0 0 0 / 0.55));
+  pointer-events: none;
 }
 .driver-popover.tour-popover .driver-popover-title {
   padding-right: 2rem;
