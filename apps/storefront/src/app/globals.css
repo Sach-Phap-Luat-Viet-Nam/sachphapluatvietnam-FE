@@ -796,7 +796,8 @@
   width: min(27rem, calc(100vw - 2rem));
   min-width: 0;
   max-width: none;
-  padding: var(--tour-pad) var(--tour-pad) 1rem;
+  /* Ảnh chồng vào góc hộp 55% bề ngang (GUIDE_OVERLAP ở GuidedTour.tsx): chừa chỗ để ảnh không che chữ. */
+  padding: var(--tour-pad) var(--tour-pad) 1rem calc(var(--tour-pad) + var(--tour-guide-size) * 0.55 + 1.25rem);
   border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
   border-radius: 0;
   background: var(--color-panel);

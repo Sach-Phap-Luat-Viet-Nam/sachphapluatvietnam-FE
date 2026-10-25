@@ -3,7 +3,7 @@
 ## Mục đích
 
 Thiết bị lần đầu vào trang chủ được dẫn qua các chức năng chính của web: nền tối phủ trang, lỗ sáng ôm từng nút, cạnh
-đó là hộp text mô tả chức năng kèm nhân vật hướng dẫn. Khách bỏ qua được bất cứ lúc nào và xem lại được từ chân trang.
+đó là hộp text mô tả chức năng kèm nhân vật hướng dẫn. Khách bỏ qua được bất cứ lúc nào và xem lại được bằng nút nổi ở góc màn hình.
 
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
@@ -17,21 +17,21 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
    ban đầu, không ảnh hưởng SSR/LCP).
 3. **Các bước** (`features/tour/steps.ts`, xếp từ trên xuống dưới):
 
-   | #   | Phần tử (`data-tour`) | Nội dung                                               |
-   | --- | --------------------- | ------------------------------------------------------ |
-   | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                     |
-   | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                                 |
-   | 3   | `search`              | Ô tìm sách theo tên hoặc ISBN                          |
-   | 4   | `theme`               | Đổi giao diện sáng / tối                               |
-   | 5   | `cart`                | Giỏ hàng, mua không cần tài khoản                      |
-   | 6   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                     |
-   | 7   | `explore`             | Nút "Khám phá tủ sách"                                 |
-   | 8   | `categories`          | Dải danh mục                                           |
-   | 9   | `offers`              | Khu "Ưu đãi đang chạy"                                 |
-   | 10  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ   |
-   | 11  | `zalo`                | Nút tư vấn qua Zalo                                    |
-   | 12  | `order-lookup`        | Link "Tra cứu đơn hàng" ở chân trang (mới thêm)        |
-   | 13  | `replay`              | Kết thúc, chỉ nút "Xem hướng dẫn sử dụng" ở chân trang |
+   | #   | Phần tử (`data-tour`) | Nội dung                                             |
+   | --- | --------------------- | ---------------------------------------------------- |
+   | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                   |
+   | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                               |
+   | 3   | `search`              | Ô tìm sách theo tên hoặc ISBN                        |
+   | 4   | `theme`               | Đổi giao diện sáng / tối                             |
+   | 5   | `cart`                | Giỏ hàng, mua không cần tài khoản                    |
+   | 6   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                   |
+   | 7   | `explore`             | Nút "Khám phá tủ sách"                               |
+   | 8   | `categories`          | Dải danh mục                                         |
+   | 9   | `offers`              | Khu "Ưu đãi đang chạy"                               |
+   | 10  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ |
+   | 11  | `zalo`                | Nút tư vấn qua Zalo                                  |
+   | 12  | `order-lookup`        | Link "Tra cứu đơn hàng" ở chân trang (mới thêm)      |
+   | 13  | `replay`              | Kết thúc, chỉ nút nổi "Xem hướng dẫn sử dụng"        |
 
    Phần tử không có trên trang hoặc đang cao/rộng 0 (backend lỗi nên ẩn danh mục, chưa có ưu đãi, thanh ưu đãi đã đóng)
    thì **bỏ bước đó**, bộ đếm "n/tổng" chỉ đếm các bước còn lại.
@@ -39,18 +39,24 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 4. **Điều khiển**: "Tiếp" / "Quay lại" / "Hoàn tất", nút X ("Bỏ qua hướng dẫn"), phím Esc, phím mũi tên. Bấm ra ngoài
    (vùng tối) **không** đóng hướng dẫn để tránh bấm nhầm. Trong lúc hướng dẫn chạy, phần tử đang sáng không bấm được.
 5. **Ghi dấu đã xem** khi Hoàn tất, Bỏ qua, X hoặc Esc. Rời trang chủ giữa chừng (nút Back) thì chưa tính là đã xem.
-6. **Xem lại**: nút "Xem hướng dẫn sử dụng" ở chân trang (`TourReplayButton`). Đang ở trang khác thì chuyển về trang
-   chủ rồi chạy; xem lại không cần xóa dấu đã xem.
+6. **Xem lại** (không cần xóa dấu đã xem): có hai nút, đang ở trang khác thì chuyển về trang chủ rồi chạy.
+   - **Nút nổi** `TourReplayFab` (dấu `?`, góc phải dưới mọi trang, xếp ngay trên nút Zalo). Đây là mốc của bước cuối.
+     Không đặt ở góc trái vì chỉ báo dev của Next.js nằm đúng chỗ đó và che mất nút khi chạy `next dev`.
+   - **Link chữ** `TourReplayButton` ở chân trang, cạnh "Đăng nhập".
 7. **Popup quảng cáo đợi hướng dẫn** (`lib/onboarding-gate.ts`): hướng dẫn quyết định chạy thì popup tự bật
    (`PromoPopup`) đợi tới khi hướng dẫn kết thúc mới hiện.
 
 ### Giao diện
 
 - Nền tối dùng token `--color-scrim` (`globals.css`), **luôn tối ở cả chế độ sáng**; cùng token với nền của popup và
-  các hộp thoại khác.
+  các hộp thoại khác. Riêng hướng dẫn phủ đậm 90% (`overlayOpacity`) để chỉ phần được khoanh sáng nổi rõ.
 - Hộp text theo theme "Thư viện đêm" (`.tour-popover` trong `globals.css`, ngoài `@layer` để thắng `driver.css`):
   tiêu đề Lora màu vàng, nút chính nền vàng, cỡ chữ nội dung 16px, nút cao 44px. Không có mũi tên.
-- Nhân vật hướng dẫn ở cột trái hộp text (88px, mobile 64px), mỗi bước một tư thế (xem mục "Ảnh nhân vật").
+- Nhân vật hướng dẫn **nằm ngoài hộp text**: nhô ra ở góc trên-trái, chồng vào hộp khoảng 55% bề ngang (104px, mobile
+  80px), mỗi bước một tư thế (xem mục "Ảnh nhân vật"). Ảnh là thẻ `img` `position: fixed` gắn vào `body`, tự tính tọa
+  độ theo hộp (`positionGuide` ở `GuidedTour.tsx`) và kẹp trong màn hình: driver.js chỉ giữ khung hộp trong màn hình
+  chứ không biết phần ảnh nhô ra, nên làm ảnh con của hộp thì hộp mở sát mép trên sẽ cắt mất đầu nhân vật. Hộp chừa
+  sẵn padding trái cho phần ảnh chồng vào.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
 - Bật giảm chuyển động (`prefers-reduced-motion`) thì tắt hiệu ứng và cuộn mượt.

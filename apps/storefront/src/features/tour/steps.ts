@@ -131,8 +131,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     target: "replay",
     pose: "cheer",
-    side: "top",
-    align: "start",
+    side: "left",
+    align: "end",
     title: "Vậy là xong!",
     description: "Muốn xem lại hướng dẫn này thì bấm vào nút này. Chúc bạn tìm được cuốn sách ưng ý!",
   },

@@ -46,11 +46,24 @@ test("skips the tour, then replays it from the footer", async ({ page }) => {
   await expect(welcome).toBeHidden();
 
   await page.goto("/sach");
-  await page.getByRole("button", { name: "Xem hướng dẫn sử dụng" }).click();
+  // Link chữ ở chân trang (nút nổi có test riêng bên dưới).
+  await page.getByRole("contentinfo").getByRole("button", { name: "Xem hướng dẫn sử dụng" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(welcome).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(welcome).toBeHidden();
+});
+
+test("replays the tour from the floating button on any page", async ({ page }) => {
+  // Đã xem rồi: không tự hiện, chỉ hiện khi bấm nút nổi.
+  await page.addInitScript(() => localStorage.setItem("tour:v1:done", "1"));
+  await page.goto("/sach");
+  const welcome = page.getByRole("dialog", { name: "Chào mừng bạn đến Sách Luật Việt Nam" });
+  await expect(welcome).toBeHidden();
+
+  await page.locator("button[data-tour='replay']").click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(welcome).toBeVisible();
 });
 
 test("shows the promo popup only after the tour ends", async ({ page }) => {

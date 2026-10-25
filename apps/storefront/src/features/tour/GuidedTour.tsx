@@ -34,25 +34,59 @@ function isOnScreen(target: TourTarget): boolean {
   return rect.width > 0 && rect.height > 0;
 }
 
-/** Ảnh nhân vật đặt cạnh nội dung. Driver giữ lại khung hộp text giữa các bước nên dùng lại thẻ `img` đã chèn. */
-function renderGuide(popover: PopoverDOM, step: TourStep | undefined): void {
+const GUIDE_SIZE_PX = 104; // phải khớp --tour-guide-size ở globals.css (6.5rem desktop)
+const GUIDE_SIZE_MOBILE_PX = 80; // khớp --tour-guide-size trong @media (max-width: 639px)
+const GUIDE_OVERLAP = 0.45; // tỉ lệ ảnh nhô ra ngoài viền hộp (phần còn lại chồng vào góc trên-trái hộp)
+
+/**
+ * Ảnh nhân vật nhô ra NGOÀI hộp text, neo ở góc trên-trái. Đặt `position: fixed` theo viewport (không phải theo hộp,
+ * vì driver chỉ tránh tràn viewport cho khung hộp chứ không biết phần ảnh nhô thêm ra ngoài) và tự kẹp trong viewport
+ * nên không bao giờ bị cắt dù hộp mở sát mép màn hình.
+ */
+function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement): void {
+  const size = window.innerWidth < 640 ? GUIDE_SIZE_MOBILE_PX : GUIDE_SIZE_PX;
+  guide.style.width = `${size}px`;
+  const box = wrapper.getBoundingClientRect();
+  const overlap = size * GUIDE_OVERLAP;
+  const margin = 8; // không dính sát mép màn hình
+  const top = Math.max(margin, Math.min(box.top - overlap, window.innerHeight - size - margin));
+  const left = Math.max(margin, Math.min(box.left - overlap, window.innerWidth - size - margin));
+  guide.style.top = `${top}px`;
+  guide.style.left = `${left}px`;
+}
+
+/** Ảnh nhân vật cạnh hộp text. Driver giữ lại khung hộp giữa các bước nên dùng lại thẻ `img` đã chèn. */
+function renderGuide(popover: PopoverDOM, step: TourStep | undefined): (() => void) | undefined {
   if (!step) {
-    return;
+    return undefined;
   }
-  let guide = popover.wrapper.querySelector<HTMLImageElement>("img.tour-guide");
+  let guide = document.body.querySelector<HTMLImageElement>("img.tour-guide");
   if (!guide) {
     // Hộp text do driver.js tạo bằng DOM nên không dùng được `next/image`; kích thước khai báo sẵn để không xê dịch.
     guide = document.createElement("img");
     guide.className = "tour-guide";
     guide.alt = "";
-    guide.width = 88;
-    guide.height = 110;
+    guide.width = GUIDE_SIZE_PX;
+    guide.height = Math.round((GUIDE_SIZE_PX * 330) / 264);
     guide.decoding = "async";
-    popover.wrapper.prepend(guide);
+    document.body.append(guide);
   }
   guide.src = GUIDE_IMAGES[step.pose];
   // Driver focus phần tử đầu tiên là nút X; chuyển sang nút chính để Enter là đi tiếp (sau lượt focus của driver).
   requestAnimationFrame(() => popover.nextButton.focus());
+
+  const reposition = () => guide && positionGuide(guide, popover.wrapper);
+  reposition();
+  // Hộp có thể dịch chuyển (driver tự né mép viewport, khách cuộn/resize trong lúc hộp mở) nên theo dõi liên tục.
+  const observer = new ResizeObserver(reposition);
+  observer.observe(popover.wrapper);
+  window.addEventListener("scroll", reposition, { passive: true, capture: true });
+  window.addEventListener("resize", reposition);
+  return () => {
+    observer.disconnect();
+    window.removeEventListener("scroll", reposition, true);
+    window.removeEventListener("resize", reposition);
+  };
 }
 
 function toDriveStep(step: TourStep, index: number, total: number, skip: () => void): DriveStep {
@@ -83,6 +117,14 @@ export function GuidedTour() {
     let tour: Driver | null = null;
     let timer: number | undefined;
     let disposed = false;
+    let stopTracking: (() => void) | undefined;
+
+    // Ảnh nhân vật nằm ngoài DOM của driver nên driver không tự gỡ: phải gỡ cùng lúc với hộp.
+    const clearGuide = () => {
+      stopTracking?.();
+      stopTracking = undefined;
+      document.body.querySelector("img.tour-guide")?.remove();
+    };
 
     const start = () => {
       if (tour?.isActive() || timer !== undefined) {
@@ -105,6 +147,7 @@ export function GuidedTour() {
             const end = () => {
               markTourDone(localStore());
               setTourActive(false);
+              clearGuide();
               const current = tour;
               tour = null;
               current?.destroy();
@@ -127,8 +170,11 @@ export function GuidedTour() {
               prevBtnText: "Quay lại",
               doneBtnText: "Hoàn tất",
               closeBtnLabel: "Bỏ qua hướng dẫn",
-              onPopoverRender: (popover, { index }) =>
-                renderGuide(popover, index === undefined ? undefined : steps[index]),
+              onPopoverRender: (popover, { index }) => {
+                // Mỗi bước vẽ lại hộp: bỏ theo dõi của bước trước rồi theo dõi hộp mới.
+                stopTracking?.();
+                stopTracking = renderGuide(popover, index === undefined ? undefined : steps[index]);
+              },
               // Có hook này thì driver không tự gỡ mà để `end()` gỡ. `destroy()` lúc rời trang chủ giữa chừng (nút Back)
               // không đi qua hook này nên chưa tính là đã xem.
               onDestroyStarted: end,
@@ -157,6 +203,7 @@ export function GuidedTour() {
       disposed = true;
       unsubscribe();
       window.clearTimeout(timer);
+      clearGuide();
       tour?.destroy();
       setTourActive(false);
     };
