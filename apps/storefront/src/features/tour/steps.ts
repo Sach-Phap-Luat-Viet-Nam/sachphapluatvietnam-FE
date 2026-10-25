@@ -3,9 +3,10 @@ import type { TourTarget } from "@/lib/tour-anchor";
 
 /**
  * Tư thế của nhân vật hướng dẫn ở từng bước: `welcome` tay mở chào, `point` chỉ vào một nút, `present` giới thiệu một
- * khu nội dung, `cheer` khen ngợi lúc kết thúc.
+ * khu nội dung, `open` hai tay mở sang hai bên (mời xem, tùy bạn chọn), `calm` đứng thẳng hai tay đan nhau (lắng nghe,
+ * sẵn sàng hỗ trợ), `wink` nháy mắt, tay làm dấu V, tay kia chống hông (vui vẻ, mời thử), `cheer` khen ngợi lúc kết thúc.
  */
-export type GuidePose = "welcome" | "point" | "present" | "cheer";
+export type GuidePose = "welcome" | "point" | "present" | "open" | "calm" | "wink" | "cheer";
 
 export interface TourStep {
   /** `null`: bước giới thiệu chung, hộp text nằm giữa màn hình. */
@@ -18,14 +19,46 @@ export interface TourStep {
 }
 
 /**
- * Ảnh nhân vật theo tư thế, đặt trong `public/tour/`: WebP nền trong suốt, tỉ lệ 4:5, 264×330 (gấp 3 cỡ hiển thị để nét
- * trên màn hình độ phân giải cao), người đặt sát đáy khung.
+ * Ảnh nhân vật theo tư thế, đặt trong `public/tour/`: WebP nền trong suốt, người đặt sát đáy khung. Hầu hết ảnh dọc tỉ
+ * lệ 4:5 (480×600); `open` (720×471) và `wink` (480×468) là ảnh gần vuông/ngang vì tay giơ ra hai bên, cắt 4:5 sẽ mất tay.
  */
 export const GUIDE_IMAGES: Record<GuidePose, string> = {
   welcome: "/tour/guide-welcome.webp",
   point: "/tour/guide-point.webp",
   present: "/tour/guide-present.webp",
+  open: "/tour/guide-open.webp",
+  calm: "/tour/guide-calm.webp",
+  wink: "/tour/guide-wink.webp",
   cheer: "/tour/guide-cheer.webp",
+};
+
+/**
+ * Khung ảnh từng tư thế: `ratio` là cao/rộng của file ảnh, `scale` nhân vào bề rộng chuẩn để đầu nhân vật to bằng các
+ * ảnh khác (ảnh ngang có người nhỏ hơn trong khung nên phải hiện rộng hơn).
+ */
+export const GUIDE_SHAPE: Record<GuidePose, { ratio: number; scale: number; width: number; height: number }> = {
+  welcome: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  point: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  present: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  open: { ratio: 471 / 720, scale: 1.5, width: 720, height: 471 },
+  calm: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  wink: { ratio: 468 / 480, scale: 1.1, width: 480, height: 468 },
+  cheer: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+};
+
+/**
+ * Cử chỉ trong ảnh gốc hướng về bên nào. Nhân vật đứng bên trái hộp thì cần cử chỉ hướng phải (vào hộp), đứng bên phải
+ * thì hướng trái; ảnh có hướng ngược lại sẽ được lật ngang. `cheer` (like và OK), `open` và `calm` đối xứng nên coi như
+ * hướng phải.
+ */
+export const GUIDE_FACING: Record<GuidePose, "left" | "right"> = {
+  welcome: "left",
+  point: "right",
+  present: "right",
+  open: "right",
+  calm: "right",
+  wink: "right",
+  cheer: "right",
 };
 
 /** Các bước ở trang chủ, xếp từ trên xuống dưới để trang chỉ cuộn một chiều. */
@@ -47,7 +80,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "search",
-    pose: "point",
+    pose: "wink",
     side: "bottom",
     title: "Tìm sách",
     description:
@@ -55,7 +88,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "theme",
-    pose: "point",
+    pose: "calm",
     side: "bottom",
     align: "end",
     title: "Giao diện sáng / tối",
@@ -72,7 +105,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "account",
-    pose: "point",
+    pose: "open",
     side: "bottom",
     align: "end",
     title: "Tài khoản",
@@ -89,7 +122,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "categories",
-    pose: "present",
+    pose: "calm",
     side: "bottom",
     align: "start",
     title: "Danh mục",
@@ -98,14 +131,14 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "offers",
-    pose: "present",
+    pose: "open",
     side: "top",
     title: "Ưu đãi đang chạy",
     description: "Lỡ tắt quảng cáo lúc mới vào? Bấm vào thẻ ở đây để xem lại chương trình khuyến mãi.",
   },
   {
     target: "book",
-    pose: "present",
+    pose: "wink",
     side: "right",
     align: "start",
     title: "Xem nhanh và mua",
@@ -114,7 +147,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "zalo",
-    pose: "point",
+    pose: "calm",
     side: "top",
     align: "end",
     title: "Tư vấn qua Zalo",
@@ -122,7 +155,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "order-lookup",
-    pose: "point",
+    pose: "present",
     side: "top",
     align: "start",
     title: "Tra cứu đơn hàng",
@@ -143,5 +176,30 @@ export const TOUR_STEPS: readonly TourStep[] = [
  * đếm "2/10" không đếm cả bước bị bỏ qua.
  */
 export function availableSteps(steps: readonly TourStep[], isPresent: (target: TourTarget) => boolean): TourStep[] {
-  return steps.filter((step) => step.target === null || isPresent(step.target));
+  return varyPoses(steps.filter((step) => step.target === null || isPresent(step.target)));
+}
+
+const POSE_CYCLE: readonly GuidePose[] = ["welcome", "point", "present", "open", "calm", "wink", "cheer"];
+
+/**
+ * Bỏ bước có thể làm hai bước liền kề trùng tư thế (nhân vật lặp lại 2–3 lần liền trông chán): bước nào trùng bước
+ * trước thì đổi sang tư thế kế tiếp trong vòng xoay mà cũng không trùng bước sau.
+ */
+export function varyPoses(steps: readonly TourStep[]): TourStep[] {
+  const result: TourStep[] = [];
+  steps.forEach((step, index) => {
+    const previous = result[index - 1]?.pose;
+    if (step.pose !== previous) {
+      result.push(step);
+      return;
+    }
+    const next = steps[index + 1]?.pose;
+    const start = POSE_CYCLE.indexOf(step.pose);
+    const pose =
+      Array.from({ length: POSE_CYCLE.length - 1 }, (_, i) => POSE_CYCLE[(start + i + 1) % POSE_CYCLE.length]).find(
+        (p) => p !== previous && p !== next,
+      ) ?? step.pose;
+    result.push({ ...step, pose: pose ?? step.pose });
+  });
+  return result;
 }

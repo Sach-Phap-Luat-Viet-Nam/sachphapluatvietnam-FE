@@ -784,32 +784,28 @@
  * Hướng dẫn sử dụng (driver.js, features/tour). Không đặt trong @layer: driver.css không thuộc layer nào nên luôn thắng
  * style trong layer; thêm `.driver-popover` vào selector để thắng `all: unset` của thư viện.
  *
- * Nhân vật nằm NGOÀI hộp text, nhô lên góc trên-trái và đè một phần ra ngoài viền trên lẫn viền trái (không đổi
- * margin/kích thước hộp: driver.js định vị hộp theo phần tử mục tiêu, đổi margin hộp dễ làm hộp tràn viewport ở các
- * bước `align: "end"`). Ảnh dùng `position: fixed` theo viewport, tự tính tọa độ bám theo hộp ở `GuidedTour.tsx` và
- * tự kẹp trong viewport nên không bị cắt khi hộp mở gần mép màn hình.
+ * Nhân vật đứng SAU hộp text và thò ra ngoài (trên, phải hoặc trái hộp, tùy chỗ trống): ảnh `position: fixed` đặt dưới
+ * hộp một lớp z-index nên phần chồng lên hộp bị hộp che, không bao giờ đè lên chữ. Vị trí do `placeGuide` tính
+ * (`guide-placement.ts`), không đổi margin/kích thước hộp vì driver.js định vị hộp theo phần tử mục tiêu.
  */
 .driver-popover.tour-popover {
   --driver-popover-font-family: var(--font-sans);
-  --tour-guide-size: 6.5rem;
-  --tour-pad: 1.25rem;
   width: min(27rem, calc(100vw - 2rem));
   min-width: 0;
   max-width: none;
-  /* Ảnh chồng vào góc hộp 55% bề ngang (GUIDE_OVERLAP ở GuidedTour.tsx): chừa chỗ để ảnh không che chữ. */
-  padding: var(--tour-pad) var(--tour-pad) 1rem calc(var(--tour-pad) + var(--tour-guide-size) * 0.55 + 1.25rem);
+  padding: 1.25rem 1.25rem 1rem;
   border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
   border-radius: 0;
   background: var(--color-panel);
   color: var(--color-ivory);
   box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.95);
 }
+/* Popover của driver.js có z-index 1000000000; ảnh nằm ngay dưới nó và trên lớp nền tối. */
 .tour-guide {
   position: fixed;
-  z-index: 1000000001;
-  width: var(--tour-guide-size, 6.5rem);
+  z-index: 999999999;
   height: auto;
-  filter: drop-shadow(0 18px 20px rgb(0 0 0 / 0.55));
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.6));
   pointer-events: none;
 }
 .driver-popover.tour-popover .driver-popover-title {
@@ -895,9 +891,7 @@
 }
 @media (max-width: 639px) {
   .driver-popover.tour-popover {
-    --tour-guide-size: 5rem;
-    --tour-pad: 1rem;
-    padding-bottom: 0.875rem;
+    padding: 1rem 1rem 0.875rem;
   }
   .driver-popover.tour-popover .driver-popover-title {
     font-size: 1.125rem;

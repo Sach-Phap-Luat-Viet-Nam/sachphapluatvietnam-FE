@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { tourAnchor, tourSelector } from "@/lib/tour-anchor";
-import { TOUR_STEPS, availableSteps } from "./steps";
+import { GUIDE_IMAGES, GUIDE_SHAPE, TOUR_STEPS, availableSteps } from "./steps";
+import type { GuidePose } from "./steps";
 
 describe("availableSteps", () => {
   it("keeps every step when all targets are on the page", () => {
@@ -14,6 +15,39 @@ describe("availableSteps", () => {
     expect(targets).not.toContain("categories");
     expect(targets[0]).toBeNull();
     expect(steps).toHaveLength(TOUR_STEPS.length - 2);
+  });
+});
+
+describe("pose variety", () => {
+  const samePoseNeighbours = (steps: readonly { pose: string }[]) =>
+    steps.some((step, index) => index > 0 && step.pose === steps[index - 1]?.pose);
+
+  it("never puts the same pose on two neighbouring steps", () => {
+    expect(samePoseNeighbours(TOUR_STEPS)).toBe(false);
+  });
+
+  it("keeps that true when steps are dropped and neighbours become equal", () => {
+    const targets = TOUR_STEPS.map((step) => step.target);
+    for (const hidden of targets) {
+      if (hidden === null) continue;
+      expect(samePoseNeighbours(availableSteps(TOUR_STEPS, (target) => target !== hidden))).toBe(false);
+    }
+    const onlyEnds = availableSteps(
+      TOUR_STEPS,
+      (target) => target === "search" || target === "book" || target === "replay",
+    );
+    expect(samePoseNeighbours(onlyEnds)).toBe(false);
+  });
+
+  it("uses every pose so the guide does not look repetitive", () => {
+    expect(new Set(TOUR_STEPS.map((step) => step.pose)).size).toBe(Object.keys(GUIDE_IMAGES).length);
+  });
+
+  it("describes the shape of every pose image", () => {
+    for (const pose of Object.keys(GUIDE_IMAGES) as GuidePose[]) {
+      const { ratio, width, height } = GUIDE_SHAPE[pose];
+      expect(ratio).toBeCloseTo(height / width, 3);
+    }
   });
 });
 

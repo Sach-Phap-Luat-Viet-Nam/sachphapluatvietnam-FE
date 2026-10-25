@@ -7,7 +7,9 @@ import "driver.js/dist/driver.css";
 import { setTourActive } from "@/lib/onboarding-gate";
 import { tourSelector } from "@/lib/tour-anchor";
 import type { TourTarget } from "@/lib/tour-anchor";
-import { GUIDE_IMAGES, TOUR_STEPS, availableSteps } from "./steps";
+import { placeGuide } from "./guide-placement";
+import type { Box } from "./guide-placement";
+import { GUIDE_FACING, GUIDE_IMAGES, GUIDE_SHAPE, TOUR_STEPS, availableSteps } from "./steps";
 import type { TourStep } from "./steps";
 import { subscribeTourReplay, takeTourReplay } from "./tour-replay";
 import { markTourDone, shouldStartTour } from "./tour-storage";
@@ -34,48 +36,66 @@ function isOnScreen(target: TourTarget): boolean {
   return rect.width > 0 && rect.height > 0;
 }
 
-const GUIDE_SIZE_PX = 104; // phải khớp --tour-guide-size ở globals.css (6.5rem desktop)
-const GUIDE_SIZE_MOBILE_PX = 80; // khớp --tour-guide-size trong @media (max-width: 639px)
-const GUIDE_OVERLAP = 0.45; // tỉ lệ ảnh nhô ra ngoài viền hộp (phần còn lại chồng vào góc trên-trái hộp)
+const GUIDE_WIDTH_PX = 240;
+const GUIDE_WIDTH_MOBILE_PX = 160;
 
-/**
- * Ảnh nhân vật nhô ra NGOÀI hộp text, neo ở góc trên-trái. Đặt `position: fixed` theo viewport (không phải theo hộp,
- * vì driver chỉ tránh tràn viewport cho khung hộp chứ không biết phần ảnh nhô thêm ra ngoài) và tự kẹp trong viewport
- * nên không bao giờ bị cắt dù hộp mở sát mép màn hình.
- */
-function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement): void {
-  const size = window.innerWidth < 640 ? GUIDE_SIZE_MOBILE_PX : GUIDE_SIZE_PX;
-  guide.style.width = `${size}px`;
-  const box = wrapper.getBoundingClientRect();
-  const overlap = size * GUIDE_OVERLAP;
-  const margin = 8; // không dính sát mép màn hình
-  const top = Math.max(margin, Math.min(box.top - overlap, window.innerHeight - size - margin));
-  const left = Math.max(margin, Math.min(box.left - overlap, window.innerWidth - size - margin));
-  guide.style.top = `${top}px`;
-  guide.style.left = `${left}px`;
+function boxOf(element: Element): Box {
+  const { left, top, right, bottom } = element.getBoundingClientRect();
+  return { left, top, right, bottom };
 }
 
-/** Ảnh nhân vật cạnh hộp text. Driver giữ lại khung hộp giữa các bước nên dùng lại thẻ `img` đã chèn. */
+/**
+ * Đặt ảnh nhân vật theo hộp text, né phần tử đang được giới thiệu (xem `placeGuide`); không đủ chỗ ở bước nào thì ẩn
+ * nhân vật ở bước đó.
+ */
+function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement, step: TourStep): void {
+  const shape = GUIDE_SHAPE[step.pose];
+  const nominal = (window.innerWidth < 640 ? GUIDE_WIDTH_MOBILE_PX : GUIDE_WIDTH_PX) * shape.scale;
+  const target = step.target ? document.querySelector(tourSelector(step.target)) : null;
+  const placement = placeGuide(
+    boxOf(wrapper),
+    { width: window.innerWidth, height: window.innerHeight },
+    nominal,
+    GUIDE_FACING[step.pose],
+    target ? boxOf(target) : undefined,
+    shape.ratio,
+  );
+  if (!placement) {
+    guide.style.visibility = "hidden";
+    return;
+  }
+  guide.style.visibility = "visible";
+  guide.style.width = `${placement.width}px`;
+  guide.style.left = `${placement.left}px`;
+  guide.style.top = `${placement.top}px`;
+  guide.style.transform = placement.flip ? "scaleX(-1)" : "none";
+}
+
+/**
+ * Ảnh nhân vật đứng sau hộp text, thò ra ngoài. Ảnh nằm ngoài DOM của hộp (driver.js cắt xén và định vị riêng phần
+ * hộp) nên là thẻ `img` gắn vào `body`; dùng lại một thẻ cho mọi bước. Trả về hàm ngừng theo dõi vị trí hộp.
+ */
 function renderGuide(popover: PopoverDOM, step: TourStep | undefined): (() => void) | undefined {
   if (!step) {
     return undefined;
   }
   let guide = document.body.querySelector<HTMLImageElement>("img.tour-guide");
   if (!guide) {
-    // Hộp text do driver.js tạo bằng DOM nên không dùng được `next/image`; kích thước khai báo sẵn để không xê dịch.
+    // Hộp text do driver.js tạo bằng DOM nên không dùng được `next/image`; khai báo tỉ lệ sẵn để không xê dịch.
     guide = document.createElement("img");
     guide.className = "tour-guide";
     guide.alt = "";
-    guide.width = GUIDE_SIZE_PX;
-    guide.height = Math.round((GUIDE_SIZE_PX * 330) / 264);
     guide.decoding = "async";
     document.body.append(guide);
   }
+  // Mỗi tư thế có khung ảnh riêng (ảnh ngang `open` khác ảnh dọc); khai báo sẵn để không xê dịch khi ảnh tải xong.
+  guide.width = GUIDE_SHAPE[step.pose].width;
+  guide.height = GUIDE_SHAPE[step.pose].height;
   guide.src = GUIDE_IMAGES[step.pose];
   // Driver focus phần tử đầu tiên là nút X; chuyển sang nút chính để Enter là đi tiếp (sau lượt focus của driver).
   requestAnimationFrame(() => popover.nextButton.focus());
 
-  const reposition = () => guide && positionGuide(guide, popover.wrapper);
+  const reposition = () => guide && positionGuide(guide, popover.wrapper, step);
   reposition();
   // Hộp có thể dịch chuyển (driver tự né mép viewport, khách cuộn/resize trong lúc hộp mở) nên theo dõi liên tục.
   const observer = new ResizeObserver(reposition);
