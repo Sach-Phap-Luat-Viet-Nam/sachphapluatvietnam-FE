@@ -23,6 +23,8 @@ const MIN_SCALE = 0.6;
 const MARGIN = 8;
 /** Khoảng cách giữa ảnh và phần tử đang giới thiệu để ảnh không dính sát vào lỗ sáng. */
 const AVOID_PADDING = 12;
+/** Phần tử đích chiếm quá tỉ lệ này của màn hình thì coi là khối lớn (xem `placeGuide`). */
+const LARGE_TARGET_SHARE = 0.2;
 /** Khoảng hở giữa hộp và ảnh khi nhân vật đứng phía dưới hộp (không thể khuất sau hộp vì sẽ mất đầu). */
 const BOTTOM_GAP = 6;
 
@@ -61,27 +63,36 @@ export function placeGuide(
     ["left", Math.min((box.left - MARGIN) / (1 - TUCK), maxByHeight)],
     ["bottom", (viewport.height - MARGIN - box.bottom - BOTTOM_GAP) / ratio],
   ];
-  const avoidArea: Box | undefined = avoid && {
-    left: avoid.left - AVOID_PADDING,
-    top: avoid.top - AVOID_PADDING,
-    right: avoid.right + AVOID_PADDING,
-    bottom: avoid.bottom + AVOID_PADDING,
-  };
+  // Phần tử đích chiếm một phần lớn màn hình (cả khu "Ưu đãi đang chạy"): hộp text nằm ngay trong khối đó nên không thể
+  // né được, và né thì mọi chỗ đều bị loại. Bỏ luật né, ưu tiên đứng hai bên hộp, ngang hàng với hộp.
+  const area = (b: Box) => (b.right - b.left) * (b.bottom - b.top);
+  const large = avoid !== undefined && area(avoid) > LARGE_TARGET_SHARE * viewport.width * viewport.height;
+  const avoidArea: Box | undefined =
+    avoid && !large
+      ? {
+          left: avoid.left - AVOID_PADDING,
+          top: avoid.top - AVOID_PADDING,
+          right: avoid.right + AVOID_PADDING,
+          bottom: avoid.bottom + AVOID_PADDING,
+        }
+      : undefined;
+  const [top, right, left, bottom] = fits;
+  const ordered = large && top && right && left && bottom ? [right, left, top, bottom] : fits;
 
   const usable: GuidePlacement[] = [];
-  for (const [side, fit] of fits) {
+  for (const [side, fit] of ordered) {
     const width = Math.min(nominalWidth, fit);
     if (width < nominalWidth * MIN_SCALE) {
       continue;
     }
     const placement = build(side, width, ratio, box, viewport, faces);
-    const area = {
+    const covered = {
       left: placement.left,
       top: placement.top,
       right: placement.left + width,
       bottom: placement.top + width * ratio,
     };
-    if (avoidArea && intersects(area, avoidArea)) {
+    if (avoidArea && intersects(covered, avoidArea)) {
       continue;
     }
     usable.push(placement);

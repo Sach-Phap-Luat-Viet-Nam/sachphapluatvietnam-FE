@@ -56,11 +56,12 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
   lớp `z-index` nên phần chồng lên hộp bị hộp che đi, **không bao giờ đè lên chữ**. Vị trí do hàm thuần `placeGuide`
   (`guide-placement.ts`, có test) chọn, theo thứ tự: phía trên, bên phải, bên trái, phía dưới hộp (phía dưới thì đứng
   lộ nguyên đầu, không khuất sau hộp). Điều kiện: đủ chỗ trong màn hình và **không che phần tử đang được khoanh sáng**.
-  Chỗ trống không đủ thì thu nhỏ ảnh (tối thiểu 60%), vẫn không đủ thì ẩn nhân vật ở bước đó. Ảnh đứng bên phải hộp
+  Chỗ trống không đủ thì thu nhỏ ảnh (tối thiểu 60%), vẫn không đủ thì ẩn nhân vật ở bước đó. **Phần tử đích quá lớn** (chiếm trên 20% màn hình, như cả khu "Ưu đãi đang chạy" mà hộp text nằm ngay bên trong) thì không né được, nên bỏ luật né và ưu tiên đứng hai bên hộp, ngang hàng với hộp (đáy ảnh trùng đáy hộp). Ảnh đứng bên phải hộp
   thì lật ngang để cử chỉ luôn hướng vào hộp (`GUIDE_FACING` ở `steps.ts`).
 - Ảnh là thẻ `img` `position: fixed` gắn vào `body`, tự tính tọa độ theo hộp và theo dõi khi hộp dịch chuyển, cuộn,
   đổi cỡ màn hình (`positionGuide` ở `GuidedTour.tsx`). Không làm ảnh con của hộp vì driver.js chỉ giữ khung hộp trong
   màn hình chứ không biết phần ảnh thò ra, hộp mở sát mép trên sẽ cắt mất đầu nhân vật.
+- **Chuyển bước mượt**: dùng hai ảnh luân phiên (`createGuideLayer` ở `GuidedTour.tsx`). Ảnh của bước mới được tải và giải mã xong mới đặt vào chỗ của nó rồi hiện dần (0,4s) và trồi nhẹ từ dưới lên, cùng lúc ảnh của bước trước mờ dần và chìm xuống, nên tổng độ rõ luôn xấp xỉ 1, không có nhịp trống. Chỉ `opacity` và `translate` có chuyển động; vị trí đổi tức thì để ảnh bám theo hộp khi cuộn. Khi bấm Tiếp, driver.js ẩn hộp cũ (kích thước 0) rồi mới vẽ hộp mới: lúc đó bộ theo dõi bỏ qua, ảnh cũ ở lại tới khi ảnh mới sẵn sàng (không thì ảnh cũ tắt ngay còn ảnh mới hiện chậm ~250ms). Ảnh các tư thế được tải sẵn khi tour bắt đầu (`preloadGuides`). Tắt hiệu ứng khi bật giảm chuyển động.
 - **Đa dạng tư thế**: 7 ảnh xoay vòng, không có hai bước liền kề nào cùng tư thế. Có bước bị bỏ (không có danh mục,
   chưa có ưu đãi...) làm hai bước cùng tư thế đứng cạnh nhau thì `varyPoses` (`steps.ts`) đổi bước sau sang tư thế khác.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy

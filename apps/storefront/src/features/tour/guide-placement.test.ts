@@ -89,6 +89,24 @@ describe("placeGuide", () => {
     expect(tall?.side).not.toBe("top");
   });
 
+  it("stands beside the box, level with it, when the target is a big block the box sits inside", () => {
+    // Cả khu "Ưu đãi đang chạy": cao gần bằng màn hình, hộp text nằm trong khu đó. Không thể né, nên đứng cạnh hộp.
+    const target = { left: 0, top: 100, right: 1280, bottom: 700 };
+    const box = { left: 100, top: 300, right: 530, bottom: 500 };
+    const placement = placeGuide(box, DESKTOP, NOMINAL, "right", target);
+    expect(placement).not.toBeNull();
+    expect(placement?.side).toBe("right");
+    // Ngang hàng với hộp: đáy ảnh trùng đáy hộp, ảnh chạm tới hộp.
+    expect((placement?.top ?? 0) + NOMINAL * GUIDE_RATIO).toBeCloseTo(box.bottom);
+    expect(placement?.left).toBeLessThan(box.right);
+  });
+
+  it("falls back to the left of the box when the right side has no room", () => {
+    const target = { left: 0, top: 100, right: 1280, bottom: 700 };
+    const box = { left: 760, top: 300, right: 1190, bottom: 500 };
+    expect(placeGuide(box, DESKTOP, NOMINAL, "right", target)?.side).toBe("left");
+  });
+
   it("never lets the guide leave the viewport", () => {
     const boxes = [
       { left: 0, top: 52, right: 430, bottom: 262 },

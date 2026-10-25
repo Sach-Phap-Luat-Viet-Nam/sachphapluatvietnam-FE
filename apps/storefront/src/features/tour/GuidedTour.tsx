@@ -45,10 +45,10 @@ function boxOf(element: Element): Box {
 }
 
 /**
- * Đặt ảnh nhân vật theo hộp text, né phần tử đang được giới thiệu (xem `placeGuide`); không đủ chỗ ở bước nào thì ẩn
- * nhân vật ở bước đó.
+ * Đặt ảnh nhân vật theo hộp text, né phần tử đang được giới thiệu (xem `placeGuide`). Trả `false` khi không đủ chỗ ở bước
+ * này, lúc đó nhân vật bị ẩn.
  */
-function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement, step: TourStep): void {
+function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement, step: TourStep): boolean {
   const shape = GUIDE_SHAPE[step.pose];
   const nominal = (window.innerWidth < 640 ? GUIDE_WIDTH_MOBILE_PX : GUIDE_WIDTH_PX) * shape.scale;
   const target = step.target ? document.querySelector(tourSelector(step.target)) : null;
@@ -61,51 +61,124 @@ function positionGuide(guide: HTMLImageElement, wrapper: HTMLElement, step: Tour
     shape.ratio,
   );
   if (!placement) {
-    guide.style.visibility = "hidden";
-    return;
+    return false;
   }
-  guide.style.visibility = "visible";
   guide.style.width = `${placement.width}px`;
   guide.style.left = `${placement.left}px`;
   guide.style.top = `${placement.top}px`;
   guide.style.transform = placement.flip ? "scaleX(-1)" : "none";
+  return true;
 }
 
 /**
- * Ảnh nhân vật đứng sau hộp text, thò ra ngoài. Ảnh nằm ngoài DOM của hộp (driver.js cắt xén và định vị riêng phần
- * hộp) nên là thẻ `img` gắn vào `body`; dùng lại một thẻ cho mọi bước. Trả về hàm ngừng theo dõi vị trí hộp.
+ * Tải và giải mã sẵn ảnh của các tư thế sẽ dùng ngay khi tour bắt đầu. Không có bước này thì ảnh của bước kế phải tải từ
+ * mạng lúc khách bấm Tiếp: ảnh cũ đã mờ đi mà ảnh mới chưa hiện, nhân vật biến mất một nhịp rồi mới xuất hiện.
  */
-function renderGuide(popover: PopoverDOM, step: TourStep | undefined): (() => void) | undefined {
-  if (!step) {
-    return undefined;
+function preloadGuides(steps: readonly TourStep[]): void {
+  for (const url of new Set(steps.map((step) => GUIDE_IMAGES[step.pose]))) {
+    const image = new Image();
+    image.src = url;
+    // Chỉ để làm nóng cache của trình duyệt: lỗi thì để lúc hiện thật xử lý.
+    void image.decode().catch(() => undefined);
   }
-  let guide = document.body.querySelector<HTMLImageElement>("img.tour-guide");
-  if (!guide) {
-    // Hộp text do driver.js tạo bằng DOM nên không dùng được `next/image`; khai báo tỉ lệ sẵn để không xê dịch.
-    guide = document.createElement("img");
-    guide.className = "tour-guide";
-    guide.alt = "";
-    guide.decoding = "async";
-    document.body.append(guide);
-  }
-  // Mỗi tư thế có khung ảnh riêng (ảnh ngang `open` khác ảnh dọc); khai báo sẵn để không xê dịch khi ảnh tải xong.
-  guide.width = GUIDE_SHAPE[step.pose].width;
-  guide.height = GUIDE_SHAPE[step.pose].height;
-  guide.src = GUIDE_IMAGES[step.pose];
-  // Driver focus phần tử đầu tiên là nút X; chuyển sang nút chính để Enter là đi tiếp (sau lượt focus của driver).
-  requestAnimationFrame(() => popover.nextButton.focus());
+}
 
-  const reposition = () => guide && positionGuide(guide, popover.wrapper, step);
-  reposition();
-  // Hộp có thể dịch chuyển (driver tự né mép viewport, khách cuộn/resize trong lúc hộp mở) nên theo dõi liên tục.
-  const observer = new ResizeObserver(reposition);
-  observer.observe(popover.wrapper);
-  window.addEventListener("scroll", reposition, { passive: true, capture: true });
-  window.addEventListener("resize", reposition);
-  return () => {
-    observer.disconnect();
-    window.removeEventListener("scroll", reposition, true);
-    window.removeEventListener("resize", reposition);
+function createGuideImage(): HTMLImageElement {
+  // Hộp text do driver.js tạo bằng DOM nên không dùng được `next/image`; kích thước khai báo theo từng tư thế ở `show`.
+  const image = document.createElement("img");
+  image.className = "tour-guide";
+  image.alt = "";
+  image.decoding = "async";
+  document.body.append(image);
+  return image;
+}
+
+interface GuideLayer {
+  show: (popover: PopoverDOM, step: TourStep) => void;
+  dispose: () => void;
+}
+
+/**
+ * Nhân vật đứng sau hộp text, thò ra ngoài. Ảnh nằm ngoài DOM của hộp (driver.js cắt xén và định vị riêng phần hộp) nên
+ * là thẻ `img` gắn vào `body`.
+ *
+ * Dùng **hai ảnh luân phiên** để chuyển bước mượt: ảnh của bước mới tải và giải mã xong rồi mới đặt vào chỗ của nó và hiện
+ * dần lên (trồi nhẹ từ dưới), cùng lúc ảnh của bước trước mờ dần đi. Đổi `src` của một ảnh duy nhất thì ảnh nhảy vị trí
+ * và đổi hình tức thì, trông thô.
+ */
+function createGuideLayer(): GuideLayer {
+  let images: HTMLImageElement[] = [];
+  let active = -1;
+  /** Mỗi lần `show`/`dispose` tăng một bậc để bỏ kết quả của lần gọi cũ (ảnh tải chậm, khách bấm Tiếp liên tục). */
+  let token = 0;
+  let stopTracking: (() => void) | undefined;
+
+  const stop = () => {
+    stopTracking?.();
+    stopTracking = undefined;
+  };
+
+  return {
+    show(popover, step) {
+      stop();
+      const current = ++token;
+      if (images.length === 0) {
+        images = [createGuideImage(), createGuideImage()];
+      }
+      const index = (active + 1) % images.length;
+      const next = images[index];
+      const previous = images[active];
+      if (!next) {
+        return;
+      }
+      const shape = GUIDE_SHAPE[step.pose];
+      next.width = shape.width;
+      next.height = shape.height;
+      next.src = GUIDE_IMAGES[step.pose];
+      // Driver focus phần tử đầu tiên là nút X; chuyển sang nút chính để Enter là đi tiếp (sau lượt focus của driver).
+      requestAnimationFrame(() => popover.nextButton.focus());
+
+      void next
+        .decode()
+        // Ảnh lỗi thì thôi, hộp text vẫn dùng được; không ghi log vì chỉ là phần trang trí.
+        .catch(() => undefined)
+        .then(() => {
+          if (current !== token) {
+            return;
+          }
+          const reposition = () => {
+            // Bấm Tiếp thì driver ẩn hộp cũ rồi mới vẽ hộp mới. Hộp đang ẩn (kích thước 0) không phải là "hết chỗ": giữ
+            // nguyên ảnh để nó đổi sang ảnh mới cùng lúc, không tắt trước rồi để trống một nhịp.
+            const { width, height } = popover.wrapper.getBoundingClientRect();
+            if (width > 0 && height > 0) {
+              next.classList.toggle("is-active", positionGuide(next, popover.wrapper, step));
+            }
+          };
+          reposition();
+          // Ép tính style trước khi bật `is-active` để chuyển động hiện dần chạy kể cả với ảnh vừa được thêm vào trang.
+          void next.offsetWidth;
+          previous?.classList.remove("is-active");
+          active = index;
+
+          // Hộp có thể dịch chuyển (driver tự né mép viewport, khách cuộn/resize trong lúc hộp mở) nên theo dõi liên tục.
+          const observer = new ResizeObserver(reposition);
+          observer.observe(popover.wrapper);
+          window.addEventListener("scroll", reposition, { passive: true, capture: true });
+          window.addEventListener("resize", reposition);
+          stopTracking = () => {
+            observer.disconnect();
+            window.removeEventListener("scroll", reposition, true);
+            window.removeEventListener("resize", reposition);
+          };
+        });
+    },
+    dispose() {
+      token += 1;
+      stop();
+      images.forEach((image) => image.remove());
+      images = [];
+      active = -1;
+    },
   };
 }
 
@@ -137,14 +210,8 @@ export function GuidedTour() {
     let tour: Driver | null = null;
     let timer: number | undefined;
     let disposed = false;
-    let stopTracking: (() => void) | undefined;
-
-    // Ảnh nhân vật nằm ngoài DOM của driver nên driver không tự gỡ: phải gỡ cùng lúc với hộp.
-    const clearGuide = () => {
-      stopTracking?.();
-      stopTracking = undefined;
-      document.body.querySelector("img.tour-guide")?.remove();
-    };
+    // Ảnh nhân vật nằm ngoài DOM của driver nên driver không tự gỡ: phải gỡ cùng lúc với hộp (`guide.dispose`).
+    const guide = createGuideLayer();
 
     const start = () => {
       if (tour?.isActive() || timer !== undefined) {
@@ -160,6 +227,7 @@ export function GuidedTour() {
               return;
             }
             const steps = availableSteps(TOUR_STEPS, isOnScreen);
+            preloadGuides(steps);
             const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const scrim = getComputedStyle(document.documentElement).getPropertyValue("--color-scrim").trim();
             // Khách dừng hướng dẫn (Hoàn tất, Bỏ qua, X, Esc): ghi dấu đã xem, cho popup hiện rồi mới gỡ hộp. Không dựa vào
@@ -167,7 +235,7 @@ export function GuidedTour() {
             const end = () => {
               markTourDone(localStore());
               setTourActive(false);
-              clearGuide();
+              guide.dispose();
               const current = tour;
               tour = null;
               current?.destroy();
@@ -191,9 +259,10 @@ export function GuidedTour() {
               doneBtnText: "Hoàn tất",
               closeBtnLabel: "Bỏ qua hướng dẫn",
               onPopoverRender: (popover, { index }) => {
-                // Mỗi bước vẽ lại hộp: bỏ theo dõi của bước trước rồi theo dõi hộp mới.
-                stopTracking?.();
-                stopTracking = renderGuide(popover, index === undefined ? undefined : steps[index]);
+                const step = index === undefined ? undefined : steps[index];
+                if (step) {
+                  guide.show(popover, step);
+                }
               },
               // Có hook này thì driver không tự gỡ mà để `end()` gỡ. `destroy()` lúc rời trang chủ giữa chừng (nút Back)
               // không đi qua hook này nên chưa tính là đã xem.
@@ -223,7 +292,7 @@ export function GuidedTour() {
       disposed = true;
       unsubscribe();
       window.clearTimeout(timer);
-      clearGuide();
+      guide.dispose();
       tour?.destroy();
       setTourActive(false);
     };
