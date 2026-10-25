@@ -100,13 +100,17 @@ export function GuidedTour() {
             const steps = availableSteps(TOUR_STEPS, isOnScreen);
             const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const scrim = getComputedStyle(document.documentElement).getPropertyValue("--color-scrim").trim();
-            // `destroy()` gọi từ code được tính là lý do "api" nên ghi dấu đã xem trước.
-            const skip = () => {
+            // Khách dừng hướng dẫn (Hoàn tất, Bỏ qua, X, Esc): ghi dấu đã xem, cho popup hiện rồi mới gỡ hộp. Không dựa vào
+            // `onDestroyed`: driver bỏ qua hook này khi khách dừng lúc hộp đầu tiên còn đang hiện dần lên.
+            const end = () => {
               markTourDone(localStore());
-              tour?.destroy();
+              setTourActive(false);
+              const current = tour;
+              tour = null;
+              current?.destroy();
             };
             tour = driver({
-              steps: steps.map((step, index) => toDriveStep(step, index, steps.length, skip)),
+              steps: steps.map((step, index) => toDriveStep(step, index, steps.length, end)),
               popoverClass: "tour-popover",
               ...(scrim ? { overlayColor: scrim } : {}),
               overlayOpacity: 0.72,
@@ -125,14 +129,9 @@ export function GuidedTour() {
               closeBtnLabel: "Bỏ qua hướng dẫn",
               onPopoverRender: (popover, { index }) =>
                 renderGuide(popover, index === undefined ? undefined : steps[index]),
-              onDestroyed: (_element, _step, { reason }) => {
-                // "api": trang bị gỡ (khách bấm Back giữa chừng), chưa tính là đã xem.
-                if (reason !== "api") {
-                  markTourDone(localStore());
-                }
-                tour = null;
-                setTourActive(false);
-              },
+              // Có hook này thì driver không tự gỡ mà để `end()` gỡ. `destroy()` lúc rời trang chủ giữa chừng (nút Back)
+              // không đi qua hook này nên chưa tính là đã xem.
+              onDestroyStarted: end,
             });
             tour.drive();
           })
