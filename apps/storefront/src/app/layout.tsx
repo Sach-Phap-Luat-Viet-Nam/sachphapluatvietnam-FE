@@ -10,6 +10,7 @@ import { QueryProvider } from "@/components/QueryProvider";
 import { ZaloContact } from "@/components/ZaloContact";
 import { ImpersonationBanner } from "@/features/impersonation/ImpersonationBanner";
 import { PromoPopup } from "@/features/popup/PromoPopup";
+import { GuidedTour } from "@/features/tour/GuidedTour";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Header />
           {children}
           <Footer />
+          <GuidedTour />
           <PromoPopup />
           <ZaloContact />
         </QueryProvider>

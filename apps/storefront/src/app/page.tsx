@@ -16,6 +16,7 @@ import { tickerItems } from "@/features/home/home";
 import { QuickPurchase } from "@/features/ordering/QuickPurchase";
 import { OfferShelf } from "@/features/popup/OfferShelf";
 import { getRunningPopups } from "@/features/popup/server";
+import { tourAnchor } from "@/lib/tour-anchor";
 
 const NEW_BOOKS_LIMIT = 4;
 
@@ -76,6 +77,7 @@ export default async function HomePage() {
             <div className="motion-rise flex flex-wrap items-center gap-6 [animation-delay:1100ms]">
               <Link
                 href="/sach"
+                {...tourAnchor("explore")}
                 className="btn-sweep bg-gold text-ink flex h-14 items-center gap-3 px-8 text-base font-semibold"
               >
                 Khám phá tủ sách
@@ -124,14 +126,17 @@ export default async function HomePage() {
 
       <LawTicker items={tickerItems(books)} />
 
-      <CategoryStrip
-        className="border-t-0"
-        items={categories.map((category) => ({
-          key: category.slug,
-          label: category.name,
-          href: `/sach?category=${encodeURIComponent(category.slug)}`,
-        }))}
-      />
+      {/* Không có danh mục thì khung này trống (cao 0) nên hướng dẫn tự bỏ qua bước danh mục. */}
+      <div {...tourAnchor("categories")}>
+        <CategoryStrip
+          className="border-t-0"
+          items={categories.map((category) => ({
+            key: category.slug,
+            label: category.name,
+            href: `/sach?category=${encodeURIComponent(category.slug)}`,
+          }))}
+        />
+      </div>
 
       <OfferShelf popups={offers} />
 
@@ -163,7 +168,11 @@ export default async function HomePage() {
             // Khoảng trống trên bìa trong BookCard đã đủ cho sách nhấc lên khi hover nên vùng cuộn không cắt mất.
             <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:none] gap-5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:gap-8 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
               {books.map((book, index) => (
-                <li key={book.id} className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
+                <li
+                  key={book.id}
+                  {...(index === 0 ? tourAnchor("book") : {})}
+                  className="w-[68%] shrink-0 snap-start sm:w-[40%] lg:w-auto"
+                >
                   <BookCard
                     book={book}
                     index={index + 1}

@@ -24,6 +24,8 @@
   --color-ok: #7cc79a;
   /* Xanh nhận diện của Zalo cho nút tư vấn; chữ trắng trên nền này đạt tương phản AA. */
   --color-zalo: #0068ff;
+  /* Nền tối phủ trang khi mở popup, hộp thoại, hướng dẫn sử dụng: luôn tối ở cả chế độ sáng (`ink` thì đổi theo chế độ). */
+  --color-scrim: #05090f;
 
   --color-cover-navy: #172a4d;
   --color-cover-wine: #4a1e22;
@@ -429,7 +431,7 @@
     animation: sheet-up 0.45s var(--ease-out-soft);
   }
   .sheet::backdrop {
-    background: rgb(5 9 16 / 0.7);
+    background: color-mix(in srgb, var(--color-scrim) 70%, transparent);
   }
 
   /*
@@ -775,6 +777,129 @@
   50% {
     transform: scaleX(0.82);
     opacity: 0.6;
+  }
+}
+
+/*
+ * Hướng dẫn sử dụng (driver.js, features/tour). Không đặt trong @layer: driver.css không thuộc layer nào nên luôn thắng
+ * style trong layer; thêm `.driver-popover` vào selector để thắng `all: unset` của thư viện. Driver bật/tắt hộp bằng
+ * `style.display` nên không dùng grid/flex ở khung ngoài: nhân vật đặt tuyệt đối ở cột trái (phần padding bên trái).
+ */
+.driver-popover.tour-popover {
+  --driver-popover-font-family: var(--font-sans);
+  --tour-guide-size: 5.5rem;
+  --tour-pad: 1.25rem;
+  --tour-gap: 1rem;
+  width: min(27rem, calc(100vw - 2rem));
+  min-width: 0;
+  max-width: none;
+  padding: var(--tour-pad) var(--tour-pad) 1rem calc(var(--tour-pad) + var(--tour-guide-size) + var(--tour-gap));
+  border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
+  border-radius: 0;
+  background: var(--color-panel);
+  color: var(--color-ivory);
+  box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.95);
+}
+.driver-popover.tour-popover .tour-guide {
+  position: absolute;
+  top: var(--tour-pad);
+  left: var(--tour-pad);
+  width: var(--tour-guide-size);
+  height: auto;
+}
+.driver-popover.tour-popover .driver-popover-title {
+  padding-right: 2rem;
+  color: var(--color-gold);
+  font-family: var(--font-editorial);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+.driver-popover.tour-popover .driver-popover-description {
+  /* Nội dung ngắn vẫn cao bằng nhân vật (tỉ lệ 4:5) để nhân vật không đè lên hàng nút. */
+  min-height: calc(var(--tour-guide-size) * 1.25 - 2.125rem);
+  margin-top: 0.5rem;
+  color: var(--color-sand);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.driver-popover.tour-popover .driver-popover-footer {
+  gap: 0.75rem;
+  margin-top: 1.125rem;
+  margin-left: calc(-1 * (var(--tour-guide-size) + var(--tour-gap)));
+}
+.driver-popover.tour-popover .driver-popover-progress-text {
+  color: var(--color-mist);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.driver-popover.tour-popover .driver-popover-navigation-btns {
+  gap: 0.5rem;
+}
+.driver-popover.tour-popover .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+.driver-popover.tour-popover .driver-popover-footer-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 50%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ivory);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-shadow: none;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+.driver-popover.tour-popover .driver-popover-footer-btn:hover {
+  border-color: var(--color-gold);
+  background: transparent;
+  color: var(--color-gold);
+}
+.driver-popover.tour-popover .driver-popover-next-btn {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.driver-popover.tour-popover .driver-popover-next-btn:hover {
+  border-color: var(--color-gold-hover);
+  background: var(--color-gold-hover);
+  color: var(--color-ink);
+}
+.driver-popover.tour-popover .driver-popover-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--color-mist);
+  font-size: 1.375rem;
+}
+.driver-popover.tour-popover .driver-popover-close-btn:hover {
+  color: var(--color-gold);
+}
+.driver-popover.tour-popover button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+/* Lỗ sáng đã chỉ rõ phần tử nên bỏ mũi tên (mũi tên của driver chỉ đổi được màu bằng viền, khó khớp theme). */
+.driver-popover.tour-popover .driver-popover-arrow {
+  display: none;
+}
+@media (max-width: 639px) {
+  .driver-popover.tour-popover {
+    --tour-guide-size: 4rem;
+    --tour-pad: 1rem;
+    --tour-gap: 0.75rem;
+    padding-bottom: 0.875rem;
+  }
+  .driver-popover.tour-popover .driver-popover-title {
+    font-size: 1.125rem;
   }
 }
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import { tourAnchor } from "@/lib/tour-anchor";
 import { useCart } from "./useCart";
 
 /** Link giỏ hàng trên header, kèm số cuốn đang có. Lỗi tải giỏ thì vẫn hiện link, không hiện số. */
@@ -12,6 +13,7 @@ export function CartLink() {
   return (
     <Link
       href="/gio-hang"
+      {...tourAnchor("cart")}
       aria-label={count ? `Giỏ hàng, ${count} cuốn` : "Giỏ hàng"}
       // Hẹp hơn trên mobile để logo, giỏ và nút Đăng nhập vẫn nằm một hàng ở màn 390px.
       className="hover:text-gold relative flex h-11 w-9 items-center justify-center transition-colors sm:w-11"

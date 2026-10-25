@@ -55,7 +55,7 @@ function CancelOrder({ code, cancel, onCancelled }: CancelOrderProps) {
       <dialog
         ref={dialog}
         aria-labelledby={`${id}-title`}
-        className="modal bg-panel text-ivory border-danger/40 backdrop:bg-ink/80 fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-lg border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
+        className="modal bg-panel text-ivory border-danger/40 backdrop:bg-scrim/75 fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-lg border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
       >
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
           <div className="flex items-start justify-between gap-4">

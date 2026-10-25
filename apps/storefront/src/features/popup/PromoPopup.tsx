@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { waitForTourIdle } from "@/lib/onboarding-gate";
 import { getActivePopup } from "./api";
 import { markPopupSeen, safePopupLink, shouldShowPopup } from "./popup";
 import type { PopupStores } from "./popup";
@@ -34,7 +35,9 @@ export function PromoPopup() {
   useEffect(() => {
     let cancelled = false;
     getActivePopup()
-      .then((active) => {
+      .then(async (active) => {
+        // Thiết bị mới đang xem hướng dẫn sử dụng: đợi hướng dẫn xong (hoặc bị bỏ qua) rồi mới hiện popup.
+        await waitForTourIdle();
         if (!cancelled && active && shouldShowPopup(active, browserStores(), new Date())) {
           setPopup(active);
         }
@@ -80,7 +83,7 @@ export function PromoPopup() {
     <dialog
       ref={dialog}
       aria-label={popup.title}
-      className="modal bg-panel text-ivory border-gold/40 backdrop:bg-ink/80 fixed inset-0 m-auto w-fit max-w-none border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
+      className="modal bg-panel text-ivory border-gold/40 backdrop:bg-scrim/75 fixed inset-0 m-auto w-fit max-w-none border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
     >
       <button
         type="button"

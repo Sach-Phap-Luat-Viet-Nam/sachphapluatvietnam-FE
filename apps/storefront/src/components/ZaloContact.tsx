@@ -1,3 +1,5 @@
+import { tourAnchor } from "@/lib/tour-anchor";
+
 /** Số tư vấn qua Zalo (Nguyễn Tài Thành). Đổi số ở đây là đổi cho cả nút và link. */
 const ZALO_PHONE = "0984739739";
 
@@ -12,6 +14,7 @@ export function ZaloContact() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Tư vấn qua Zalo"
+      {...tourAnchor("zalo")}
       className="group fixed right-4 bottom-4 z-40 flex items-center gap-3 sm:right-6 sm:bottom-6"
     >
       <span className="bg-panel/95 border-zalo/50 group-hover:border-zalo hidden flex-col border px-4 py-2 text-right shadow-[0_16px_30px_-12px_rgb(0_0_0/0.8)] transition-colors sm:flex">

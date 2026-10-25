@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogOut, Package, UserRound } from "lucide-react";
 import { getServerSessionState, getSessionState, logout, restoreSession, subscribeSession } from "@slvn/auth";
 import { Avatar } from "@slvn/ui";
+import { tourAnchor } from "@/lib/tour-anchor";
 
 const LOGOUT_ERROR = "Chưa đăng xuất được, vui lòng thử lại.";
 
@@ -22,7 +23,7 @@ export function AccountNav() {
     // Chưa biết đã đăng nhập hay chưa (server luôn render ở trạng thái này): hiện khung chờ cùng cỡ với nút Đăng nhập
     // để khách đã đăng nhập tải lại trang không thấy nút Đăng nhập nháy lên rồi mới đổi, và layout không xê dịch.
     return (
-      <div role="status" aria-busy="true" className="flex min-h-11 items-center">
+      <div role="status" aria-busy="true" {...tourAnchor("account")} className="flex min-h-11 items-center">
         <span className="sr-only">Đang kiểm tra phiên đăng nhập…</span>
         <span aria-hidden="true" className="bg-ivory/10 block h-11 w-35 animate-pulse" />
       </div>
@@ -33,6 +34,7 @@ export function AccountNav() {
     return (
       <Link
         href="/dang-nhap"
+        {...tourAnchor("account")}
         className="border-gold/45 hover:border-gold hover:bg-gold hover:text-ink flex min-h-11 items-center gap-2 border px-4 text-[15px] transition-colors duration-300"
       >
         <UserRound size={19} strokeWidth={1.6} />
@@ -55,7 +57,7 @@ export function AccountNav() {
 
   return (
     // Mobile chỉ hiện icon (chữ vẫn còn cho trình đọc màn hình) để logo, giỏ và tài khoản nằm một hàng.
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] sm:gap-x-4">
+    <div {...tourAnchor("account")} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] sm:gap-x-4">
       <Link
         href="/tai-khoan"
         title="Tài khoản"

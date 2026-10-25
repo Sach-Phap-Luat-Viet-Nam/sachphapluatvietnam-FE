@@ -21,7 +21,11 @@ App **storefront**, mọi trang (`PromoPopup` đặt trong `app/layout.tsx`).
 
    Trình duyệt chặn storage thì popup hiện như `every_visit`.
 
-3. Chỉ mở `<dialog>` khi **ảnh đã tải xong** (không hiện khung trống), ghi dấu đã xem lúc mở.
+   Thiết bị mới đang xem **hướng dẫn sử dụng** ở trang chủ (`storefront-tour.md`) thì popup đợi hướng dẫn kết thúc
+   (xong hoặc bỏ qua) rồi mới hiện (`lib/onboarding-gate.ts`).
+
+3. Chỉ mở `<dialog>` khi **ảnh đã tải xong** (không hiện khung trống), ghi dấu đã xem lúc mở. Nền phía sau dùng token
+   `--color-scrim` nên **luôn tối**, kể cả ở giao diện sáng (trước đây dùng `ink` nên ở giao diện sáng nền bị sáng).
 4. Đóng bằng nút X ("Đóng quảng cáo") hoặc phím Esc. Bấm vào ảnh là mở `linkUrl` và đóng popup (không có nút
    riêng). Ảnh hiện theo kích thước thật, tối đa 85% chiều cao màn hình và 64rem; trên PC rộng tối thiểu 36rem.
 5. **Link an toàn** (kiểm tra lại dù backend đã chặn): chỉ nhận path trong site (mở bằng `next/link`) hoặc URL

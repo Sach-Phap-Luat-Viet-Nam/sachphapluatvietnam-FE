@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
 import { Container } from "@slvn/ui";
+import { tourAnchor } from "@/lib/tour-anchor";
 import { safePopupLink } from "./popup";
 import type { Popup } from "./schemas";
 
@@ -30,7 +31,7 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
 
   const link = selected ? safePopupLink(selected.linkUrl) : null;
   return (
-    <section aria-labelledby="running-offers" className="bg-ink-deep border-gold/25 border-y">
+    <section aria-labelledby="running-offers" {...tourAnchor("offers")} className="bg-ink-deep border-gold/25 border-y">
       <Container className="flex flex-col gap-8 py-14 sm:gap-12 sm:py-20">
         <div className="flex flex-col gap-4">
           <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em]">
@@ -79,7 +80,7 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
         ref={dialog}
         aria-label={selected?.title}
         onClose={() => setSelected(null)}
-        className="modal bg-panel text-ivory border-gold/40 backdrop:bg-ink/80 fixed inset-0 m-auto w-fit max-w-none border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
+        className="modal bg-panel text-ivory border-gold/40 backdrop:bg-scrim/75 fixed inset-0 m-auto w-fit max-w-none border p-0 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.95)]"
       >
         {selected && (
           <>

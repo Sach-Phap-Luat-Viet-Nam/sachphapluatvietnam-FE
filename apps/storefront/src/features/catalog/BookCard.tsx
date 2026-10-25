@@ -120,7 +120,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
       <dialog
         ref={dialog}
         aria-labelledby={`book-${book.id}`}
-        className="modal bg-panel text-ivory border-gold/30 backdrop:bg-ink/80 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-auto border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
+        className="modal bg-panel text-ivory border-gold/30 backdrop:bg-scrim/75 fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-auto border p-6 shadow-[0_40px_80px_-40px_rgb(0_0_0/0.9)] sm:p-8"
       >
         <div className="mb-6 flex items-center justify-between">
           <span className="text-gold text-xs tracking-[0.3em]">XEM NHANH</span>

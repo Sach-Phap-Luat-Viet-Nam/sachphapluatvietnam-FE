@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { Banknote, BookCheck, Truck, X } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { freeShippingText } from "@/features/ordering/shipping-threshold";
+import { tourAnchor } from "@/lib/tour-anchor";
 
 interface Message {
   icon: LucideIcon;
@@ -52,6 +53,8 @@ export function PromoBar({ freeShippingThreshold }: { freeShippingThreshold: num
   return (
     <div
       inert={!open}
+      // Mốc đặt ở khung ngoài: thanh đã đóng thì khung cao 0 nên hướng dẫn tự bỏ qua bước này.
+      {...tourAnchor("promo-bar")}
       className={cn(
         "grid transition-[grid-template-rows] duration-500 ease-out",
         open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",

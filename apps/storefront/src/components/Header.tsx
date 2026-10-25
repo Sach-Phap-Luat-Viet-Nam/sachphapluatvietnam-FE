@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
 import { getFreeShippingThreshold } from "@/features/ordering/shipping-threshold-server";
 import { CartLink } from "@/features/ordering/CartLink";
+import { tourAnchor } from "@/lib/tour-anchor";
 import { AccountNav } from "./AccountNav";
 import { BrandMark } from "./BrandMark";
 import { PromoBar } from "./PromoBar";
@@ -17,6 +18,7 @@ export async function Header() {
         <form
           action="/sach"
           role="search"
+          {...tourAnchor("search")}
           className="group border-ivory/15 bg-panel focus-within:border-gold order-3 flex h-12 w-full items-stretch border transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_0_0_4px_rgb(203_166_94/0.15)] lg:order-0 lg:max-w-xl lg:flex-1"
         >
           <label htmlFor="header-search" className="sr-only">

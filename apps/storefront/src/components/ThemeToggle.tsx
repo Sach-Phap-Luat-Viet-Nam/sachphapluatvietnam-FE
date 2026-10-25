@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { applyTheme, useTheme } from "@/lib/theme";
 import { saveThemePreference } from "@/lib/theme-api";
+import { tourAnchor } from "@/lib/tour-anchor";
 import { useSession } from "@/lib/use-session";
 
 /** Nút chuyển giao diện sáng/tối; khách đã đăng nhập thì lưu lựa chọn vào tài khoản. */
@@ -24,6 +25,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={handleClick}
+      {...tourAnchor("theme")}
       title={next === "light" ? "Giao diện sáng" : "Giao diện tối"}
       className="text-mist hover:text-gold flex size-11 shrink-0 items-center justify-center transition-colors"
     >

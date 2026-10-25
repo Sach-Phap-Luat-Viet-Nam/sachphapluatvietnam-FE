@@ -17,6 +17,10 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
   ở hằng `ZALO_PHONE` trong file này.
 - **Footer**: chỉ link tới trang đã có và thông tin giao hàng/thanh toán có thật (BR-14); chưa có hotline, địa chỉ.
   Link "Đăng nhập" (`FooterLoginLink`) ẩn khi khách đã đăng nhập; trong lúc đang kiểm tra phiên vẫn hiện.
+  Có link "Tra cứu đơn hàng" (`/don-hang/tra-cuu`, cho khách đặt không cần tài khoản) và nút "Xem hướng dẫn sử dụng"
+  (`storefront-tour.md`).
+- **Nền tối của hộp thoại** (popup, xem nhanh, xác nhận...): `backdrop:bg-scrim/75`, token `--color-scrim` không đổi
+  theo chế độ sáng/tối nên nền phía sau hộp thoại luôn tối.
 - **`/sach`** render trên server, phân trang **24 sách/trang**:
   - Thanh danh mục đánh số `00 Tất cả · 01 …` (danh mục gốc); chọn danh mục có con thì hiện hàng danh mục con.
   - Sidebar bộ lọc (desktop) hoặc nút "Bộ lọc (n)" mở bảng trượt từ dưới lên (mobile, `<dialog>`). Bộ lọc là form GET
