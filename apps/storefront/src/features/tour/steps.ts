@@ -2,12 +2,13 @@ import type { Alignment, Side } from "driver.js";
 import type { TourTarget } from "@/lib/tour-anchor";
 
 /**
- * Tư thế của nhân vật hướng dẫn ở từng bước: `welcome` tay mở chào, `point` chỉ vào một nút, `present` giới thiệu một
- * khu nội dung, `open` hai tay mở sang hai bên (mời xem, tùy bạn chọn), `calm` đứng thẳng hai tay đan nhau (lắng nghe,
- * sẵn sàng hỗ trợ), `wink` nháy mắt, tay làm dấu V, tay kia chống hông (vui vẻ, mời thử), `cheer` khen ngợi lúc kết thúc.
+ * Tư thế của nhân vật hướng dẫn ở từng bước (xem bảng ở docs/features/storefront-tour.md). Tên theo nội dung ảnh để chọn
+ * đúng bước: `welcome` tay mở chào, `point` chỉ vào một nút, `present` giới thiệu một khu nội dung, `open` hai tay mở sang
+ * hai bên, `calm` đứng thẳng hai tay đan nhau, `search` cầm kính lúp, `books` giơ hai cuốn sách, `support` đeo tai nghe
+ * tư vấn, `confident` khoanh tay mỉm cười, `study` ôm cuốn vở, `cheer` like và OK lúc kết thúc.
  */
-export type GuidePose = "welcome" | "point" | "present" | "open" | "calm" | "wink" | "cheer";
-
+export type GuidePose =
+  "welcome" | "point" | "present" | "open" | "calm" | "search" | "books" | "support" | "confident" | "study" | "cheer";
 export interface TourStep {
   /** `null`: bước giới thiệu chung, hộp text nằm giữa màn hình. */
   target: TourTarget | null;
@@ -20,7 +21,7 @@ export interface TourStep {
 
 /**
  * Ảnh nhân vật theo tư thế, đặt trong `public/tour/`: WebP nền trong suốt, người đặt sát đáy khung. Hầu hết ảnh dọc tỉ
- * lệ 4:5 (480×600); `open` (720×471) và `wink` (480×468) là ảnh gần vuông/ngang vì tay giơ ra hai bên, cắt 4:5 sẽ mất tay.
+ * lệ 4:5 (480×600); `open` (720×471) là ảnh ngang vì hai tay giơ ra hai bên, cắt 4:5 sẽ mất tay.
  */
 export const GUIDE_IMAGES: Record<GuidePose, string> = {
   welcome: "/tour/guide-welcome.webp",
@@ -28,7 +29,11 @@ export const GUIDE_IMAGES: Record<GuidePose, string> = {
   present: "/tour/guide-present.webp",
   open: "/tour/guide-open.webp",
   calm: "/tour/guide-calm.webp",
-  wink: "/tour/guide-wink.webp",
+  search: "/tour/guide-search.webp",
+  books: "/tour/guide-books.webp",
+  support: "/tour/guide-support.webp",
+  confident: "/tour/guide-confident.webp",
+  study: "/tour/guide-study.webp",
   cheer: "/tour/guide-cheer.webp",
 };
 
@@ -42,13 +47,17 @@ export const GUIDE_SHAPE: Record<GuidePose, { ratio: number; scale: number; widt
   present: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   open: { ratio: 471 / 720, scale: 1.5, width: 720, height: 471 },
   calm: { ratio: 1.25, scale: 1, width: 480, height: 600 },
-  wink: { ratio: 468 / 480, scale: 1.1, width: 480, height: 468 },
+  search: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  books: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  support: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  confident: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  study: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   cheer: { ratio: 1.25, scale: 1, width: 480, height: 600 },
 };
 
 /**
  * Cử chỉ trong ảnh gốc hướng về bên nào. Nhân vật đứng bên trái hộp thì cần cử chỉ hướng phải (vào hộp), đứng bên phải
- * thì hướng trái; ảnh có hướng ngược lại sẽ được lật ngang. `cheer` (like và OK), `open` và `calm` đối xứng nên coi như
+ * thì hướng trái; ảnh có hướng ngược lại sẽ được lật ngang. `cheer` (like và OK), `open`, `calm` và các ảnh đứng thẳng đối xứng nên coi như
  * hướng phải.
  */
 export const GUIDE_FACING: Record<GuidePose, "left" | "right"> = {
@@ -57,7 +66,11 @@ export const GUIDE_FACING: Record<GuidePose, "left" | "right"> = {
   present: "right",
   open: "right",
   calm: "right",
-  wink: "right",
+  search: "right",
+  books: "right",
+  support: "right",
+  confident: "right",
+  study: "right",
   cheer: "right",
 };
 
@@ -80,7 +93,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "search",
-    pose: "wink",
+    pose: "search",
     side: "bottom",
     title: "Tìm sách",
     description:
@@ -96,7 +109,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "cart",
-    pose: "point",
+    pose: "study",
     side: "bottom",
     align: "end",
     title: "Giỏ hàng",
@@ -105,7 +118,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "account",
-    pose: "open",
+    pose: "confident",
     side: "bottom",
     align: "end",
     title: "Tài khoản",
@@ -114,7 +127,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "explore",
-    pose: "present",
+    pose: "books",
     side: "top",
     align: "start",
     title: "Khám phá tủ sách",
@@ -122,7 +135,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "categories",
-    pose: "calm",
+    pose: "present",
     side: "bottom",
     align: "start",
     title: "Danh mục",
@@ -138,7 +151,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "book",
-    pose: "wink",
+    pose: "point",
     side: "right",
     align: "start",
     title: "Xem nhanh và mua",
@@ -147,7 +160,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "zalo",
-    pose: "calm",
+    pose: "support",
     side: "top",
     align: "end",
     title: "Tư vấn qua Zalo",
@@ -155,7 +168,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "order-lookup",
-    pose: "present",
+    pose: "search",
     side: "top",
     align: "start",
     title: "Tra cứu đơn hàng",
@@ -179,7 +192,19 @@ export function availableSteps(steps: readonly TourStep[], isPresent: (target: T
   return varyPoses(steps.filter((step) => step.target === null || isPresent(step.target)));
 }
 
-const POSE_CYCLE: readonly GuidePose[] = ["welcome", "point", "present", "open", "calm", "wink", "cheer"];
+const POSE_CYCLE: readonly GuidePose[] = [
+  "welcome",
+  "point",
+  "present",
+  "open",
+  "calm",
+  "search",
+  "books",
+  "support",
+  "confident",
+  "study",
+  "cheer",
+];
 
 /**
  * Bỏ bước có thể làm hai bước liền kề trùng tư thế (nhân vật lặp lại 2–3 lần liền trông chán): bước nào trùng bước
