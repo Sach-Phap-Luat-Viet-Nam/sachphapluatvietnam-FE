@@ -51,11 +51,7 @@ async function loadHomeData(): Promise<{ books: BookSummary[]; categories: Categ
 
 export default async function HomePage() {
   // `getCombos` không ném lỗi (trả null): combo chỉ là phần thêm, lỗi thì ẩn khu combo.
-  const [{ books, categories }, offers, combos] = await Promise.all([
-    loadHomeData(),
-    getRunningPopups(),
-    getCombos(),
-  ]);
+  const [{ books, categories }, offers, combos] = await Promise.all([loadHomeData(), getRunningPopups(), getCombos()]);
   const featured = books[0];
 
   return (
