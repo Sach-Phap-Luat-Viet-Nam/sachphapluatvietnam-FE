@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -12,22 +12,17 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }
 const ORIGIN = window.location.origin;
 const server = setupServer();
 
-const BOOK = {
-  id: 5,
-  title: "Bộ luật Dân sự 2026",
-  editions: [
-    {
-      id: 10,
-      editionName: "Tái bản lần 3",
-      isLatest: true,
-      status: "on_sale",
-      skus: [
-        { id: 100, skuCode: "SLVN-BLDS-BM", coverType: "paperback" },
-        { id: 101, skuCode: "SLVN-BLDS-BC", coverType: "hardcover" },
-      ],
-    },
-  ],
+const SKU = {
+  skuId: 101,
+  skuCode: "SLVN-BLDS-BC",
+  bookTitle: "Bộ luật Dân sự 2026",
+  editionName: "Tái bản lần 3",
+  coverType: "hardcover",
+  isbn: "9780306406157",
+  isLatestEdition: true,
+  available: 35,
 };
+const SKU_LABEL = "Bộ luật Dân sự 2026 · Tái bản lần 3 · Bìa cứng · SLVN-BLDS-BC";
 
 function receipt(lines: unknown[]) {
   return {
@@ -60,6 +55,17 @@ function signIn(roles: string[]) {
   });
 }
 
+function mockSkuSearch(results: unknown[] = [SKU]) {
+  const queries: string[] = [];
+  server.use(
+    http.get(`${ORIGIN}/api/v1/admin/inventory/sku-search`, ({ request }) => {
+      queries.push(new URL(request.url).searchParams.get("Q") ?? "");
+      return HttpResponse.json(results);
+    }),
+  );
+  return queries;
+}
+
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
@@ -69,19 +75,11 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("ReceiptCreate", () => {
-  it("tìm sách, chọn SKU rồi lưu phiếu nháp", async () => {
-    signIn(["super_admin"]);
+  it("thủ kho tìm SKU trong một bước rồi lưu phiếu nháp", async () => {
+    signIn(["warehouse_keeper"]);
     let body: unknown;
-    let search: string | null = null;
+    const queries = mockSkuSearch();
     server.use(
-      http.get(`${ORIGIN}/api/v1/admin/books`, ({ request }) => {
-        search = new URL(request.url).searchParams.get("Q");
-        return HttpResponse.json({
-          items: [{ id: 5, title: BOOK.title, slug: "bo-luat-dan-su-2026", bookType: "code" }],
-          meta: { page: 1, limit: 8, total: 1 },
-        });
-      }),
-      http.get(`${ORIGIN}/api/v1/admin/books/5`, () => HttpResponse.json(BOOK)),
       http.post(`${ORIGIN}/api/v1/admin/inventory/receipts`, async ({ request }) => {
         body = await request.json();
         return HttpResponse.json(receipt([]), { status: 201 });
@@ -91,11 +89,17 @@ describe("ReceiptCreate", () => {
     renderCreate();
 
     await user.type(screen.getByLabelText("SKU"), "Bộ luật");
-    await user.click(await screen.findByRole("button", { name: /Bộ luật Dân sự 2026/ }));
-    await user.click(await screen.findByRole("button", { name: /SLVN-BLDS-BC · Bìa cứng/ }));
-    expect(screen.getByText("Bộ luật Dân sự 2026 · Tái bản lần 3 · Bìa cứng · SLVN-BLDS-BC")).toBeVisible();
+    const result = await screen.findByRole("button", { name: /Bộ luật Dân sự 2026/ });
+    expect(within(result).getByText("Tồn 35")).toBeVisible();
+    await user.click(result);
+    expect(screen.getByText(SKU_LABEL)).toBeVisible();
 
-    await user.type(screen.getByLabelText("Mã lô"), "lo-2026-10");
+    const batch = screen.getByLabelText("Mã lô");
+    // Mã lô được gợi ý theo ngày nhập.
+    expect(batch).toBeInstanceOf(HTMLInputElement);
+    expect((batch as HTMLInputElement).value).toMatch(/^LO-\d{6}$/);
+    await user.clear(batch);
+    await user.type(batch, "lo-2026-10");
     await user.type(screen.getByLabelText("Số lượng (cuốn)"), "500");
     await user.type(screen.getByLabelText("Giá vốn mỗi cuốn (VNĐ)"), "45000");
     await user.clear(screen.getByLabelText("Ngày nhập"));
@@ -104,7 +108,7 @@ describe("ReceiptCreate", () => {
     await user.click(screen.getByRole("button", { name: "Lưu phiếu nhập" }));
 
     await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/kho/phieu-nhap/7"));
-    expect(search).toBe("Bộ luật");
+    expect(queries).toContain("Bộ luật");
     expect(body).toEqual({
       note: null,
       lines: [
@@ -120,30 +124,28 @@ describe("ReceiptCreate", () => {
     });
   });
 
-  it("đầu sách chỉ có một SKU thì tự chọn SKU và chuyển sang ô Mã lô", async () => {
+  it("Enter chọn kết quả đầu tiên, gợi ý mã lô rồi chuyển con trỏ sang ô Mã lô", async () => {
     signIn(["super_admin"]);
-    server.use(
-      http.get(`${ORIGIN}/api/v1/admin/books`, () =>
-        HttpResponse.json({
-          items: [{ id: 5, title: BOOK.title, slug: "bo-luat-dan-su-2026", bookType: "code" }],
-          meta: { page: 1, limit: 8, total: 1 },
-        }),
-      ),
-      http.get(`${ORIGIN}/api/v1/admin/books/5`, () =>
-        HttpResponse.json({
-          ...BOOK,
-          editions: BOOK.editions.map((edition) => ({ ...edition, skus: edition.skus.slice(0, 1) })),
-        }),
-      ),
-    );
+    mockSkuSearch();
     const user = userEvent.setup();
     renderCreate();
 
-    await user.type(screen.getByLabelText("SKU"), "Bộ luật");
-    await user.click(await screen.findByRole("button", { name: /Bộ luật Dân sự 2026/ }));
+    await user.type(screen.getByLabelText("SKU"), "SLVN-BLDS-BC{Enter}");
 
-    expect(await screen.findByText("Bộ luật Dân sự 2026 · Tái bản lần 3 · Bìa mềm · SLVN-BLDS-BM")).toBeVisible();
+    expect(await screen.findByText(SKU_LABEL)).toBeVisible();
     expect(screen.getByLabelText("Mã lô")).toHaveFocus();
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("không có SKU phù hợp thì nhắc thêm sách ở phần Sách", async () => {
+    signIn(["super_admin"]);
+    mockSkuSearch([]);
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("SKU"), "không có");
+
+    expect(await screen.findByText(/Không có SKU phù hợp/)).toBeVisible();
   });
 
   it("chưa chọn SKU thì báo lỗi, không gọi API", async () => {
@@ -162,18 +164,39 @@ describe("ReceiptCreate", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it("vai trò không xem được Catalog thì nói rõ lý do không tìm được SKU", async () => {
-    signIn(["warehouse_keeper"]);
-    server.use(
-      http.get(`${ORIGIN}/api/v1/admin/books`, () =>
-        HttpResponse.json({ title: "Forbidden", status: 403, code: "FORBIDDEN" }, { status: 403 }),
-      ),
-    );
+  it("thêm dòng mới giữ xưởng in và ngày nhập của dòng trước, con trỏ vào ô tìm SKU", async () => {
+    signIn(["super_admin"]);
     const user = userEvent.setup();
     renderCreate();
 
-    await user.type(screen.getByLabelText("SKU"), "Bộ luật");
+    await user.type(screen.getByLabelText("Xưởng in", { exact: false }), "Xưởng in A");
+    await user.click(screen.getByRole("button", { name: "Thêm dòng" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("chưa được xem danh sách sách");
+    const printers = screen.getAllByLabelText("Xưởng in", { exact: false });
+    expect(printers[1]).toHaveValue("Xưởng in A");
+    expect(screen.getAllByLabelText("SKU")[1]).toHaveFocus();
+  });
+
+  it("nhân bản dòng giữ SKU, xưởng in, giá vốn nhưng để trống mã lô và số lượng", async () => {
+    signIn(["super_admin"]);
+    mockSkuSearch();
+    const user = userEvent.setup();
+    renderCreate();
+    await user.type(screen.getByLabelText("SKU"), "SLVN-BLDS-BC{Enter}");
+    await screen.findByText(SKU_LABEL);
+    await user.type(screen.getByLabelText("Giá vốn mỗi cuốn (VNĐ)"), "45000");
+    await user.type(screen.getByLabelText("Số lượng (cuốn)"), "500");
+
+    await user.click(screen.getByRole("button", { name: "Nhân bản dòng 1" }));
+
+    expect(screen.getByRole("heading", { name: "Dòng 2" })).toBeVisible();
+    expect(screen.getAllByText(SKU_LABEL)).toHaveLength(2);
+    const [, secondBatch] = screen.getAllByLabelText("Mã lô");
+    const [, secondQuantity] = screen.getAllByLabelText("Số lượng (cuốn)");
+    const [, secondCost] = screen.getAllByLabelText("Giá vốn mỗi cuốn (VNĐ)");
+    expect(secondBatch).toHaveValue("");
+    expect(secondBatch).toHaveFocus();
+    expect(secondQuantity).toHaveValue("");
+    expect(secondCost).toHaveValue("45000");
   });
 });

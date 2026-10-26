@@ -131,6 +131,28 @@ export interface PendingPaths {
     post?: never;
     delete?: never;
   } & OtherMethods;
+  /** Tìm SKU cho kho (`q` là một phần tên sách, mã SKU hoặc ISBN): thủ kho dùng được, không cần quyền Catalog. */
+  "/api/v1/admin/inventory/sku-search": {
+    parameters: NoParameters;
+    get: {
+      parameters: Omit<NoParameters, "query"> & { query?: { Q?: string; Limit?: number } };
+      requestBody?: never;
+      responses: Ok;
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
+  /** Phiếu nhập: xem chi tiết, sửa phiếu nháp (cùng body với lập phiếu), xóa phiếu nháp (204). */
+  "/api/v1/admin/inventory/receipts/{id}": Item;
+  /** Tạo trọn gói đầu sách + ấn bản đầu tiên + SKU trong một transaction: 201 `AdminBookResponse`. */
+  "/api/v1/admin/books/quick": {
+    parameters: NoParameters;
+    get?: never;
+    put?: never;
+    post: { parameters: NoParameters; requestBody: JsonBody<Json>; responses: Created };
+    delete?: never;
+  } & OtherMethods;
   "/api/v1/admin/promotions": Collection;
   "/api/v1/admin/promotions/{id}": Item;
   "/api/v1/admin/promotions/{id}/stats": {

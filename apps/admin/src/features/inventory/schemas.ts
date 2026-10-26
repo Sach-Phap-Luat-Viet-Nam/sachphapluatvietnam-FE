@@ -9,6 +9,9 @@ export const receiptLineSchema = z.object({
   id: z.number(),
   skuId: z.number(),
   skuCode: z.string(),
+  bookTitle: z.string().nullable().default(null),
+  editionName: z.string().nullable().default(null),
+  coverType: z.string().nullable().default(null),
   batchCode: z.string(),
   printerName: z.string().nullable(),
   quantity: z.number(),
@@ -24,8 +27,10 @@ export const receiptSchema = z.object({
   status: z.string(),
   note: z.string().nullable(),
   createdBy: z.number(),
+  createdByName: z.string().nullable().default(null),
   createdAt: z.string(),
   decidedBy: z.number().nullable(),
+  decidedByName: z.string().nullable().default(null),
   decidedAt: z.string().nullable(),
   rejectReason: z.string().nullable(),
   lines: z.array(receiptLineSchema),
@@ -35,6 +40,9 @@ export type Receipt = z.infer<typeof receiptSchema>;
 export const stockCardSchema = z.object({
   skuId: z.number(),
   skuCode: z.string(),
+  bookTitle: z.string().nullable().default(null),
+  editionName: z.string().nullable().default(null),
+  coverType: z.string().nullable().default(null),
   available: z.number(),
   reserved: z.number(),
   onHand: z.number(),
@@ -58,6 +66,7 @@ export const stockCardSchema = z.object({
       printBatchId: z.number().nullable(),
       reference: z.string().nullable(),
       createdBy: z.number().nullable(),
+      createdByName: z.string().nullable().default(null),
       note: z.string().nullable(),
       createdAt: z.string(),
     }),
@@ -75,25 +84,18 @@ export const lowStockSchema = z.object({
 });
 export type LowStock = z.infer<typeof lowStockSchema>;
 
-// Tìm SKU qua API Catalog (backend chưa có API tìm SKU riêng): chỉ lấy các field cần để chọn.
-
-export const bookOptionSchema = z.object({ id: z.number(), title: z.string(), slug: z.string() });
-export type BookOption = z.infer<typeof bookOptionSchema>;
-
-export const bookSkusSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  editions: z.array(
-    z.object({
-      id: z.number(),
-      editionName: z.string().nullable(),
-      isLatest: z.boolean(),
-      status: z.string(),
-      skus: z.array(z.object({ id: z.number(), skuCode: z.string(), coverType: z.string() })),
-    }),
-  ),
+/** Một SKU trong kết quả tìm của `GET /admin/inventory/sku-search`; `available` là tồn khả dụng hiện tại. */
+export const skuSearchResultSchema = z.object({
+  skuId: z.number(),
+  skuCode: z.string(),
+  bookTitle: z.string(),
+  editionName: z.string().nullable(),
+  coverType: z.string(),
+  isbn: z.string(),
+  isLatestEdition: z.boolean(),
+  available: z.number(),
 });
-export type BookSkus = z.infer<typeof bookSkusSchema>;
+export type SkuSearchResult = z.infer<typeof skuSearchResultSchema>;
 
 /** SKU đã chọn trong form: giữ nhãn (tên sách · ấn bản · mã SKU) để hiển thị. */
 export const skuOptionSchema = z.object({ id: z.number(), label: z.string() });

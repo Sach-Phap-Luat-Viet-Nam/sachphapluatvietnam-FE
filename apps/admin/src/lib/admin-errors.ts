@@ -22,7 +22,7 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   ROLE_INVALID: "Có vai trò không hợp lệ. Anh/chị tải lại trang rồi chọn lại.",
   FORBIDDEN: "Tài khoản của anh/chị không có quyền thực hiện thao tác này.",
   RECEIPT_NOT_DRAFT: "Phiếu này đã được duyệt hoặc từ chối. Anh/chị tải lại để xem trạng thái mới.",
-  RECEIPT_SELF_APPROVAL: "Anh/chị là người lập phiếu này nên không tự duyệt được. Nhờ một Super Admin khác duyệt.",
+  RECEIPT_FORBIDDEN: "Chỉ người lập phiếu hoặc Super Admin mới sửa, xóa được phiếu nháp này.",
   BATCH_CODE_DUPLICATE: "Mã lô đã có cho SKU này. Anh/chị dùng mã lô khác.",
   RECEIPT_EMPTY: "Phiếu cần ít nhất một dòng.",
   OUT_OF_STOCK: "Không đủ tồn khả dụng cho số lượng này.",

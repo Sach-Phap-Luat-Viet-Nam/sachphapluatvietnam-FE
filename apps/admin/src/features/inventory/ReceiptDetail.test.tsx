@@ -6,6 +6,9 @@ import { setupServer } from "msw/node";
 import { clearSession, startSession } from "@slvn/auth";
 import { ReceiptDetail } from "./ReceiptDetail";
 
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
+
 const ORIGIN = window.location.origin;
 const server = setupServer();
 
@@ -13,6 +16,9 @@ const LINE = {
   id: 11,
   skuId: 100,
   skuCode: "SLVN-BLDS-BM",
+  bookTitle: "Bộ luật Dân sự 2026",
+  editionName: "Tái bản lần 3",
+  coverType: "paperback",
   batchCode: "LO-2026-10",
   printerName: "Xưởng in A",
   quantity: 500,
@@ -27,6 +33,7 @@ function receipt(status = "draft", extra: Record<string, unknown> = {}) {
     status,
     note: "Nhập lô tháng 10",
     createdBy: 4,
+    createdByName: "Nguyễn Văn Kho",
     createdAt: "2026-10-23T03:00:00Z",
     decidedBy: null,
     decidedAt: null,
@@ -45,8 +52,12 @@ function signIn(id: number, roles: string[]) {
 }
 
 function renderDetail() {
+  return renderDetailWithUnmount();
+}
+
+function renderDetailWithUnmount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
+  return render(
     <QueryClientProvider client={client}>
       <ReceiptDetail receiptId={7} />
     </QueryClientProvider>,
@@ -59,6 +70,7 @@ beforeEach(() =>
 );
 afterEach(() => {
   server.resetHandlers();
+  push.mockReset();
   clearSession();
 });
 afterAll(() => server.close());
@@ -69,16 +81,50 @@ describe("ReceiptDetail", () => {
     renderDetail();
 
     expect(await screen.findByRole("heading", { name: "Phiếu nhập #7" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "SLVN-BLDS-BM" })).toHaveAttribute("href", "/kho/the-kho/100");
+    expect(screen.getByRole("link", { name: "Bộ luật Dân sự 2026" })).toHaveAttribute("href", "/kho/the-kho/100");
+    expect(screen.getByText("SLVN-BLDS-BM · Bìa mềm · Tái bản lần 3")).toBeVisible();
+    expect(screen.getByText("Nguyễn Văn Kho")).toBeVisible();
     expect(screen.getAllByText("22.500.000 ₫")).toHaveLength(2);
     expect(screen.getByText(/Phiếu đang chờ Super Admin duyệt/)).toBeVisible();
     expect(screen.queryByRole("button", { name: /Duyệt/ })).not.toBeInTheDocument();
   });
 
+  it("người lập phiếu (thủ kho) sửa hoặc xóa được phiếu nháp của mình, người khác thì không", async () => {
+    signIn(4, ["warehouse_keeper"]);
+    const { unmount } = renderDetailWithUnmount();
+
+    expect(await screen.findByRole("link", { name: "Sửa phiếu" })).toHaveAttribute("href", "/kho/phieu-nhap/7/sua");
+    expect(screen.getByRole("button", { name: "Xóa phiếu" })).toBeVisible();
+    unmount();
+
+    clearSession();
+    signIn(9, ["warehouse_keeper"]);
+    renderDetail();
+    expect(await screen.findByText(/Phiếu đang chờ Super Admin duyệt/)).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Sửa phiếu" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Xóa phiếu" })).not.toBeInTheDocument();
+  });
+
+  it("xóa phiếu nháp sau khi xác nhận rồi về danh sách phiếu", async () => {
+    signIn(4, ["warehouse_keeper"]);
+    const remove = vi.fn(() => new HttpResponse(null, { status: 204 }));
+    server.use(http.delete(`${ORIGIN}/api/v1/admin/inventory/receipts/7`, remove));
+    const user = userEvent.setup();
+    renderDetail();
+
+    await user.click(await screen.findByRole("button", { name: "Xóa phiếu" }));
+    await user.click(screen.getByRole("button", { name: "Xóa phiếu" }));
+
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/kho"));
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
   it("Super Admin duyệt sau khi xác nhận", async () => {
     signIn(1, ["super_admin"]);
     const approve = vi.fn(() =>
-      HttpResponse.json(receipt("approved", { decidedBy: 1, decidedAt: "2026-10-24T04:00:00Z" })),
+      HttpResponse.json(
+        receipt("approved", { decidedBy: 1, decidedByName: "Quản trị A", decidedAt: "2026-10-24T04:00:00Z" }),
+      ),
     );
     server.use(http.post(`${ORIGIN}/api/v1/admin/inventory/receipts/7/approve`, approve));
     const user = userEvent.setup();
@@ -90,11 +136,11 @@ describe("ReceiptDetail", () => {
 
     expect(await screen.findByText("Đã duyệt")).toBeVisible();
     expect(approve).toHaveBeenCalledTimes(1);
-    expect(screen.getByText("Tài khoản #1")).toBeVisible();
+    expect(screen.getByText("Quản trị A")).toBeVisible();
     expect(screen.queryByRole("button", { name: /Từ chối/ })).not.toBeInTheDocument();
   });
 
-  it("người lập phiếu không thấy nút duyệt nhưng vẫn từ chối được kèm lý do", async () => {
+  it("Super Admin duyệt được cả phiếu do chính mình lập và từ chối kèm lý do", async () => {
     signIn(4, ["super_admin"]);
     let body: unknown;
     server.use(
@@ -106,8 +152,7 @@ describe("ReceiptDetail", () => {
     const user = userEvent.setup();
     renderDetail();
 
-    expect(await screen.findByText(/cần một Super Admin khác duyệt/)).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Duyệt và nhập kho" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Duyệt và nhập kho" })).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Từ chối" }));
     await user.click(screen.getByRole("button", { name: "Từ chối phiếu" }));

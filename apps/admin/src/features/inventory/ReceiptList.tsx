@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CARD, SELECT } from "@/components/form-styles";
 import { enumLabel } from "@/lib/enum-label";
 import { RECEIPTS_PAGE_SIZE, fetchReceipts, inventoryKeys } from "./api";
-import { receiptTotals } from "./forms";
+import { receiptBooksSummary, receiptTotals } from "./forms";
 import { RECEIPT_STATUS_LABELS, RECEIPT_STATUSES, receiptStatusTone } from "./labels";
 
 const TH = "px-4 py-3 font-medium";
@@ -31,7 +31,7 @@ export function ReceiptList() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Phiếu nhập kho"
-        description="Thủ kho lập phiếu, Super Admin duyệt thì tồn kho mới tăng. Người duyệt phải khác người lập phiếu."
+        description="Thủ kho lập phiếu, Super Admin duyệt thì tồn kho mới tăng. Phiếu chờ duyệt sửa hoặc xóa được."
         actions={
           <Link href="/kho/phieu-nhap/tao-moi" className={buttonClassName()}>
             <Plus size={18} aria-hidden="true" /> Lập phiếu nhập
@@ -69,12 +69,15 @@ export function ReceiptList() {
       ) : (
         <>
           <div className={`${CARD} overflow-x-auto`}>
-            <table className="w-full min-w-2xl text-left">
+            <table className="w-full min-w-4xl text-left">
               <caption className="sr-only">Danh sách phiếu nhập kho</caption>
               <thead className="border-border text-muted border-b text-sm">
                 <tr>
                   <th scope="col" className={TH}>
                     Phiếu
+                  </th>
+                  <th scope="col" className={TH}>
+                    Sách
                   </th>
                   <th scope="col" className={TH}>
                     Trạng thái
@@ -87,6 +90,9 @@ export function ReceiptList() {
                   </th>
                   <th scope="col" className={TH}>
                     Ghi chú
+                  </th>
+                  <th scope="col" className={TH}>
+                    Người lập
                   </th>
                   <th scope="col" className={TH}>
                     Ngày lập
@@ -104,6 +110,7 @@ export function ReceiptList() {
                         Phiếu #{receipt.id}
                       </Link>
                     </td>
+                    <td className="max-w-64 truncate px-4 py-3">{receiptBooksSummary(receipt)}</td>
                     <td className="px-4 py-3">
                       <StatusBadge tone={receiptStatusTone(receipt.status)}>
                         {enumLabel(RECEIPT_STATUS_LABELS, receipt.status)}
@@ -114,6 +121,9 @@ export function ReceiptList() {
                       {receiptTotals(receipt.lines).quantity.toLocaleString("vi-VN")}
                     </td>
                     <td className="text-muted max-w-64 truncate px-4 py-3">{receipt.note}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {receipt.createdByName ?? `Tài khoản #${receipt.createdBy}`}
+                    </td>
                     <td className="text-muted px-4 py-3 text-sm whitespace-nowrap">
                       {formatDateTime(receipt.createdAt)}
                     </td>

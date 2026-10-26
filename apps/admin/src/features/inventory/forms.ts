@@ -1,4 +1,11 @@
-import type { IssueFormValues, ReceiptFormValues, ReceiptLineFormValues, ThresholdFormValues } from "./schemas";
+import { skuLabel } from "./labels";
+import type {
+  IssueFormValues,
+  Receipt,
+  ReceiptFormValues,
+  ReceiptLineFormValues,
+  ThresholdFormValues,
+} from "./schemas";
 
 // Chuyển giá trị form (chuỗi) sang body của API Kho.
 
@@ -19,6 +26,56 @@ export interface ReceiptBody {
 /** Dòng trống cho form lập phiếu; ngày nhập mặc định là hôm nay (`today` dạng `YYYY-MM-DD`). */
 export function emptyReceiptLine(today: string): ReceiptLineFormValues {
   return { sku: null, batchCode: "", printerName: "", quantity: "", unitCost: "", receivedAt: today };
+}
+
+/**
+ * Dòng mới thêm sau `previous`: cùng xưởng in và ngày nhập (cả phiếu thường là một đợt in), còn SKU, mã lô, số lượng,
+ * giá vốn để trống vì mỗi dòng một khác.
+ */
+export function nextReceiptLine(previous: ReceiptLineFormValues): ReceiptLineFormValues {
+  return { ...emptyReceiptLine(previous.receivedAt), printerName: previous.printerName };
+}
+
+/** Nhân bản dòng: cùng SKU, xưởng in, giá vốn, ngày nhập; mã lô và số lượng nhập lại vì lô mới phải khác mã. */
+export function duplicateReceiptLine(line: ReceiptLineFormValues): ReceiptLineFormValues {
+  return { ...line, batchCode: "", quantity: "" };
+}
+
+/** Mã lô gợi ý theo ngày nhập (`2026-10-26` → `LO-261026`); người dùng sửa được. */
+export function suggestBatchCode(receivedAt: string): string {
+  const [year, month, day] = receivedAt.split("-");
+  return year && month && day ? `LO-${year.slice(2)}${month}${day}` : "";
+}
+
+/** Tên sách của phiếu để nhận ra phiếu ở danh sách: sách đầu tiên, thêm "+N" khi còn sách khác. */
+export function receiptBooksSummary(receipt: Pick<Receipt, "lines">): string {
+  const titles = [...new Set(receipt.lines.map((line) => line.bookTitle ?? line.skuCode))];
+  const [first, ...others] = titles;
+  if (!first) return "—";
+  return others.length > 0 ? `${first} (+${others.length})` : first;
+}
+
+/** Giá trị form từ phiếu đã lưu, để sửa phiếu nháp. */
+export function receiptToFormValues(receipt: Receipt): ReceiptFormValues {
+  return {
+    note: receipt.note ?? "",
+    lines: receipt.lines.map((line) => ({
+      sku: {
+        id: line.skuId,
+        label: skuLabel({
+          bookTitle: line.bookTitle,
+          editionName: line.editionName,
+          coverType: line.coverType,
+          skuCode: line.skuCode,
+        }),
+      },
+      batchCode: line.batchCode,
+      printerName: line.printerName ?? "",
+      quantity: String(line.quantity),
+      unitCost: String(line.unitCost),
+      receivedAt: line.receivedAt,
+    })),
+  };
 }
 
 export function toReceiptBody(values: ReceiptFormValues): ReceiptBody {

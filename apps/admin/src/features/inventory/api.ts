@@ -3,20 +3,20 @@ import { browserApi } from "@slvn/auth";
 import { pageSchema } from "@/lib/page-schema";
 import type { Page } from "@/lib/page-schema";
 import type { IssueBody, ReceiptBody } from "./forms";
-import { bookOptionSchema, bookSkusSchema, lowStockSchema, receiptSchema, stockCardSchema } from "./schemas";
-import type { BookOption, BookSkus, LowStock, Receipt, StockCard } from "./schemas";
+import { lowStockSchema, receiptSchema, skuSearchResultSchema, stockCardSchema } from "./schemas";
+import type { LowStock, Receipt, SkuSearchResult, StockCard } from "./schemas";
 
 // API "Admin — Kho" (docs/api_reference.md), quyền `super_admin`, `warehouse_keeper`; duyệt/từ chối phiếu chỉ
-// `super_admin` và người duyệt phải khác người lập. Gọi qua proxy `/api/v1`.
+// `super_admin` (duyệt được cả phiếu do chính mình lập). Gọi qua proxy `/api/v1`.
 
 export const RECEIPTS_PAGE_SIZE = 20;
 export const LOW_STOCK_PAGE_SIZE = 50;
-/** Số đầu sách gợi ý khi tìm SKU. */
-const BOOK_OPTIONS_LIMIT = 8;
+/** Số SKU gợi ý khi tìm. */
+const SKU_SEARCH_LIMIT = 8;
 
 const receiptPageSchema = pageSchema(receiptSchema);
 const lowStockPageSchema = pageSchema(lowStockSchema);
-const bookOptionPageSchema = pageSchema(bookOptionSchema);
+const skuSearchSchema = skuSearchResultSchema.array();
 
 export interface ReceiptListQuery {
   status: string;
@@ -41,6 +41,19 @@ export async function fetchReceipt(id: number): Promise<Receipt> {
 /** Lập phiếu nháp; tồn chỉ tăng khi phiếu được duyệt. */
 export async function createReceipt(body: ReceiptBody): Promise<Receipt> {
   return receiptSchema.parse(await unwrap(browserApi().POST("/api/v1/admin/inventory/receipts", { body })));
+}
+
+/** Sửa phiếu nháp: thay ghi chú và toàn bộ dòng; chỉ người lập hoặc Super Admin. */
+export async function updateReceipt(id: number, body: ReceiptBody): Promise<Receipt> {
+  const data = await unwrap(
+    browserApi().PUT("/api/v1/admin/inventory/receipts/{id}", { params: { path: { id } }, body: { ...body } }),
+  );
+  return receiptSchema.parse(data);
+}
+
+/** Xóa phiếu nháp (chưa ảnh hưởng tồn kho); phiếu đã duyệt hoặc từ chối không xóa được. */
+export async function deleteReceipt(id: number): Promise<void> {
+  await unwrap(browserApi().DELETE("/api/v1/admin/inventory/receipts/{id}", { params: { path: { id } } }));
 }
 
 export async function approveReceipt(id: number): Promise<Receipt> {
@@ -97,21 +110,12 @@ export async function issueStock(body: IssueBody): Promise<StockCard> {
   return stockCardSchema.parse(data);
 }
 
-// Tìm SKU: backend chưa có API tìm SKU nên đi qua API Catalog (policy `catalog_admin`). Vai trò không có quyền
-// Catalog (thủ kho) sẽ nhận 403.
-
-/** Đầu sách khớp tên, slug hoặc ISBN. */
-export async function searchBookOptions(q: string): Promise<BookOption[]> {
+/** Tìm SKU theo một phần tên sách, mã SKU hoặc ISBN, kèm tồn khả dụng; thủ kho dùng được. */
+export async function searchSkus(q: string): Promise<SkuSearchResult[]> {
   const data = await unwrap(
-    browserApi().GET("/api/v1/admin/books", { params: { query: { Q: q, Page: 1, Limit: BOOK_OPTIONS_LIMIT } } }),
+    browserApi().GET("/api/v1/admin/inventory/sku-search", { params: { query: { Q: q, Limit: SKU_SEARCH_LIMIT } } }),
   );
-  return bookOptionPageSchema.parse(data).items;
-}
-
-/** Các ấn bản và SKU của một đầu sách. */
-export async function fetchBookSkus(bookId: number): Promise<BookSkus> {
-  const data = await unwrap(browserApi().GET("/api/v1/admin/books/{id}", { params: { path: { id: bookId } } }));
-  return bookSkusSchema.parse(data);
+  return skuSearchSchema.parse(data);
 }
 
 /** Khóa TanStack Query của Kho; thao tác ghi xong thì invalidate theo tiền tố. */
@@ -123,6 +127,5 @@ export const inventoryKeys = {
   stockCard: (skuId: number) => ["inventory", "stock-card", skuId] as const,
   lowStock: (page: number) => ["inventory", "low-stock", page] as const,
   lowStockLists: ["inventory", "low-stock"] as const,
-  bookOptions: (q: string) => ["inventory", "book-options", q] as const,
-  bookSkus: (bookId: number) => ["inventory", "book-skus", bookId] as const,
+  skuSearch: (q: string) => ["inventory", "sku-search", q] as const,
 };

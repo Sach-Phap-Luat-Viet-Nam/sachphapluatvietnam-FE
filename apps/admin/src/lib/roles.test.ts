@@ -1,4 +1,11 @@
-import { canApproveReceipts, canBrowseCatalog, canManageOrders, isStaff, staffRoleLabels } from "./roles";
+import {
+  canApproveReceipts,
+  canBrowseCatalog,
+  canManageOrders,
+  canModifyReceipt,
+  isStaff,
+  staffRoleLabels,
+} from "./roles";
 
 describe("quyền thao tác", () => {
   it("chỉ Super Admin duyệt phiếu nhập", () => {
@@ -29,5 +36,11 @@ describe("isStaff", () => {
 describe("staffRoleLabels", () => {
   it("dùng nhãn tiếng Việt, bỏ customer và giữ mã vai trò chưa biết", () => {
     expect(staffRoleLabels(["warehouse_keeper", "customer", "new_role"])).toEqual(["Thủ kho", "new_role"]);
+  });
+
+  it("người lập hoặc Super Admin sửa, xóa được phiếu nháp", () => {
+    expect(canModifyReceipt({ id: 4, roles: ["warehouse_keeper"] }, 4)).toBe(true);
+    expect(canModifyReceipt({ id: 9, roles: ["warehouse_keeper"] }, 4)).toBe(false);
+    expect(canModifyReceipt({ id: 1, roles: ["super_admin"] }, 4)).toBe(true);
   });
 });

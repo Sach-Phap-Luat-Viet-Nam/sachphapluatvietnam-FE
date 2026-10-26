@@ -20,7 +20,7 @@ import { modulesForRoles } from "@/lib/modules";
 import { useSessionUser } from "@/lib/use-session-user";
 import { fetchStockCard, inventoryKeys, issueStock, setLowStockThreshold } from "./api";
 import { toIssueBody, toThresholdBody } from "./forms";
-import { ISSUE_TYPE_LABELS, ISSUE_TYPES, TRANSACTION_TYPE_LABELS } from "./labels";
+import { ISSUE_TYPE_LABELS, ISSUE_TYPES, TRANSACTION_TYPE_LABELS, skuLabel } from "./labels";
 import { issueFormSchema, thresholdFormSchema } from "./schemas";
 import type { IssueFormValues, StockCard, ThresholdFormValues } from "./schemas";
 import { batchLabel, isLowStock, referenceHref } from "./stock-card";
@@ -55,7 +55,13 @@ function StockCardContent({ card }: { card: StockCard }) {
   return (
     <>
       <PageHeader
-        title={`Thẻ kho ${card.skuCode}`}
+        title={card.bookTitle ? `Thẻ kho: ${card.bookTitle}` : `Thẻ kho ${card.skuCode}`}
+        description={skuLabel({
+          bookTitle: null,
+          editionName: card.editionName,
+          coverType: card.coverType,
+          skuCode: card.skuCode,
+        })}
         actions={isLowStock(card) ? <StatusBadge tone="warning">Tồn thấp</StatusBadge> : undefined}
       />
 
@@ -155,6 +161,9 @@ function StockCardContent({ card }: { card: StockCard }) {
                     Chứng từ
                   </th>
                   <th scope="col" className={TH}>
+                    Người thao tác
+                  </th>
+                  <th scope="col" className={TH}>
                     Ghi chú
                   </th>
                 </tr>
@@ -186,6 +195,10 @@ function StockCardContent({ card }: { card: StockCard }) {
                         ) : (
                           (transaction.reference ?? "—")
                         )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {transaction.createdByName ??
+                          (transaction.createdBy === null ? "Hệ thống" : `Tài khoản #${transaction.createdBy}`)}
                       </td>
                       <td className="text-muted px-4 py-3">{transaction.note ?? ""}</td>
                     </tr>

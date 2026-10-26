@@ -1,27 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, Search, X } from "lucide-react";
+import { useState } from "react";
+import type { KeyboardEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Search, X } from "lucide-react";
 import { Button, cn } from "@slvn/ui";
 import { ErrorStatus } from "@/components/QueryStatus";
 import { HINT, INPUT } from "@/components/form-styles";
 import { enumLabel } from "@/lib/enum-label";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
-import { fetchBookSkus, inventoryKeys, searchBookOptions } from "./api";
-import { COVER_TYPE_LABELS } from "./labels";
-import type { BookOption, BookSkus, SkuOption } from "./schemas";
+import { inventoryKeys, searchSkus } from "./api";
+import { COVER_TYPE_LABELS, skuLabel } from "./labels";
+import type { SkuOption, SkuSearchResult } from "./schemas";
 
 const MIN_QUERY_LENGTH = 2;
-const NO_CATALOG_ACCESS = {
-  FORBIDDEN:
-    "Vai trò của anh/chị chưa được xem danh sách sách nên không tìm được SKU. Nhờ Super Admin hoặc Quản lý sản phẩm thao tác, hoặc xin thêm quyền.",
-};
 const OPTION =
-  "border-border hover:border-primary hover:bg-primary/5 flex min-h-11 w-full items-center gap-3 rounded-md border px-3 py-2 text-left transition-colors";
+  "border-border hover:border-primary hover:bg-primary/5 focus-visible:border-primary flex min-h-11 w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors";
 
 export interface SkuPickerProps {
-  /** `id` của ô tìm sách, dùng cho `htmlFor` của nhãn bên ngoài. */
+  /** `id` của ô tìm, dùng cho `htmlFor` của nhãn bên ngoài. */
   id: string;
   value: SkuOption | null;
   onChange: (value: SkuOption | null) => void;
@@ -30,32 +27,24 @@ export interface SkuPickerProps {
 }
 
 /** Nhãn hiển thị của một SKU: tên sách · ấn bản · loại bìa · mã SKU. */
-export function skuOptionLabel(book: BookSkus, editionIndex: number, skuIndex: number): string {
-  const edition = book.editions[editionIndex];
-  const sku = edition?.skus[skuIndex];
-  if (!edition || !sku) {
-    return book.title;
-  }
-  const editionName = edition.editionName || `Ấn bản #${edition.id}`;
-  return `${book.title} · ${editionName} · ${enumLabel(COVER_TYPE_LABELS, sku.coverType)} · ${sku.skuCode}`;
-}
-
-/** Vị trí SKU duy nhất của đầu sách; `null` khi chưa có SKU nào hoặc có từ hai SKU trở lên. */
-export function onlySku(book: BookSkus | undefined) {
-  if (!book) return null;
-  const all = book.editions.flatMap((edition, editionIndex) =>
-    edition.skus.map((sku, skuIndex) => ({ sku, editionIndex, skuIndex })),
-  );
-  return all.length === 1 ? (all[0] ?? null) : null;
+export function skuOptionLabel(sku: SkuSearchResult): string {
+  return skuLabel(sku);
 }
 
 /**
- * Chọn SKU theo hai bước: tìm đầu sách (tên, slug, ISBN) rồi chọn SKU theo ấn bản và loại bìa. Đầu sách chỉ có **một**
- * SKU (trường hợp thường gặp) thì bước hai tự chọn luôn. Backend chưa có API tìm SKU nên đi qua API Catalog.
+ * Chọn SKU trong một bước: gõ một phần tên sách, mã SKU hoặc ISBN, kết quả là SKU (kèm tồn kho) để bấm chọn luôn.
+ * Enter chọn kết quả đầu tiên (gõ đúng mã SKU/ISBN rồi Enter là xong), mũi tên xuống chuyển vào danh sách.
  */
 export function SkuPicker({ id, value, onChange, invalid, describedBy }: SkuPickerProps) {
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
-  const [book, setBook] = useState<BookOption | null>(null);
+  const debounced = useDebouncedValue(query.trim());
+  const enabled = debounced.length >= MIN_QUERY_LENGTH;
+  const skus = useQuery({
+    queryKey: inventoryKeys.skuSearch(debounced),
+    queryFn: () => searchSkus(debounced),
+    enabled,
+  });
 
   if (value) {
     return (
@@ -74,21 +63,32 @@ export function SkuPicker({ id, value, onChange, invalid, describedBy }: SkuPick
     );
   }
 
-  if (book) {
-    return (
-      <BookSkuOptions
-        book={book}
-        onBack={() => setBook(null)}
-        onSelect={(option) => {
-          onChange(option);
-          setBook(null);
-        }}
-      />
-    );
-  }
+  const select = (sku: SkuSearchResult) => {
+    onChange({ id: sku.skuId, label: skuOptionLabel(sku) });
+    setQuery("");
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      // Không để Enter gửi cả form phiếu nhập khi người dùng chỉ đang tìm SKU.
+      event.preventDefault();
+      const term = query.trim();
+      if (term.length >= MIN_QUERY_LENGTH) {
+        // Hỏi theo đúng chuỗi đang gõ (không đợi debounce) để Enter không chọn nhầm kết quả của chuỗi cũ.
+        void queryClient
+          .fetchQuery({ queryKey: inventoryKeys.skuSearch(term), queryFn: () => searchSkus(term), staleTime: 30_000 })
+          .then((results) => {
+            const first = results[0];
+            if (first) select(first);
+          });
+      }
+    } else if (event.key === "ArrowDown" && skus.data?.length) {
+      event.preventDefault();
+      event.currentTarget.closest("[data-sku-picker]")?.querySelector<HTMLButtonElement>("ul button")?.focus();
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-sku-picker className="flex flex-col gap-3">
       <div className="relative">
         <Search
           size={18}
@@ -99,130 +99,53 @@ export function SkuPicker({ id, value, onChange, invalid, describedBy }: SkuPick
           id={id}
           type="search"
           autoComplete="off"
-          placeholder="Gõ tên sách hoặc ISBN…"
+          placeholder="Gõ tên sách, mã SKU hoặc ISBN…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={onKeyDown}
           aria-invalid={invalid}
           aria-describedby={describedBy}
           className={cn(INPUT, "pl-10")}
         />
       </div>
-      <BookResults query={query.trim()} onSelect={setBook} />
+      {!enabled ? (
+        <p className={HINT}>Gõ ít nhất {MIN_QUERY_LENGTH} ký tự để tìm SKU.</p>
+      ) : skus.isError ? (
+        <ErrorStatus error={skus.error} onRetry={() => void skus.refetch()} />
+      ) : skus.isPending ? (
+        <p role="status" className={HINT}>
+          Đang tìm…
+        </p>
+      ) : skus.data.length === 0 ? (
+        <p role="status" className={HINT}>
+          Không có SKU phù hợp. Sách mới thì thêm ở phần Sách trước khi nhập kho.
+        </p>
+      ) : (
+        <SkuResults skus={skus.data} onSelect={select} />
+      )}
     </div>
   );
 }
 
-function BookResults({ query, onSelect }: { query: string; onSelect: (book: BookOption) => void }) {
-  const debounced = useDebouncedValue(query);
-  const enabled = debounced.length >= MIN_QUERY_LENGTH;
-  const books = useQuery({
-    queryKey: inventoryKeys.bookOptions(debounced),
-    queryFn: () => searchBookOptions(debounced),
-    enabled,
-  });
-
-  if (!enabled) {
-    return <p className={HINT}>Gõ ít nhất {MIN_QUERY_LENGTH} ký tự để tìm đầu sách.</p>;
-  }
-  if (books.isError) {
-    return <ErrorStatus error={books.error} onRetry={() => void books.refetch()} overrides={NO_CATALOG_ACCESS} />;
-  }
-  if (books.isPending) {
-    return (
-      <p role="status" className={HINT}>
-        Đang tìm…
-      </p>
-    );
-  }
-  if (books.data.length === 0) {
-    return (
-      <p role="status" className={HINT}>
-        Không có đầu sách phù hợp.
-      </p>
-    );
-  }
+function SkuResults({ skus, onSelect }: { skus: SkuSearchResult[]; onSelect: (sku: SkuSearchResult) => void }) {
   return (
-    <ul aria-label="Đầu sách tìm thấy" className="flex flex-col gap-2">
-      {books.data.map((option) => (
-        <li key={option.id}>
-          <button type="button" onClick={() => onSelect(option)} className={OPTION}>
-            <BookOpen size={18} aria-hidden="true" className="text-muted shrink-0" />
+    <ul aria-label="SKU tìm thấy" className="flex flex-col gap-2">
+      {skus.map((sku) => (
+        <li key={sku.skuId}>
+          <button type="button" onClick={() => onSelect(sku)} className={OPTION}>
             <span className="flex flex-col">
-              <span className="font-medium">{option.title}</span>
-              <span className="text-muted text-sm">{option.slug}</span>
+              <span className="font-medium">{sku.bookTitle}</span>
+              <span className="text-muted text-sm">
+                {sku.skuCode} · {enumLabel(COVER_TYPE_LABELS, sku.coverType)} · {sku.editionName || "Ấn bản hiện hành"}
+                {sku.isLatestEdition ? " (mới nhất)" : ""}
+              </span>
+            </span>
+            <span className="text-muted shrink-0 text-sm tabular-nums">
+              Tồn {sku.available.toLocaleString("vi-VN")}
             </span>
           </button>
         </li>
       ))}
     </ul>
-  );
-}
-
-function BookSkuOptions({
-  book,
-  onBack,
-  onSelect,
-}: {
-  book: BookOption;
-  onBack: () => void;
-  onSelect: (option: SkuOption) => void;
-}) {
-  const detail = useQuery({ queryKey: inventoryKeys.bookSkus(book.id), queryFn: () => fetchBookSkus(book.id) });
-  const only = onlySku(detail.data);
-
-  useEffect(() => {
-    if (detail.data && only) {
-      onSelect({ id: only.sku.id, label: skuOptionLabel(detail.data, only.editionIndex, only.skuIndex) });
-    }
-    // `onSelect` đổi mỗi lần render của cha; chỉ chọn một lần khi dữ liệu SKU về.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detail.data]);
-
-  return (
-    <div className="border-border flex flex-col gap-3 rounded-md border p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-medium">{book.title}</p>
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft size={16} aria-hidden="true" /> Chọn sách khác
-        </Button>
-      </div>
-      {detail.isError ? (
-        <ErrorStatus error={detail.error} onRetry={() => void detail.refetch()} overrides={NO_CATALOG_ACCESS} />
-      ) : detail.isPending ? (
-        <p role="status" className={HINT}>
-          Đang tải SKU…
-        </p>
-      ) : only ? (
-        <p role="status" className={HINT}>
-          Đang chọn SKU…
-        </p>
-      ) : detail.data.editions.every((edition) => edition.skus.length === 0) ? (
-        <p className={HINT}>Đầu sách này chưa có SKU. Thêm SKU ở phần Sách trước khi nhập kho.</p>
-      ) : (
-        <ul aria-label={`SKU của ${book.title}`} className="flex flex-col gap-2">
-          {detail.data.editions.flatMap((edition, editionIndex) =>
-            edition.skus.map((sku, skuIndex) => (
-              <li key={sku.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect({ id: sku.id, label: skuOptionLabel(detail.data, editionIndex, skuIndex) })}
-                  className={OPTION}
-                >
-                  <span className="flex flex-col">
-                    <span className="font-medium">
-                      {sku.skuCode} · {enumLabel(COVER_TYPE_LABELS, sku.coverType)}
-                    </span>
-                    <span className="text-muted text-sm">
-                      {edition.editionName || `Ấn bản #${edition.id}`}
-                      {edition.isLatest ? " · Ấn bản mới nhất" : ""}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            )),
-          )}
-        </ul>
-      )}
-    </div>
   );
 }

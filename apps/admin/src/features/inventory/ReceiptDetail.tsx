@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, Pencil, Trash2, X } from "lucide-react";
 import { isApiError } from "@slvn/api-client";
-import { Button } from "@slvn/ui";
+import { Button, buttonClassName } from "@slvn/ui";
 import { formatDate, formatDateTime, formatPrice } from "@slvn/utils";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Field, fieldA11y } from "@/components/Field";
@@ -18,18 +19,18 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CARD, FORM_ERROR, HINT, TEXTAREA } from "@/components/form-styles";
 import { adminErrorMessage, showServerError } from "@/lib/admin-errors";
 import { enumLabel } from "@/lib/enum-label";
-import { canApproveReceipts } from "@/lib/roles";
+import { canApproveReceipts, canModifyReceipt } from "@/lib/roles";
 import { useSessionUser } from "@/lib/use-session-user";
-import { approveReceipt, fetchReceipt, inventoryKeys, rejectReceipt } from "./api";
+import { approveReceipt, deleteReceipt, fetchReceipt, inventoryKeys, rejectReceipt } from "./api";
 import { receiptTotals } from "./forms";
-import { RECEIPT_STATUS_LABELS, receiptStatusTone } from "./labels";
+import { COVER_TYPE_LABELS, RECEIPT_STATUS_LABELS, receiptStatusTone } from "./labels";
 import { rejectFormSchema } from "./schemas";
 import type { Receipt, RejectFormValues } from "./schemas";
 
 const NOT_FOUND = { NOT_FOUND: "Không tìm thấy phiếu nhập này." };
 const TH = "px-4 py-3 font-medium";
 
-/** Chi tiết phiếu nhập; Super Admin (khác người lập) duyệt hoặc từ chối phiếu chờ duyệt. */
+/** Chi tiết phiếu nhập; Super Admin duyệt hoặc từ chối phiếu chờ duyệt, người lập sửa hoặc xóa phiếu nháp. */
 export function ReceiptDetail({ receiptId }: { receiptId: number }) {
   const receipt = useQuery({ queryKey: inventoryKeys.receipt(receiptId), queryFn: () => fetchReceipt(receiptId) });
 
@@ -69,14 +70,13 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
         <h2 id="receipt-info" className="text-xl font-semibold">
           Thông tin phiếu
         </h2>
-        {/* API chỉ trả id người dùng, chưa có tên. */}
         <dl className="grid gap-4 sm:grid-cols-2">
-          <Info label="Người lập" value={`Tài khoản #${receipt.createdBy}`} />
+          <Info label="Người lập" value={receipt.createdByName ?? `Tài khoản #${receipt.createdBy}`} />
           <Info label="Ngày lập" value={formatDateTime(receipt.createdAt)} />
           {receipt.decidedBy !== null && (
             <Info
               label={receipt.status === "rejected" ? "Người từ chối" : "Người duyệt"}
-              value={`Tài khoản #${receipt.decidedBy}`}
+              value={receipt.decidedByName ?? `Tài khoản #${receipt.decidedBy}`}
             />
           )}
           {receipt.decidedAt && (
@@ -125,8 +125,17 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
                 <tr key={line.id} className="border-border border-b">
                   <td className="px-4 py-3">
                     <Link href={`/kho/the-kho/${line.skuId}`} className="text-primary font-medium hover:underline">
-                      {line.skuCode}
+                      {line.bookTitle ?? line.skuCode}
                     </Link>
+                    <span className="text-muted block text-sm">
+                      {[
+                        line.skuCode,
+                        line.coverType ? (COVER_TYPE_LABELS[line.coverType] ?? line.coverType) : null,
+                        line.editionName,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   </td>
                   <td className="px-4 py-3">{line.batchCode}</td>
                   <td className="text-muted px-4 py-3">{line.printerName ?? "—"}</td>
@@ -158,20 +167,23 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
 
 function ReceiptDecision({ receipt, totalQuantity }: { receipt: Receipt; totalQuantity: number }) {
   const user = useSessionUser();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [rejecting, setRejecting] = useState(false);
 
-  const onDecided = async (updated: Receipt) => {
-    queryClient.setQueryData(inventoryKeys.receipt(updated.id), updated);
-    await Promise.all([
+  const refreshLists = () =>
+    Promise.all([
       queryClient.invalidateQueries({ queryKey: inventoryKeys.receiptLists }),
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lowStockLists }),
       queryClient.invalidateQueries({ queryKey: ["inventory", "stock-card"] }),
     ]);
+  const onDecided = async (updated: Receipt) => {
+    queryClient.setQueryData(inventoryKeys.receipt(updated.id), updated);
+    await refreshLists();
   };
   const onDecisionError = (error: unknown) => {
-    // Phiếu đã được người khác duyệt/từ chối: tải lại để hiện trạng thái mới.
-    if (isApiError(error) && error.code === "RECEIPT_NOT_DRAFT") {
+    // Phiếu đã được người khác duyệt/từ chối/xóa: tải lại để hiện trạng thái mới.
+    if (isApiError(error) && (error.code === "RECEIPT_NOT_DRAFT" || error.code === "NOT_FOUND")) {
       void queryClient.invalidateQueries({ queryKey: inventoryKeys.receipt(receipt.id) });
     }
   };
@@ -180,49 +192,82 @@ function ReceiptDecision({ receipt, totalQuantity }: { receipt: Receipt; totalQu
     onSuccess: onDecided,
     onError: onDecisionError,
   });
+  const remove = useMutation({
+    mutationFn: () => deleteReceipt(receipt.id),
+    onSuccess: async () => {
+      queryClient.removeQueries({ queryKey: inventoryKeys.receipt(receipt.id) });
+      await refreshLists();
+      router.push("/kho");
+    },
+    onError: onDecisionError,
+  });
 
   if (!user) {
     return null;
   }
+  const canModify = canModifyReceipt(user, receipt.createdBy);
+  const modifyActions = canModify && (
+    <>
+      <Link
+        href={`/kho/phieu-nhap/${receipt.id}/sua`}
+        className={buttonClassName({ variant: "outline", size: "sm" })}
+        aria-disabled={remove.isPending}
+      >
+        <Pencil size={16} aria-hidden="true" /> Sửa phiếu
+      </Link>
+      <ConfirmButton
+        variant="danger-outline"
+        question={`Xóa phiếu nháp #${receipt.id}? Không hoàn tác được.`}
+        confirmLabel="Xóa phiếu"
+        pending={remove.isPending}
+        onConfirm={() => remove.mutate()}
+      >
+        <Trash2 size={16} aria-hidden="true" /> {remove.isPending ? "Đang xóa…" : "Xóa phiếu"}
+      </ConfirmButton>
+    </>
+  );
+  const removeError = remove.isError && (
+    <p role="alert" className={FORM_ERROR}>
+      {adminErrorMessage(remove.error)}
+    </p>
+  );
+
   if (!canApproveReceipts(user.roles)) {
     return (
-      <p className={`${CARD} text-muted p-5 leading-7`}>
-        Phiếu đang chờ Super Admin duyệt. Tồn kho chưa thay đổi cho tới khi phiếu được duyệt.
-      </p>
+      <section aria-label="Phiếu đang chờ duyệt" className={`${CARD} flex flex-col gap-4 p-5`}>
+        <p className="text-muted leading-7">
+          Phiếu đang chờ Super Admin duyệt. Tồn kho chưa thay đổi cho tới khi phiếu được duyệt.
+        </p>
+        {canModify && <div className="flex flex-wrap items-center gap-3">{modifyActions}</div>}
+        {removeError}
+      </section>
     );
   }
 
-  const isCreator = user.id === receipt.createdBy;
   return (
     <section aria-labelledby="receipt-decision" className={`${CARD} flex flex-col gap-4 p-5`}>
       <h2 id="receipt-decision" className="text-xl font-semibold">
         Duyệt phiếu
       </h2>
-      {isCreator ? (
-        <p className={HINT}>Anh/chị là người lập phiếu này nên cần một Super Admin khác duyệt.</p>
-      ) : (
-        <p className={HINT}>
-          Duyệt thì tạo lô in và cộng {totalQuantity.toLocaleString("vi-VN")} cuốn vào tồn khả dụng. Không hoàn tác
-          được.
-        </p>
-      )}
+      <p className={HINT}>
+        Duyệt thì tạo lô in và cộng {totalQuantity.toLocaleString("vi-VN")} cuốn vào tồn khả dụng. Không hoàn tác được.
+      </p>
       {!rejecting && (
         <div className="flex flex-wrap items-center gap-3">
-          {!isCreator && (
-            <ConfirmButton
-              variant="primary"
-              confirmVariant="primary"
-              question={`Duyệt phiếu #${receipt.id} và nhập kho?`}
-              confirmLabel="Duyệt"
-              pending={approve.isPending}
-              onConfirm={() => approve.mutate()}
-            >
-              <Check size={16} aria-hidden="true" /> {approve.isPending ? "Đang duyệt…" : "Duyệt và nhập kho"}
-            </ConfirmButton>
-          )}
+          <ConfirmButton
+            variant="primary"
+            confirmVariant="primary"
+            question={`Duyệt phiếu #${receipt.id} và nhập kho?`}
+            confirmLabel="Duyệt"
+            pending={approve.isPending}
+            onConfirm={() => approve.mutate()}
+          >
+            <Check size={16} aria-hidden="true" /> {approve.isPending ? "Đang duyệt…" : "Duyệt và nhập kho"}
+          </ConfirmButton>
           <Button variant="danger-outline" size="sm" disabled={approve.isPending} onClick={() => setRejecting(true)}>
             <X size={16} aria-hidden="true" /> Từ chối
           </Button>
+          {modifyActions}
         </div>
       )}
       {approve.isError && (
@@ -230,6 +275,7 @@ function ReceiptDecision({ receipt, totalQuantity }: { receipt: Receipt; totalQu
           {adminErrorMessage(approve.error)}
         </p>
       )}
+      {removeError}
       {rejecting && (
         <RejectForm
           receiptId={receipt.id}

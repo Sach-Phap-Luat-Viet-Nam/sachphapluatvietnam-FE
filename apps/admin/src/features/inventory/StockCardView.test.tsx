@@ -13,6 +13,9 @@ function card(overrides: Record<string, unknown> = {}) {
   return {
     skuId: 100,
     skuCode: "SLVN-BLDS-BM",
+    bookTitle: "Bộ luật Dân sự 2026",
+    editionName: "Tái bản lần 3",
+    coverType: "paperback",
     available: 45,
     reserved: 5,
     onHand: 50,
@@ -36,6 +39,7 @@ function card(overrides: Record<string, unknown> = {}) {
         printBatchId: 21,
         reference: "SLVN2610230001",
         createdBy: 2,
+        createdByName: "Thủ kho Hoa",
         note: null,
         createdAt: "2026-10-23T05:00:00Z",
       },
@@ -46,6 +50,7 @@ function card(overrides: Record<string, unknown> = {}) {
         printBatchId: 21,
         reference: "GR-7",
         createdBy: 1,
+        createdByName: null,
         note: null,
         createdAt: "2026-10-23T04:00:00Z",
       },
@@ -88,8 +93,12 @@ describe("StockCardView", () => {
   it("hiện tồn, cảnh báo tồn thấp và chứng từ", async () => {
     renderCard();
 
-    expect(await screen.findByRole("heading", { name: "Thẻ kho SLVN-BLDS-BM" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Thẻ kho: Bộ luật Dân sự 2026" })).toBeVisible();
+    expect(screen.getByText("Tái bản lần 3 · Bìa mềm · SLVN-BLDS-BM")).toBeVisible();
     expect(screen.getByText("Tồn thấp")).toBeVisible();
+    // Người thao tác hiện tên; giao dịch chưa có tên thì hiện "Tài khoản #id".
+    expect(screen.getByText("Thủ kho Hoa")).toBeVisible();
+    expect(screen.getByText("Tài khoản #1")).toBeVisible();
     expect(screen.getByRole("link", { name: "GR-7" })).toHaveAttribute("href", "/kho/phieu-nhap/7");
     // Thủ kho không vào được phần Đơn hàng nên mã đơn không có link.
     expect(screen.queryByRole("link", { name: "SLVN2610230001" })).not.toBeInTheDocument();

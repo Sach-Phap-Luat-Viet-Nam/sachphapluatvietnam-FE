@@ -45,6 +45,13 @@ export function canApproveReceipts(roles: readonly string[]): boolean {
   return roles.includes("super_admin");
 }
 
+/**
+ * Sửa hoặc xóa phiếu nhập nháp: người lập hoặc Super Admin (backend trả `RECEIPT_FORBIDDEN` với người khác).
+ */
+export function canModifyReceipt(user: { id: number; roles: readonly string[] }, createdBy: number): boolean {
+  return user.id === createdBy || user.roles.includes("super_admin");
+}
+
 /** Đổi trạng thái đơn hàng (policy `orders_manage`); các vai trò còn lại của phần Đơn hàng chỉ xem. */
 export function canManageOrders(roles: readonly string[]): boolean {
   return roles.includes("super_admin") || roles.includes("order_manager");

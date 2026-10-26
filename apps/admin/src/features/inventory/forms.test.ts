@@ -1,4 +1,16 @@
-import { emptyReceiptLine, receiptFieldErrors, receiptTotals, toIssueBody, toReceiptBody } from "./forms";
+import {
+  duplicateReceiptLine,
+  emptyReceiptLine,
+  nextReceiptLine,
+  receiptBooksSummary,
+  receiptFieldErrors,
+  receiptToFormValues,
+  receiptTotals,
+  suggestBatchCode,
+  toIssueBody,
+  toReceiptBody,
+} from "./forms";
+import { receiptSchema } from "./schemas";
 import { issueFormSchema, receiptFormSchema, thresholdFormSchema } from "./schemas";
 import type { ReceiptFormValues } from "./schemas";
 
@@ -105,5 +117,94 @@ describe("form xuất kho và ngưỡng", () => {
     expect(thresholdFormSchema.safeParse({ lowStockThreshold: "100000" }).success).toBe(true);
     expect(thresholdFormSchema.safeParse({ lowStockThreshold: "100001" }).success).toBe(false);
     expect(thresholdFormSchema.safeParse({ lowStockThreshold: "-1" }).success).toBe(false);
+  });
+});
+
+describe("thêm và nhân bản dòng phiếu", () => {
+  it("dòng mới giữ xưởng in và ngày nhập của dòng trước, còn lại để trống", () => {
+    const next = nextReceiptLine(line({ printerName: "Xưởng A", receivedAt: "2026-10-20" }));
+
+    expect(next).toEqual({
+      sku: null,
+      batchCode: "",
+      printerName: "Xưởng A",
+      quantity: "",
+      unitCost: "",
+      receivedAt: "2026-10-20",
+    });
+  });
+
+  it("nhân bản giữ SKU, xưởng in, giá vốn, ngày nhập nhưng bỏ mã lô và số lượng", () => {
+    const copy = duplicateReceiptLine(line({ printerName: "Xưởng A" }));
+
+    expect(copy).toMatchObject({ sku: SKU, printerName: "Xưởng A", unitCost: "45000", receivedAt: "2026-10-24" });
+    expect(copy.batchCode).toBe("");
+    expect(copy.quantity).toBe("");
+  });
+
+  it("gợi ý mã lô theo ngày nhập", () => {
+    expect(suggestBatchCode("2026-10-26")).toBe("LO-261026");
+    expect(suggestBatchCode("")).toBe("");
+  });
+});
+
+describe("receiptToFormValues", () => {
+  const saved = receiptSchema.parse({
+    id: 7,
+    status: "draft",
+    note: "Nhập lô tháng 10",
+    createdBy: 4,
+    createdAt: "2026-10-24T03:00:00Z",
+    decidedBy: null,
+    decidedAt: null,
+    rejectReason: null,
+    lines: [
+      {
+        id: 1,
+        skuId: 100,
+        skuCode: "SLVN-BLDS-BM",
+        bookTitle: "Bộ luật Dân sự 2026",
+        editionName: "Tái bản lần 3",
+        coverType: "paperback",
+        batchCode: "LO-01",
+        printerName: null,
+        quantity: 500,
+        unitCost: 45000,
+        receivedAt: "2026-10-20",
+        printBatchId: null,
+      },
+      {
+        id: 2,
+        skuId: 101,
+        skuCode: "SLVN-LDD-BC",
+        batchCode: "LO-02",
+        printerName: "Xưởng A",
+        quantity: 20,
+        unitCost: 10000,
+        receivedAt: "2026-10-21",
+        printBatchId: null,
+      },
+    ],
+  });
+
+  it("đưa phiếu đã lưu về giá trị form để sửa", () => {
+    const values = receiptToFormValues(saved);
+
+    expect(values.note).toBe("Nhập lô tháng 10");
+    expect(values.lines[0]).toEqual({
+      sku: { id: 100, label: "Bộ luật Dân sự 2026 · Tái bản lần 3 · Bìa mềm · SLVN-BLDS-BM" },
+      batchCode: "LO-01",
+      printerName: "",
+      quantity: "500",
+      unitCost: "45000",
+      receivedAt: "2026-10-20",
+    });
+    expect(values.lines[1]?.sku?.label).toBe("SLVN-LDD-BC");
+    expect(receiptFormSchema.safeParse(values).success).toBe(true);
+  });
+
+  it("tóm tắt sách của phiếu", () => {
+    expect(receiptBooksSummary(saved)).toBe("Bộ luật Dân sự 2026 (+1)");
+    expect(receiptBooksSummary({ lines: [] })).toBe("—");
   });
 });

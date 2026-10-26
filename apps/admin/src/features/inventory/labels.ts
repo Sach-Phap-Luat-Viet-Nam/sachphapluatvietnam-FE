@@ -28,6 +28,23 @@ export const ISSUE_TYPE_LABELS: Record<IssueType, string> = {
 
 export const COVER_TYPE_LABELS: Record<string, string> = { paperback: "Bìa mềm", hardcover: "Bìa cứng" };
 
+/** Nhãn một SKU: tên sách · ấn bản · loại bìa · mã SKU; thiếu phần nào thì bỏ phần đó. */
+export function skuLabel(sku: {
+  bookTitle: string | null;
+  editionName: string | null;
+  coverType: string | null;
+  skuCode: string;
+}): string {
+  return [
+    sku.bookTitle,
+    sku.editionName,
+    sku.coverType ? (COVER_TYPE_LABELS[sku.coverType] ?? sku.coverType) : null,
+    sku.skuCode,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 const RECEIPT_STATUS_TONES: Record<string, BadgeTone> = { draft: "warning", approved: "success", rejected: "danger" };
 
 /** Màu nhãn trạng thái phiếu nhập. */
