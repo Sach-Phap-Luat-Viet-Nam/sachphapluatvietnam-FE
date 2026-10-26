@@ -23,6 +23,9 @@ import {
 import { bookTypeLabel, param } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 import { descriptionText, formatRichText } from "@/features/catalog/description";
+import { getCombos } from "@/features/combo/api";
+import { ComboCard } from "@/features/combo/ComboCard";
+import { combosForSkus } from "@/features/combo/combo";
 import { Book3D } from "@/features/home/Book3D";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { AddToCartForm } from "@/features/ordering/AddToCartForm";
@@ -67,9 +70,16 @@ export async function generateMetadata({ params, searchParams }: BookPageProps):
 
 export default async function BookDetailPage({ params, searchParams }: BookPageProps) {
   const { slug } = await params;
-  const book = await getBook(slug);
+  // `getCombos` không ném lỗi (trả null): combo chỉ là phần thêm, lỗi thì ẩn mục "Có trong combo".
+  const [book, combos] = await Promise.all([getBook(slug), getCombos()]);
   const edition = book && selectEdition(book, param(await searchParams, EDITION_PARAM));
   if (!book || !edition) notFound();
+
+  // Mọi ấn bản của sách: combo dựng trên ấn bản khác của cùng đầu sách vẫn đáng gợi ý.
+  const bookCombos = combosForSkus(
+    combos ?? [],
+    book.editions.flatMap((item) => item.skus.map((sku) => sku.id)),
+  );
 
   const latest = latestEdition(book);
   const newer = !edition.isLatest && latest && latest.id !== edition.id ? latest : null;
@@ -228,6 +238,19 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
               <p className="text-upcoming text-lg font-medium">{purchase.label}</p>
             )}
           </section>
+
+          {bookCombos.length > 0 && (
+            <section aria-labelledby="co-trong-combo" className="flex flex-col gap-4">
+              <h2 id="co-trong-combo" className="font-editorial text-[28px] font-bold">
+                Mua theo combo, tiết kiệm hơn
+              </h2>
+              <ul className="grid gap-5 sm:grid-cols-2">
+                {bookCombos.slice(0, 2).map((combo) => (
+                  <ComboCard key={combo.id} combo={combo} />
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Gọn: lưới chữ nhỏ để phần giới thiệu sách nằm cao, khách đọc ngay dưới khối đặt mua. */}
           <section aria-labelledby="thong-tin-xuat-ban" className="border-gold/20 border-y py-5">
