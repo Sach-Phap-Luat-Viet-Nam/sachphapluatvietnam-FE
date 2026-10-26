@@ -13,7 +13,9 @@ import {
   comboPath,
   hasSavings,
   itemDetail,
+  originalPrice,
   payablePrice,
+  savingsAmount,
   savingsPercent,
   totalCopies,
 } from "@/features/combo/combo";
@@ -56,6 +58,7 @@ export default async function ComboPage({ params }: ComboPageProps) {
   const percent = savingsPercent(combo);
   // Sách đang có lịch giá làm mua lẻ không cao hơn giá combo: backend không áp combo nên không bán như một ưu đãi.
   const deal = hasSavings(combo);
+  const saved = savingsAmount(combo);
   // JSON-LD tự sinh qua JSON.stringify và đã thoát `<` (SKILL.md mục 5).
   const jsonLd = serializeJsonLd(comboJsonLd(combo));
 
@@ -119,20 +122,20 @@ export default async function ComboPage({ params }: ComboPageProps) {
             <div className="flex flex-col gap-1.5">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="text-gold-pale text-3xl font-semibold">{formatPrice(payablePrice(combo))}</span>
-                {deal && (
+                {deal && saved > 0 && (
                   <span className="text-mist line-through">
-                    <span className="sr-only">Giá mua lẻ </span>
-                    {formatPrice(combo.retailPrice)}
+                    <span className="sr-only">Giá gốc </span>
+                    {formatPrice(originalPrice(combo))}
                   </span>
                 )}
-                {percent !== null && (
+                {deal && percent !== null && (
                   <span className="bg-burgundy text-cream px-2 py-0.5 text-sm font-semibold">
                     <span className="sr-only">Tiết kiệm </span>−{percent}%
                   </span>
                 )}
               </div>
               {deal ? (
-                <p className="text-ok">Tiết kiệm {formatPrice(combo.savings)} so với mua lẻ.</p>
+                saved > 0 && <p className="text-ok">Tiết kiệm {formatPrice(saved)} so với giá gốc.</p>
               ) : (
                 <p className="text-mist text-sm">Giá mua lẻ cả bộ hiện tại (đã gồm giá ưu đãi của từng cuốn).</p>
               )}

@@ -57,13 +57,24 @@ describe("ComboCard", () => {
     expect(screen.getByText("Tập 11 + Tập 12 ×2")).toBeVisible();
   });
 
-  it("hiện giá combo, giá mua lẻ gạch ngang, phần trăm và số tiền tiết kiệm", () => {
+  it("hiện giá combo, giá gốc gạch ngang, phần trăm và số tiền tiết kiệm", () => {
     renderCard(combo());
 
     expect(screen.getByText(formatPrice(70000))).toBeVisible();
     expect(screen.getByText(formatPrice(100000))).toBeVisible();
     expect(screen.getByText(/−30%/)).toBeVisible();
-    expect(screen.getByText(`Tiết kiệm ${formatPrice(30000)} so với mua lẻ`)).toBeVisible();
+    expect(screen.getByText(`Tiết kiệm ${formatPrice(30000)} so với giá gốc`)).toBeVisible();
+  });
+
+  it("giá cũ gạch ngang là giá gốc (giá bìa), không phải giá lẻ đang giảm", () => {
+    // Hai tập giá gốc 1.100.000đ đang giảm còn 580.000đ, combo 575.000đ.
+    renderCard(combo({ comboPrice: 575000, retailPrice: 580000, listPrice: 1100000, savings: 5000 }));
+
+    expect(screen.getByText(formatPrice(575000))).toBeVisible();
+    expect(screen.getByText(formatPrice(1100000))).toBeVisible();
+    expect(screen.queryByText(formatPrice(580000))).not.toBeInTheDocument();
+    expect(screen.getByText(/−48%/)).toBeVisible();
+    expect(screen.getByText(`Tiết kiệm ${formatPrice(525000)} so với giá gốc`)).toBeVisible();
   });
 
   it("không tiết kiệm thì chỉ hiện giá combo", () => {
