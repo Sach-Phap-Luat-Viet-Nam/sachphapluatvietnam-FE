@@ -84,8 +84,9 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   thời gian chờ thì vẫn gửi. Lỗi thì số lượng về theo giỏ tải lại.
 - **Tóm tắt** (`CartSummary`, dùng chung cho giỏ, thanh toán và Mua ngay): khi có giảm giá thì hiện thêm **Giá gốc**
   (gạch ngang), **Giảm giá (xx%)** (xanh, dấu −) trước tạm tính, và ô "Bạn tiết kiệm … so với giá bìa" dưới tổng tiền.
-  Các số này chỉ tính từ giá bìa của các dòng, không gồm phí ship. Tạm tính, phí ship từ `POST /shipping/quote`, **tổng dự kiến** (chỉ để xem, không gửi
-  lên), "Mua thêm … để được miễn phí vận chuyển". Không lấy được phí ship thì ẩn dòng phí, không chặn đặt hàng. Tạm
+  Các số này chỉ tính từ giá bìa của các dòng, không gồm phí ship. Tạm tính, giảm giá, phí ship và **tổng** lấy từ
+  `POST /checkout/preview` (`useCheckoutPreview`; ở giỏ là `source = cart`, chưa có tỉnh nên phí ship cố định; chi tiết ở
+  `storefront-checkout-promotion.md`), "Mua thêm … để được miễn phí vận chuyển". Preview lỗi thì chỉ hiện tạm tính, không chặn đặt hàng. Tạm
   tính đổi thì giữ phí cũ (mờ) trong lúc chờ báo giá mới.
 - Nút "Đặt hàng" chỉ hiện khi giỏ không trống, không có dòng ngừng bán hoặc thiếu hàng (`checkoutBlocker`); ngược lại
   hiện lý do. Trong lúc giỏ đang lưu thì thay bằng nút khóa "Đang cập nhật giỏ…".
@@ -118,7 +119,8 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - Mã đơn (tự viết hoa) + số điện thoại đặt hàng → `POST /orders/lookup`. Hiện trạng thái, thanh toán, ngày đặt, sách,
   tiền, địa chỉ, hóa đơn, dòng thời gian trạng thái (`history`, FR-40).
 - `NOT_FOUND` → "Không tìm thấy đơn hàng…"; `TOO_MANY_REQUESTS` (10 lần/phút/IP) → "thao tác quá nhanh".
-- Đơn còn hủy được (`canCancel`): hướng dẫn liên hệ CSKH (khách vãng lai chưa tự hủy được qua API).
+- Đơn còn hủy được (`canCancel`): hướng dẫn liên hệ CSKH. Tra cứu bằng mã + SĐT không trả `guestAccessToken` nên không
+  hủy được từ màn này; backend cho khách vãng lai tự hủy qua link `/orders/guest/{token}/cancel` nhưng FE chưa làm.
 
 ### Đơn của tôi `/don-hang`, `/don-hang/<mã>`
 
@@ -152,7 +154,8 @@ bằng `browserApi()` của `@slvn/auth` (gửi cookie `sl_cart`, gắn Bearer k
 | POST   | `/api/v1/cart/items`           | Thêm vào giỏ (cộng thêm) | `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `CART_FULL` |
 | PATCH  | `/api/v1/cart/items/{skuId}`   | Đổi số lượng             | như trên                                                             |
 | DELETE | `/api/v1/cart/items/{skuId}`   | Xóa dòng                 | —                                                                    |
-| POST   | `/api/v1/shipping/quote`       | Phí ship dự kiến         | lỗi → ẩn dòng phí                                                    |
+| POST   | `/api/v1/checkout/preview`     | Tổng tiền giỏ/thanh toán | lỗi → chỉ hiện tạm tính (`storefront-checkout-promotion.md`)         |
+| POST   | `/api/v1/shipping/quote`       | Ngưỡng miễn ship ở Header, Footer, thanh ưu đãi (server) | lỗi → ẩn câu miễn ship              |
 | POST   | `/api/v1/orders`               | Đặt hàng                 | `VALIDATION_ERROR` theo field, `IDEMPOTENCY_KEY_REUSED`, lỗi giỏ     |
 | POST   | `/api/v1/orders/lookup`        | Tra cứu đơn              | `NOT_FOUND`, `TOO_MANY_REQUESTS`                                     |
 | GET    | `/api/v1/orders`               | Đơn của tôi (Bearer)     | 401 → refresh một lần, hết phiên thì mời đăng nhập                   |
@@ -161,8 +164,8 @@ bằng `browserApi()` của `@slvn/auth` (gửi cookie `sl_cart`, gắn Bearer k
 
 - Response parse bằng Zod (`features/catalog/schemas.ts`, `features/ordering/schemas.ts`) vì OpenAPI sinh enum thành
   `number`, số thành `number | string`.
-- Body `POST /orders` gửi `paymentMethod` dạng chuỗi (`cod`) có `// @ts-expect-error` trong `features/ordering/api.ts`
-  vì type sinh ra là `number`. Khi backend sửa OpenAPI, TypeScript sẽ báo dòng này để gỡ.
+- Body `POST /orders` gửi `paymentMethod` dạng chuỗi (`cod`) nên ép kiểu `as never` trong `features/ordering/api.ts`
+  vì type sinh ra là `number` (và thiếu `couponCode`/`expectedTotal`). Khi backend sửa OpenAPI thì gỡ ép kiểu.
 - Lỗi 5xx hiện thông báo chung kèm `traceId`; mất mạng hiện "Không kết nối được máy chủ".
 
 ## Cấu hình cần thiết (biến môi trường)
@@ -188,16 +191,20 @@ giỏ, thanh toán, đơn hàng. Chuyển động luôn bật, không theo giả
 - Slug không tồn tại trả HTTP **200** kèm `noindex` (không phải 404), vì `loading.tsx` đã bắt đầu stream trước khi
   `notFound()` chạy (hành vi của Next.js 16). Muốn 404 thật thì kiểm tra slug trong Proxy hoặc bỏ `loading.tsx`.
 - JSON-LD dùng URL tương đối vì chưa có domain chính thức (chưa cấu hình `metadataBase`).
-- Chưa có màn quản lý đơn ở Admin. Khách vãng lai chưa tự hủy được đơn (backend chỉ cho hủy với Bearer).
+- Màn quản lý đơn ở Admin: `admin-orders.md`. Chưa dùng link xem/hủy đơn cho khách vãng lai (`guestAccessToken` trong
+  response tạo đơn, `GET /orders/guest/{token}`, `POST /orders/guest/{token}/cancel`): backend đã có, FE chưa làm.
 - Chưa thử được "Đơn của tôi" với backend thật (cần tài khoản khách và backend có Redis/CSDL sẵn sàng); test dùng MSW và
   Playwright giả lập API.
 - Tỉnh/thành, phường/xã là ô nhập tự do (chưa có danh mục địa giới 2 cấp).
 - Chưa điền sẵn phần "Xuất hóa đơn công ty" từ `invoiceInfo` của hồ sơ, chưa có checkbox lưu thông tin hóa đơn
   (`PUT /me/invoice-info`).
-- Chưa có mã giảm giá (backend chưa có `/cart/apply-coupon`), pre-order, cổng thanh toán online.
+- Mã giảm giá đã có ở trang thanh toán (`storefront-checkout-promotion.md`; giỏ không lưu mã, backend không có
+  `/cart/apply-coupon`). Chưa có pre-order, cổng thanh toán online.
+- Chưa xử lý riêng lỗi chống bom hàng COD (`TOO_MANY_OPEN_ORDERS`, `COD_NOT_ALLOWED`, 422) và chưa ẩn COD theo
+  `codAllowed` của preview: hiện `title` của backend như lỗi chung.
 - Chưa có số hotline CSKH để hiện ở chỗ "liên hệ CSKH" (báo giá sỉ, hủy đơn).
-- `regularSalePrice`, `saleEndsAt` chưa có trong `docs/api_reference.md` (lấy theo response mẫu backend gửi 24/10/2026);
-  schema để `nullish` nên response cũ chưa có field vẫn đọc được.
+- `regularSalePrice`, `saleEndsAt` (đã ghi vào `docs/api_reference.md`): schema để `nullish` nên response cũ chưa có
+  field vẫn đọc được.
 - Nhiều đầu sách thật đang để "Đang cập nhật" hoặc trống ở NXB, số QĐXB, số trang, khổ… (thông tin lại nằm trong mô
   tả): cần nhập đúng field ở Admin để hiện trong "Thông tin xuất bản" và JSON-LD.
 - Breadcrumb danh mục dùng `/sach?category=<slug>` vì chưa có route `/danh-muc/<slug>` (NFR-30).

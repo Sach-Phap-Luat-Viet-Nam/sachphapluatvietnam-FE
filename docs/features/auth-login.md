@@ -8,7 +8,8 @@ mã 6 số. Phiên được giữ khi tải lại trang, Header hiện tên khá
 ## Luồng xử lý (màn hình, route, app storefront/admin)
 
 App **storefront**. Mọi request đi cùng origin qua proxy `/api/v1/*` (`src/proxy.ts`, logic chung ở
-`backendProxyTarget` của `@slvn/api-client`) vì backend chưa bật CORS và cookie `sl_refresh` là `SameSite=Strict`.
+`backendProxyTarget` của `@slvn/api-client`) vì cookie `sl_refresh` là `SameSite=Strict` (backend đã bật CORS cho domain FE nhưng
+gọi thẳng khác site thì trình duyệt không gửi cookie này) và để backend tính giới hạn tần suất theo IP thật của khách.
 Logic phiên, `login`, schema, thông báo lỗi và `safeNextPath` nằm ở package `@slvn/auth` (`packages/auth/src`), dùng
 chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm ở `features/auth/` của từng app.
 
@@ -26,6 +27,8 @@ chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm �
   - `requiresTwoFactor = false`: lưu phiên, chuyển tới `?next=` (chỉ nhận path nội bộ, xem `packages/auth/src/redirect.ts`), mặc định `/`.
   - `requiresTwoFactor = true`: chuyển sang bước nhập mã (`TwoFactorForm.tsx`), gọi `/auth/login/2fa` với
     `twoFactorToken`. Mã sai thì báo ở ô nhập; `twoFactorToken` quá 5 phút thì quay lại bước mật khẩu kèm thông báo.
+    Luôn gửi `trustDevice: false` (`packages/auth/src/login.ts`): chưa có ô "Tin cậy thiết bị này" dù backend đã hỗ trợ
+    (cookie `sl_2fa_trust`, xem `docs/features/auth.md`).
   - Nút gửi bị khóa trong lúc chờ và lúc chuyển trang để không gửi trùng.
 - **Phiên** (`packages/auth/src/session.ts`):
   - Access token chỉ giữ trong bộ nhớ của tab, không lưu `localStorage`/cookie. Refresh token là cookie HttpOnly
@@ -67,10 +70,11 @@ Không thêm biến mới. Dùng `API_BASE_URL` (và `PROXY_SECRET` trên Vercel
 - **Chưa kiểm tra với tài khoản thật** việc cookie `sl_refresh` (`Secure`, `Path=/api/v1/auth`) đi qua proxy và được
   trình duyệt lưu ở domain storefront. Mới thử: sai mật khẩu qua proxy trả đúng `401 INVALID_CREDENTIALS`.
 - Production cần FE và API **cùng site** vì cookie là `SameSite=Strict` (docs/api_reference.md).
-- Chưa gọi `GET /api/v1/cart` sau đăng nhập để gộp giỏ khách (chưa có tính năng giỏ).
+- Gộp giỏ khách sau đăng nhập: giỏ tải lại theo người dùng mới (gửi cả Bearer và cookie `sl_cart`), backend tự gộp, xem
+  `docs/features/storefront-ordering.md`.
 - Chưa đồng bộ đăng xuất giữa các tab: tab khác vẫn hiện tên đến khi tải lại trang hoặc gặp 401.
 - Tài khoản nhân viên chưa bật 2FA (`requiresTwoFactorSetup`) vẫn đăng nhập được ở storefront; màn bật 2FA ở app
-  admin (`/xac-thuc-hai-lop`).
+  admin (`/xac-thuc-hai-lop`). Riêng Super Admin bị backend từ chối ở storefront (`SUPER_ADMIN_PORTAL_FORBIDDEN`).
 - Chưa có quên mật khẩu; chưa xác thực email/SĐT sau khi đăng ký (backend chưa có). Đăng nhập hộ xem `admin-users.md`.
 - `/auth/*` giới hạn 10 request/phút/IP: nhiều người đăng ký cùng lúc sau một IP (văn phòng, wifi chung) có thể bị 429.
 - Trang `/dang-nhap` chưa tự chuyển đi khi khách đã đăng nhập.

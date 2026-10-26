@@ -22,7 +22,8 @@ Hợp đồng API: `docs/features/checkout-promotion-shipping.md`. File này mô
     form để khách xem số mới rồi bấm đặt lần nữa.
   - `ADDRESS_NOT_SUPPORTED`: báo dưới ô tỉnh/thành và khóa nút đặt.
   - Ô tỉnh/thành có gợi ý 34 tỉnh (`PROVINCES` trong `@slvn/utils`) qua `<datalist>`, vẫn cho nhập tự do.
-- `/gio-hang`: vẫn dùng `POST /shipping/quote` (`CartSummary`); `freeShippingThreshold` có thể `null`.
+- `/gio-hang`: `CartSummary` cũng dùng `POST /checkout/preview` (`source = cart`, chưa có tỉnh nên phí ship cố định);
+  `POST /shipping/quote` chỉ còn dùng phía server để lấy ngưỡng miễn ship (`freeShippingThreshold` có thể `null`).
 - `/khuyen-mai`: Server Component, `getActivePromotions()` (cache 60 s), `PromotionCard` cho từng chương trình. Hạn dùng
   lấy ngày của `endsAt` trừ 1 giây theo giờ Việt Nam. Lỗi tải hiện thông báo nhẹ, danh sách rỗng hiện trạng thái trống.
 - Chi tiết đơn (`OrderDetails`): giảm giá theo dòng, "Giảm phí ship", danh sách ưu đãi đã áp.
@@ -41,8 +42,9 @@ Không có biến mới.
 
 ## Hạn chế / việc còn lại
 
-- `/checkout/preview` và `/promotions/active` chưa có trong `openapi/v1.json`: khai báo tạm ở
-  `packages/api-client/src/pending-paths.ts`, response parse bằng Zod. Sau `pnpm api:fetch && pnpm api:generate` thì
-  xóa khai báo tạm.
+- `/checkout/preview` và `/promotions/active` đã có trong `openapi/v1.json` (bản đã sinh lại) nhưng OpenAPI của backend mô tả enum là
+`integer` nên vẫn khai báo tay ở `packages/api-client/src/pending-paths.ts`, response parse
+  bằng Zod. Khi backend sinh OpenAPI đúng kiểu thì xóa khai báo tạm.
+- Chưa ẩn COD theo `codAllowed` của preview và chưa xử lý riêng `TOO_MANY_OPEN_ORDERS` / `COD_NOT_ALLOWED` (422).
 - Ô tỉnh/thành chưa là danh sách chọn bắt buộc vì sổ địa chỉ cũ có thể lưu tên theo địa giới trước 07/2025.
 - Trang chi tiết sách chưa có khối "Phí ship dự kiến" (`POST /shipping/quote` kèm `province`).

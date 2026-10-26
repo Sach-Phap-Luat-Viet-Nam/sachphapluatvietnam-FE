@@ -1,8 +1,8 @@
 # Mua ngay trên storefront
 
 > **Trạng thái (24/10/2026)**: backend có `POST /api/v1/orders/buy-now` (commit `bf488bc` repo backend). **FE đã làm**
-> (xem "Hạn chế / việc còn lại"). Route chưa có trong `openapi/v1.json` nên đang khai báo tạm ở
-> `packages/api-client/src/pending-paths.ts`.
+> (xem "Hạn chế / việc còn lại"). Route đã có trong `openapi/v1.json` nhưng OpenAPI mô tả enum `paymentMethod` là
+> `integer`, nên vẫn khai báo tay ở `packages/api-client/src/pending-paths.ts`.
 
 ## Mục đích
 
@@ -30,9 +30,9 @@ App **storefront**. Code: `features/ordering/buy-now.ts` (đọc/tạo link, d�
    - **Không** đọc `GET /cart` cho phần tóm tắt. Lấy thông tin sách bằng `GET /books/{slug}`, rồi tìm SKU theo `id`
      trong `editions[].skus[]`. Sách 404 → "Không tìm thấy sách"; SKU không còn thuộc sách → "Sách không còn bán", kèm
      link về trang sách. SKU hết hàng hoặc ấn bản ngừng bán → vẫn hiện form nhưng khóa nút Đặt hàng và nêu lý do.
-   - Tóm tắt: 1 dòng (bìa, tên, ấn bản · loại bìa, đơn giá `salePrice`, số lượng), tạm tính = `salePrice × số lượng`,
-     phí ship lấy từ `POST /shipping/quote`. Tổng chỉ để xem; số chốt là `subtotal`, `shippingFee`, `total` trong
-     response tạo đơn.
+   - Tóm tắt: 1 dòng (bìa, tên, ấn bản · loại bìa, số lượng); tạm tính, giảm giá, phí ship, tổng lấy từ
+     `POST /checkout/preview` với `source = buy_now`, `skuId`, `quantity` (`storefront-checkout-promotion.md`). Số chốt
+     vẫn là `subtotal`, `shippingFee`, `total` trong response tạo đơn.
    - Form giao hàng, hóa đơn, điền sẵn cho thành viên, sổ địa chỉ: **dùng lại nguyên form hiện tại**.
    - Không cần kiểm tra chặn đặt hàng theo giỏ (`checkoutBlocker`) vì không dùng giỏ.
 3. **Bấm "Đặt hàng"**: gọi `POST /orders/buy-now` (body ở mục API). Áp dụng **`Idempotency-Key`** giống hệt đặt từ
@@ -47,7 +47,7 @@ App **storefront**. Code: `features/ordering/buy-now.ts` (đọc/tạo link, d�
 | ------ | ------------------------ | -------- | ------------------------------------------------------ | ------------------- |
 | POST   | `/api/v1/orders/buy-now` | Tùy chọn | `BuyNowOrderRequest` + header `Idempotency-Key` (≤ 64) | 201 `OrderResponse` |
 | GET    | `/api/v1/books/{slug}`   | Không    | —                                                      | Chi tiết sách + SKU |
-| POST   | `/api/v1/shipping/quote` | Không    | `{ "subtotal": 300000 }`                               | Phí ship dự kiến    |
+| POST   | `/api/v1/checkout/preview` | Không  | `{ "source": "buy_now", "skuId": 100, "quantity": 2, ... }` | Tổng tiền xem trước |
 
 Gọi từ trình duyệt qua `browserApi()` như `POST /orders`, để đơn của thành viên gắn với tài khoản (Bearer).
 
@@ -95,16 +95,18 @@ khoản → `pending_payment` kèm `paymentExpiresAt` (30 phút).
 
 ## Cấu hình cần thiết (biến môi trường)
 
-Không thêm biến môi trường. Khi chạy được `pnpm api:fetch && pnpm api:generate` với backend có route này: xóa khai báo
-`/api/v1/orders/buy-now` trong `pending-paths.ts`. `paymentMethod` nhiều khả năng bị sinh thành `number`, lúc đó cần
-`// @ts-expect-error` giống `POST /orders` trong `features/ordering/api.ts`.
+Không thêm biến môi trường. `openapi/v1.json` đã có route này nhưng `paymentMethod` sinh thành `number`; khi backend sửa
+OpenAPI (enum dạng chuỗi) thì xóa khai báo `/api/v1/orders/buy-now` trong `pending-paths.ts`.
 
 ## Hạn chế / việc còn lại
 
 - Mỗi lần Mua ngay chỉ đặt **một SKU**.
-- Chưa có API xem trước đơn: FE tự tính tạm tính từ `GET /books/{slug}` và gọi `/shipping/quote`; giá trên trang có thể
-  lệch nếu lịch giá vừa đổi, nên con số chốt luôn là của response tạo đơn.
-- Cần bổ sung `POST /api/v1/orders/buy-now` vào `docs/api_reference.md` khi backend deploy.
+- Tổng tiền xem trước lấy từ `POST /checkout/preview` (`source = buy_now`); giá có thể đổi giữa lúc xem và lúc đặt, nên
+  khi đặt gửi `expectedTotal` và con số chốt luôn là của response tạo đơn.
+- `POST /api/v1/orders/buy-now` đã có trong `docs/api_reference.md`.
+- Bảng lỗi trên chưa gồm lỗi chung của thanh toán (`CHECKOUT_TOTAL_CHANGED`, `COUPON_*`, `PROMOTION_UNAVAILABLE`,
+  `ADDRESS_NOT_SUPPORTED`: xem `storefront-checkout-promotion.md`) và lỗi chống bom hàng COD (`TOO_MANY_OPEN_ORDERS`,
+  `COD_NOT_ALLOWED`, 422; FE chưa xử lý riêng).
 - Việc FE:
   - [x] Nút "Mua ngay" ở trang chi tiết, có dialog ấn bản cũ.
   - [ ] Thanh cố định dưới màn hình trên mobile (chưa làm; trên mobile nút nằm ngay dưới tên sách nên vẫn thấy sớm).
