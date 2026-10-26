@@ -165,8 +165,8 @@ export default async function ComboPage({ params }: ComboPageProps) {
                 <p className="text-mist flex gap-2.5 text-sm leading-6">
                   <Info size={17} className="text-gold mt-0.5 shrink-0" aria-hidden="true" />
                   Giá combo tự áp ở bước thanh toán khi giỏ có đủ các sách bên dưới; mua nhiều bộ thì mỗi bộ được giảm
-                  riêng. Combo không cộng dồn với khuyến mãi giảm trên tổng đơn: hệ thống tự chọn ưu đãi có lợi hơn cho
-                  bạn.
+                  riêng. Combo cộng dồn được với khuyến mãi giảm trên tổng đơn: khuyến mãi được tính thêm trên số tiền
+                  còn lại sau combo, trong giới hạn tổng mức giảm tối đa.
                 </p>
               </>
             ) : (
