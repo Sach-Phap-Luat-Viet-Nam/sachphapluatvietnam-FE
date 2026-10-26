@@ -120,6 +120,32 @@ describe("ReceiptCreate", () => {
     });
   });
 
+  it("đầu sách chỉ có một SKU thì tự chọn SKU và chuyển sang ô Mã lô", async () => {
+    signIn(["super_admin"]);
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/books`, () =>
+        HttpResponse.json({
+          items: [{ id: 5, title: BOOK.title, slug: "bo-luat-dan-su-2026", bookType: "code" }],
+          meta: { page: 1, limit: 8, total: 1 },
+        }),
+      ),
+      http.get(`${ORIGIN}/api/v1/admin/books/5`, () =>
+        HttpResponse.json({
+          ...BOOK,
+          editions: BOOK.editions.map((edition) => ({ ...edition, skus: edition.skus.slice(0, 1) })),
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("SKU"), "Bộ luật");
+    await user.click(await screen.findByRole("button", { name: /Bộ luật Dân sự 2026/ }));
+
+    expect(await screen.findByText("Bộ luật Dân sự 2026 · Tái bản lần 3 · Bìa mềm · SLVN-BLDS-BM")).toBeVisible();
+    expect(screen.getByLabelText("Mã lô")).toHaveFocus();
+  });
+
   it("chưa chọn SKU thì báo lỗi, không gọi API", async () => {
     signIn(["super_admin"]);
     const create = vi.fn(() => HttpResponse.json(receipt([])));

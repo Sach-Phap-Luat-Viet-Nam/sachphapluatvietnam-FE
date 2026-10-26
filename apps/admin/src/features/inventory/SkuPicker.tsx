@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookOpen, Search, X } from "lucide-react";
 import { Button, cn } from "@slvn/ui";
@@ -40,9 +40,18 @@ export function skuOptionLabel(book: BookSkus, editionIndex: number, skuIndex: n
   return `${book.title} · ${editionName} · ${enumLabel(COVER_TYPE_LABELS, sku.coverType)} · ${sku.skuCode}`;
 }
 
+/** Vị trí SKU duy nhất của đầu sách; `null` khi chưa có SKU nào hoặc có từ hai SKU trở lên. */
+export function onlySku(book: BookSkus | undefined) {
+  if (!book) return null;
+  const all = book.editions.flatMap((edition, editionIndex) =>
+    edition.skus.map((sku, skuIndex) => ({ sku, editionIndex, skuIndex })),
+  );
+  return all.length === 1 ? (all[0] ?? null) : null;
+}
+
 /**
- * Chọn SKU theo hai bước: tìm đầu sách (tên, slug, ISBN) rồi chọn SKU theo ấn bản và loại bìa. Backend chưa có API tìm
- * SKU nên đi qua API Catalog.
+ * Chọn SKU theo hai bước: tìm đầu sách (tên, slug, ISBN) rồi chọn SKU theo ấn bản và loại bìa. Đầu sách chỉ có **một**
+ * SKU (trường hợp thường gặp) thì bước hai tự chọn luôn. Backend chưa có API tìm SKU nên đi qua API Catalog.
  */
 export function SkuPicker({ id, value, onChange, invalid, describedBy }: SkuPickerProps) {
   const [query, setQuery] = useState("");
@@ -159,6 +168,15 @@ function BookSkuOptions({
   onSelect: (option: SkuOption) => void;
 }) {
   const detail = useQuery({ queryKey: inventoryKeys.bookSkus(book.id), queryFn: () => fetchBookSkus(book.id) });
+  const only = onlySku(detail.data);
+
+  useEffect(() => {
+    if (detail.data && only) {
+      onSelect({ id: only.sku.id, label: skuOptionLabel(detail.data, only.editionIndex, only.skuIndex) });
+    }
+    // `onSelect` đổi mỗi lần render của cha; chỉ chọn một lần khi dữ liệu SKU về.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detail.data]);
 
   return (
     <div className="border-border flex flex-col gap-3 rounded-md border p-3">
@@ -173,6 +191,10 @@ function BookSkuOptions({
       ) : detail.isPending ? (
         <p role="status" className={HINT}>
           Đang tải SKU…
+        </p>
+      ) : only ? (
+        <p role="status" className={HINT}>
+          Đang chọn SKU…
         </p>
       ) : detail.data.editions.every((edition) => edition.skus.length === 0) ? (
         <p className={HINT}>Đầu sách này chưa có SKU. Thêm SKU ở phần Sách trước khi nhập kho.</p>

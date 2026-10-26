@@ -25,7 +25,9 @@ thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend
   (không phân biệt hoa thường) và hiện tổng số cuốn, tổng giá vốn. Lưu xong mở màn chi tiết phiếu. Lỗi theo dòng của backend
   (`lines[0].unitCost`) hiện đúng ô (`receiptFieldErrors`).
 - **Chọn SKU** (`SkuPicker`): backend chưa có API tìm SKU nên tìm qua API Catalog: gõ tên/slug/ISBN hoặc đúng mã SKU (từ 2 ký tự, 8 kết quả)
-  → chọn đầu sách → chọn SKU theo ấn bản và loại bìa. Nhãn SKU đã chọn: tên sách · ấn bản · loại bìa · mã SKU.
+  → chọn đầu sách → chọn SKU theo ấn bản và loại bìa. Đầu sách chỉ có **một SKU** (trường hợp thường gặp) thì **tự chọn
+  luôn**, bỏ bước chọn SKU, rồi con trỏ nhảy sang ô "Mã lô" của dòng đó (chọn tay cũng vậy). Có từ hai SKU thì vẫn hiện
+  danh sách để chọn. Nhãn SKU đã chọn: tên sách · ấn bản · loại bìa · mã SKU.
 - **Duyệt phiếu**: chỉ `super_admin` thấy nút "Duyệt và nhập kho" (hỏi lại trước khi duyệt) và "Từ chối" (bắt buộc lý do).
   Người lập phiếu không thấy nút duyệt (backend trả `RECEIPT_SELF_APPROVAL`), vẫn từ chối được. Vai trò khác thấy câu "Phiếu
   đang chờ Super Admin duyệt". Duyệt/từ chối xong: thay cache phiếu bằng response, làm mới danh sách phiếu, tồn thấp, thẻ kho.

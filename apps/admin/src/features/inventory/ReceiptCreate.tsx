@@ -146,7 +146,11 @@ function ReceiptLineFields({ index, control, register, errors, onRemove }: Recei
             <SkuPicker
               id={`${prefix}-sku`}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(option) => {
+                field.onChange(option);
+                // Chọn xong SKU thì nhập tiếp mã lô ngay, không phải với chuột.
+                if (option) document.getElementById(`${prefix}-batch`)?.focus();
+              }}
               invalid={Boolean(lineErrors?.sku)}
               describedBy={lineErrors?.sku ? `${prefix}-sku-error` : undefined}
             />
