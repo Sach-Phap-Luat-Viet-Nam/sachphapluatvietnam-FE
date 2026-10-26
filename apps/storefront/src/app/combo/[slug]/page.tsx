@@ -16,6 +16,7 @@ import {
   hasSavings,
   itemDetail,
   originalPrice,
+  originalPriceName,
   payablePrice,
   savingsAmount,
   savingsPercent,
@@ -61,6 +62,7 @@ export default async function ComboPage({ params }: ComboPageProps) {
   // Sách đang có lịch giá làm mua lẻ không cao hơn giá combo: backend không áp combo nên không bán như một ưu đãi.
   const deal = hasSavings(combo);
   const saved = savingsAmount(combo);
+  const priceName = originalPriceName(combo);
   // JSON-LD tự sinh qua JSON.stringify và đã thoát `<` (SKILL.md mục 5).
   const jsonLd = serializeJsonLd(comboJsonLd(combo));
 
@@ -131,7 +133,7 @@ export default async function ComboPage({ params }: ComboPageProps) {
                 <span className="text-gold-pale text-3xl font-semibold">{formatPrice(payablePrice(combo))}</span>
                 {deal && saved > 0 && (
                   <span className="text-mist line-through">
-                    <span className="sr-only">Giá gốc </span>
+                    <span className="sr-only">Giá {priceName} </span>
                     {formatPrice(originalPrice(combo))}
                   </span>
                 )}
@@ -142,7 +144,11 @@ export default async function ComboPage({ params }: ComboPageProps) {
                 )}
               </div>
               {deal ? (
-                saved > 0 && <p className="text-ok">Tiết kiệm {formatPrice(saved)} so với giá gốc.</p>
+                saved > 0 && (
+                  <p className="text-ok">
+                    Tiết kiệm {formatPrice(saved)} so với giá {priceName}.
+                  </p>
+                )
               ) : (
                 <p className="text-mist text-sm">Giá mua lẻ cả bộ hiện tại (đã gồm giá ưu đãi của từng cuốn).</p>
               )}

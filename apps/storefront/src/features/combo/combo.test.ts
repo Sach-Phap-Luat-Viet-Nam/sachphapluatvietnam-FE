@@ -6,6 +6,7 @@ import {
   itemDetail,
   itemsSummary,
   originalPrice,
+  originalPriceName,
   payablePrice,
   savingsAmount,
   savingsPercent,
@@ -67,6 +68,11 @@ describe("giá gốc, số tiền và phần trăm tiết kiệm", () => {
     expect(originalPrice(onSchedule)).toBe(1100000);
     expect(originalPrice({ retailPrice: 100000 })).toBe(100000);
     expect(originalPrice({ listPrice: 90000, retailPrice: 100000 })).toBe(100000);
+  });
+
+  it("chỉ gọi là giá gốc khi backend trả listPrice, không thì giá cũ là giá mua lẻ", () => {
+    expect(originalPriceName(onSchedule)).toBe("gốc");
+    expect(originalPriceName({})).toBe("mua lẻ");
   });
 
   it("tiết kiệm tính theo giá gốc chứ không theo giá lẻ đang giảm", () => {

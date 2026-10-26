@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { formatPrice } from "@slvn/utils";
 import { ComboCovers } from "./ComboCovers";
-import { comboPath, itemsSummary, originalPrice, savingsAmount, savingsPercent, totalCopies } from "./combo";
+import {
+  comboPath,
+  itemsSummary,
+  originalPrice,
+  originalPriceName,
+  savingsAmount,
+  savingsPercent,
+  totalCopies,
+} from "./combo";
 import type { Combo } from "./schemas";
 
 /**
@@ -12,6 +20,7 @@ export function ComboCard({ combo }: { combo: Combo }) {
   const titleId = `combo-${combo.id}`;
   const percent = savingsPercent(combo);
   const saved = savingsAmount(combo);
+  const priceName = originalPriceName(combo);
   return (
     <li>
       <article
@@ -33,7 +42,7 @@ export function ComboCard({ combo }: { combo: Combo }) {
             <span className="text-gold-pale text-2xl font-semibold">{formatPrice(combo.comboPrice)}</span>
             {saved > 0 && (
               <span className="text-mist line-through">
-                <span className="sr-only">Giá gốc </span>
+                <span className="sr-only">Giá {priceName} </span>
                 {formatPrice(originalPrice(combo))}
               </span>
             )}
@@ -43,7 +52,11 @@ export function ComboCard({ combo }: { combo: Combo }) {
               </span>
             )}
           </p>
-          {saved > 0 && <p className="text-ok text-sm">Tiết kiệm {formatPrice(saved)} so với giá gốc</p>}
+          {saved > 0 && (
+            <p className="text-ok text-sm">
+              Tiết kiệm {formatPrice(saved)} so với giá {priceName}
+            </p>
+          )}
         </div>
       </article>
     </li>

@@ -70,7 +70,8 @@ isSellable}`. Mọi số tiền do backend tính: `retailPrice` là tổng giá 
 là tổng **giá bìa** (giá gốc, không đổi khi có lịch giá). FE hiện giá cũ gạch ngang là `listPrice` và "Tiết kiệm" tính theo
 giá gốc (`originalPrice`, `savingsAmount`, `savingsPercent` trong `combo.ts`), còn việc combo có được áp hay không (nút mua,
 có hiện trong danh sách) dựa vào `savings` so với `retailPrice` (xem mục 6). `listPrice` là tùy chọn trong schema: backend
-cũ chưa trả thì dùng `retailPrice` thay thế, nên FE lên trước backend vẫn chạy.
+cũ chưa trả thì dùng `retailPrice` thay thế, nên FE lên trước backend vẫn chạy; lúc đó nhãn đổi thành "giá mua lẻ" (`originalPriceName`)
+chứ không gọi là "giá gốc", vì giá gạch ngang chỉ là giá lẻ hiện hành.
 
 ## Cấu hình cần thiết (biến môi trường)
 

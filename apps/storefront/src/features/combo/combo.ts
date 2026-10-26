@@ -17,6 +17,14 @@ export function originalPrice(combo: Pick<Combo, "listPrice" | "retailPrice">): 
   return Math.max(combo.listPrice ?? combo.retailPrice, combo.retailPrice);
 }
 
+/**
+ * Tên của giá cũ gạch ngang để ghép vào nhãn ("Giá gốc", "so với giá gốc"): `gốc` khi backend trả `listPrice`; backend
+ * cũ chưa trả thì giá cũ chỉ là giá lẻ hiện hành nên gọi đúng là `mua lẻ`, không nhận là giá gốc.
+ */
+export function originalPriceName(combo: Pick<Combo, "listPrice">): "gốc" | "mua lẻ" {
+  return combo.listPrice === undefined ? "mua lẻ" : "gốc";
+}
+
 /** Số tiền giá combo rẻ hơn giá gốc (không âm), để hiện "Tiết kiệm …". */
 export function savingsAmount(combo: Pick<Combo, "comboPrice" | "listPrice" | "retailPrice">): number {
   return Math.max(0, originalPrice(combo) - payablePrice(combo));
