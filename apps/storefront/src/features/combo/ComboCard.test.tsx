@@ -82,7 +82,9 @@ describe("ComboCard", () => {
   });
 
   it("chỉ hiện tối đa 4 bìa dù bộ có nhiều sách hơn", () => {
-    const items = Array.from({ length: 6 }, (_, index) => item(index + 1, { coverImageUrl: `https://cdn.example/${index + 1}.jpg` }));
+    const items = Array.from({ length: 6 }, (_, index) =>
+      item(index + 1, { coverImageUrl: `https://cdn.example/${index + 1}.jpg` }),
+    );
 
     renderCard(combo({ items }));
 
