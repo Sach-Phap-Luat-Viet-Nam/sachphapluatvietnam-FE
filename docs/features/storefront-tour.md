@@ -62,9 +62,9 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
   đổi cỡ màn hình (`positionGuide` ở `GuidedTour.tsx`). Không làm ảnh con của hộp vì driver.js chỉ giữ khung hộp trong
   màn hình chứ không biết phần ảnh thò ra, hộp mở sát mép trên sẽ cắt mất đầu nhân vật.
 - **Chuyển bước mượt**: dùng hai ảnh luân phiên (`createGuideLayer` ở `GuidedTour.tsx`). Ảnh của bước mới được tải và giải mã xong mới đặt vào chỗ của nó rồi hiện dần (0,4s) và trồi nhẹ từ dưới lên, cùng lúc ảnh của bước trước mờ dần và chìm xuống, nên tổng độ rõ luôn xấp xỉ 1, không có nhịp trống. Chỉ `opacity` và `translate` có chuyển động; vị trí đổi tức thì để ảnh bám theo hộp khi cuộn. Khi bấm Tiếp, driver.js ẩn hộp cũ (kích thước 0) rồi mới vẽ hộp mới: lúc đó bộ theo dõi bỏ qua, ảnh cũ ở lại tới khi ảnh mới sẵn sàng (không thì ảnh cũ tắt ngay còn ảnh mới hiện chậm ~250ms). Ảnh các tư thế được tải sẵn khi tour bắt đầu (`preloadGuides`). Tắt hiệu ứng khi bật giảm chuyển động.
-- **Đa dạng tư thế và đúng nội dung**: 11 ảnh, mỗi bước một ảnh hợp với điều đang nói (kính lúp ở bước tìm sách và tra
-  cứu đơn, tai nghe ở bước Zalo, giơ sách ở bước khám phá tủ sách...). 13 bước dùng cả 11 tư thế, chỉ `point` và `search`
-  xuất hiện hai lần và không bao giờ liền nhau. Có bước bị bỏ (không có danh mục, chưa có ưu đãi...) làm hai bước cùng tư
+- **Đa dạng tư thế và đúng nội dung**: 12 ảnh, mỗi bước một ảnh hợp với điều đang nói (kính lúp chỉ tay ở bước tìm sách,
+  nháy mắt qua kính lúp ở bước tra cứu đơn, kính râm ở bước sáng/tối, tai nghe ở bước Zalo, giơ sách ở bước khám phá tủ
+  sách...). 13 bước dùng cả 12 tư thế, chỉ `point` xuất hiện hai lần và không liền nhau. Có bước bị bỏ (không có danh mục, chưa có ưu đãi...) làm hai bước cùng tư
   thế đứng cạnh nhau thì `varyPoses` (`steps.ts`) đổi bước sau sang tư thế khác.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
@@ -72,21 +72,22 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 
 ### Ảnh nhân vật
 
-Mười một ảnh trong `public/tour/`, khai báo ở `GUIDE_IMAGES` (`features/tour/steps.ts`). Tên tư thế đặt theo nội dung ảnh:
+Mười hai ảnh trong `public/tour/`, khai báo ở `GUIDE_IMAGES` (`features/tour/steps.ts`). Tên tư thế đặt theo nội dung ảnh:
 
-| Tư thế (`pose`) | File (ảnh gốc)                  | Cử chỉ                                  | Dùng ở bước                |
-| --------------- | ------------------------------- | --------------------------------------- | -------------------------- |
-| `welcome`       | `guide-welcome.webp` (1.png)    | Tay mở giới thiệu                       | Lời chào                   |
-| `point`         | `guide-point.webp` (2.png)      | Nháy mắt, hai tay chỉ sang phải         | Thanh ưu đãi, thẻ sách     |
-| `cheer`         | `guide-cheer.webp` (3.png)      | Like và OK                              | Kết thúc                   |
-| `present`       | `guide-present.webp` (4.png)    | Một tay chỉ, một tay mở bên phải        | Danh mục                   |
-| `open`          | `guide-open.webp` (5.png)       | Hai tay mở sang hai bên (ảnh **ngang**) | Ưu đãi đang chạy           |
-| `calm`          | `guide-calm.webp` (6.png)       | Đứng thẳng, hai tay đan nhau, mỉm cười  | Sáng/tối                   |
-| `search`        | `guide-search.webp` (7.png)     | Cầm kính lúp, tay chỉ                   | Tìm sách, tra cứu đơn hàng |
-| `books`         | `guide-books.webp` (8.png)      | Hai tay giơ hai cuốn sách của shop      | Khám phá tủ sách           |
-| `support`       | `guide-support.webp` (9.png)    | Đeo tai nghe, tay chạm micro            | Tư vấn qua Zalo            |
-| `confident`     | `guide-confident.webp` (10.png) | Khoanh tay, mỉm cười tự tin             | Tài khoản                  |
-| `study`         | `guide-study.webp` (11.png)     | Ôm cuốn vở trước ngực                   | Giỏ hàng                   |
+| Tư thế (`pose`) | File (ảnh gốc)                  | Cử chỉ                                  | Dùng ở bước            |
+| --------------- | ------------------------------- | --------------------------------------- | ---------------------- |
+| `welcome`       | `guide-welcome.webp` (1.png)    | Tay mở giới thiệu                       | Lời chào               |
+| `point`         | `guide-point.webp` (2.png)      | Nháy mắt, hai tay chỉ sang phải         | Thanh ưu đãi, thẻ sách |
+| `cheer`         | `guide-cheer.webp` (3.png)      | Like và OK                              | Kết thúc               |
+| `present`       | `guide-present.webp` (4.png)    | Một tay chỉ, một tay mở bên phải        | Danh mục               |
+| `open`          | `guide-open.webp` (5.png)       | Hai tay mở sang hai bên (ảnh **ngang**) | Ưu đãi đang chạy       |
+| `shades`        | `guide-shades.webp` (12.png)    | Hai tay chỉnh kính râm, mỉm cười        | Sáng/tối               |
+| `search`        | `guide-search.webp` (7.png)     | Cầm kính lúp, tay chỉ                   | Tìm sách               |
+| `lookup`        | `guide-lookup.webp` (13.png)    | Nháy mắt qua kính lúp                   | Tra cứu đơn hàng       |
+| `books`         | `guide-books.webp` (8.png)      | Hai tay giơ hai cuốn sách của shop      | Khám phá tủ sách       |
+| `support`       | `guide-support.webp` (9.png)    | Đeo tai nghe, tay chạm micro            | Tư vấn qua Zalo        |
+| `confident`     | `guide-confident.webp` (10.png) | Khoanh tay, mỉm cười tự tin             | Tài khoản              |
+| `study`         | `guide-study.webp` (11.png)     | Ôm cuốn vở trước ngực                   | Giỏ hàng               |
 
 Cách làm từ ảnh gốc (PNG nền trong suốt, 1,7–2 MB mỗi ảnh): cắt từ đầu tới ngang thắt lưng theo tỉ lệ 4:5 (ảnh
 1024×1536 lấy vùng `y` 40–1400 tùy ảnh để đủ đầu, tay và vật cầm; ảnh 1269×1239 giữ trọn chiều cao, đặt sát đáy khung),
@@ -96,6 +97,8 @@ và hiện rộng gấp 1,5 lần để đầu nhân vật to bằng các ảnh 
 **Làm sạch alpha**: ảnh gốc còn sót vùng gần như trong suốt (alpha 1–39) quanh người; bóng đổ `drop-shadow` biến vùng đó
 thành khung chữ nhật mờ cạnh nhân vật. Trước khi xuất WebP, điểm ảnh có alpha dưới 40 được đưa về 0 và các mức còn lại
 kéo giãn lại cho mượt viền.
+
+Riêng 12.png và 13.png (PNG nền trong suốt 1024×1536) cắt `y` 60–1340 rồi làm theo đúng các bước trên.
 
 Thêm hoặc thay ảnh thì làm theo cùng quy cách. Muốn thêm tư thế mới: thêm giá trị vào `GuidePose`, rồi `GUIDE_IMAGES`,
 `GUIDE_SHAPE` (tỉ lệ cao/rộng của file, hệ số bề rộng để đầu to bằng các ảnh khác, kích thước file), `GUIDE_FACING`

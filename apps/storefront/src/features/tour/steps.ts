@@ -4,11 +4,23 @@ import type { TourTarget } from "@/lib/tour-anchor";
 /**
  * Tư thế của nhân vật hướng dẫn ở từng bước (xem bảng ở docs/features/storefront-tour.md). Tên theo nội dung ảnh để chọn
  * đúng bước: `welcome` tay mở chào, `point` chỉ vào một nút, `present` giới thiệu một khu nội dung, `open` hai tay mở sang
- * hai bên, `calm` đứng thẳng hai tay đan nhau, `search` cầm kính lúp, `books` giơ hai cuốn sách, `support` đeo tai nghe
+ * hai bên, `shades` đeo kính râm, `search` cầm kính lúp chỉ tay, `lookup` nháy mắt qua kính lúp, `books` giơ hai cuốn sách,
+ * `support` đeo tai nghe
  * tư vấn, `confident` khoanh tay mỉm cười, `study` ôm cuốn vở, `cheer` like và OK lúc kết thúc.
  */
 export type GuidePose =
-  "welcome" | "point" | "present" | "open" | "calm" | "search" | "books" | "support" | "confident" | "study" | "cheer";
+  | "welcome"
+  | "point"
+  | "present"
+  | "open"
+  | "shades"
+  | "search"
+  | "lookup"
+  | "books"
+  | "support"
+  | "confident"
+  | "study"
+  | "cheer";
 export interface TourStep {
   /** `null`: bước giới thiệu chung, hộp text nằm giữa màn hình. */
   target: TourTarget | null;
@@ -28,8 +40,9 @@ export const GUIDE_IMAGES: Record<GuidePose, string> = {
   point: "/tour/guide-point.webp",
   present: "/tour/guide-present.webp",
   open: "/tour/guide-open.webp",
-  calm: "/tour/guide-calm.webp",
+  shades: "/tour/guide-shades.webp",
   search: "/tour/guide-search.webp",
+  lookup: "/tour/guide-lookup.webp",
   books: "/tour/guide-books.webp",
   support: "/tour/guide-support.webp",
   confident: "/tour/guide-confident.webp",
@@ -46,8 +59,9 @@ export const GUIDE_SHAPE: Record<GuidePose, { ratio: number; scale: number; widt
   point: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   present: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   open: { ratio: 471 / 720, scale: 1.5, width: 720, height: 471 },
-  calm: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  shades: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   search: { ratio: 1.25, scale: 1, width: 480, height: 600 },
+  lookup: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   books: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   support: { ratio: 1.25, scale: 1, width: 480, height: 600 },
   confident: { ratio: 1.25, scale: 1, width: 480, height: 600 },
@@ -57,7 +71,7 @@ export const GUIDE_SHAPE: Record<GuidePose, { ratio: number; scale: number; widt
 
 /**
  * Cử chỉ trong ảnh gốc hướng về bên nào. Nhân vật đứng bên trái hộp thì cần cử chỉ hướng phải (vào hộp), đứng bên phải
- * thì hướng trái; ảnh có hướng ngược lại sẽ được lật ngang. `cheer` (like và OK), `open`, `calm` và các ảnh đứng thẳng đối xứng nên coi như
+ * thì hướng trái; ảnh có hướng ngược lại sẽ được lật ngang. `cheer` (like và OK), `open`, `shades`, `lookup` và các ảnh đứng thẳng đối xứng nên coi như
  * hướng phải.
  */
 export const GUIDE_FACING: Record<GuidePose, "left" | "right"> = {
@@ -65,8 +79,9 @@ export const GUIDE_FACING: Record<GuidePose, "left" | "right"> = {
   point: "right",
   present: "right",
   open: "right",
-  calm: "right",
+  shades: "right",
   search: "right",
+  lookup: "right",
   books: "right",
   support: "right",
   confident: "right",
@@ -101,7 +116,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "theme",
-    pose: "calm",
+    pose: "shades",
     side: "bottom",
     align: "end",
     title: "Giao diện sáng / tối",
@@ -168,7 +183,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     target: "order-lookup",
-    pose: "search",
+    pose: "lookup",
     side: "top",
     align: "start",
     title: "Tra cứu đơn hàng",
@@ -197,8 +212,9 @@ const POSE_CYCLE: readonly GuidePose[] = [
   "point",
   "present",
   "open",
-  "calm",
+  "shades",
   "search",
+  "lookup",
   "books",
   "support",
   "confident",

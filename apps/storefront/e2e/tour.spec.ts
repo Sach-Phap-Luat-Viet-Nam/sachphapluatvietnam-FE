@@ -17,7 +17,7 @@ test("walks a new device through the tour and does not show it again", async ({ 
   await expect(tour).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("tour-welcome.png") });
 
-  // Số bước phụ thuộc dữ liệu backend (không có ưu đãi thì bỏ bước ưu đãi) nên đọc tổng từ bộ đếm "1/12".
+  // Số bước phụ thuộc dữ liệu backend (không có ưu đãi thì bỏ bước ưu đãi) nên đọc tổng từ bộ đếm "1/13".
   const total = Number((await tour.getByText(/^1\/\d+$/).textContent())?.split("/")[1]);
   await tour.getByRole("button", { name: "Bắt đầu" }).click();
   const step = page.getByRole("dialog");
