@@ -228,7 +228,6 @@ export function GuidedTour() {
             }
             const steps = availableSteps(TOUR_STEPS, isOnScreen);
             preloadGuides(steps);
-            const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const scrim = getComputedStyle(document.documentElement).getPropertyValue("--color-scrim").trim();
             // Khách dừng hướng dẫn (Hoàn tất, Bỏ qua, X, Esc): ghi dấu đã xem, cho popup hiện rồi mới gỡ hộp. Không dựa vào
             // `onDestroyed`: driver bỏ qua hook này khi khách dừng lúc hộp đầu tiên còn đang hiện dần lên.
@@ -250,8 +249,8 @@ export function GuidedTour() {
               disableActiveInteraction: true,
               stagePadding: 6,
               stageRadius: 4,
-              animate: !reduceMotion,
-              smoothScroll: !reduceMotion,
+              animate: true,
+              smoothScroll: true,
               showProgress: true,
               progressText: "{{current}}/{{total}}",
               nextBtnText: "Tiếp",

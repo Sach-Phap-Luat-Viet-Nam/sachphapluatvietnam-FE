@@ -45,7 +45,7 @@ CSS trong `globals.css` (`@layer components`), chỉ animate `transform`/`opacit
   (trình duyệt chưa hỗ trợ thì hiện ngay).
 - Hover thẻ sách: sách rút lên khỏi kệ, viền vàng phát sáng, hiện nhãn "Xem nhanh". Hover danh mục, nút, link có gạch
   chân vàng chạy ra, lớp màu quét ngang.
-- Người dùng bật giảm chuyển động (`prefers-reduced-motion`) thì tắt hết animation/transition.
+- Animation luôn bật, **cố ý không theo** `prefers-reduced-motion` của trình duyệt (quyết định của chủ dự án, không có nút tắt; đánh đổi: không đạt WCAG 2.3.3).
 
 ## API backend sử dụng
 

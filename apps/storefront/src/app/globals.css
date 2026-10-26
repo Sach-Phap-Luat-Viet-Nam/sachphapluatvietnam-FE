@@ -118,7 +118,7 @@
 }
 
 /*
- * Chuyển động. Chỉ animate `transform`/`opacity` (không gây CLS); tất cả tắt khi người dùng bật giảm chuyển động.
+ * Chuyển động. Chỉ animate `transform`/`opacity` (không gây CLS). Cố ý không theo `prefers-reduced-motion`: animation luôn bật.
  */
 @layer components {
   .motion-drop {
@@ -641,7 +641,7 @@
 /*
  * Loader "sách đang lật" (BookLoader): sách mở bìa navy viền vàng, 3 trang giấy ngà lật nối tiếp từ phải sang trái.
  * Trang lật xong nằm chồng lên nửa trái giống hệt khối giấy bên dưới, nên vòng lặp quay về trang phải không thấy giật.
- * Giảm chuyển động: animation tắt theo quy tắc chung bên dưới, chỉ còn cuốn sách mở đứng yên.
+ * Chuyển động luôn bật, kể cả khi trình duyệt bật giảm chuyển động.
  */
 @layer components {
   .book-loader {
@@ -909,17 +909,5 @@
   }
   .driver-popover.tour-popover .driver-popover-title {
     font-size: 1.125rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  .dust-mote {
-    display: none;
   }
 }

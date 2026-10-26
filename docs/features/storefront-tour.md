@@ -68,7 +68,7 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
   thế đứng cạnh nhau thì `varyPoses` (`steps.ts`) đổi bước sau sang tư thế khác.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
-- Bật giảm chuyển động (`prefers-reduced-motion`) thì tắt hiệu ứng và cuộn mượt.
+- Hiệu ứng và cuộn mượt luôn bật, không theo `prefers-reduced-motion`.
 
 ### Ảnh nhân vật
 

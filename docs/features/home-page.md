@@ -15,7 +15,7 @@ nhất và dẫn khách vào tủ sách. Thiết kế "Thư viện đêm" trên 
    - Hai cuốn xòe phía sau (`HeroFanBook`, ẩn trên mobile) là sách mới thứ 2 và 3: ảnh bìa thật, phủ tối nhẹ, bấm vào mở
      trang chi tiết. Thiếu sách thì vẽ bìa màu trơn như trang trí.
    - `HeroSpotlight` (client) đặt biến CSS theo vị trí chuột: ánh đèn vàng đi theo con trỏ, sách nghiêng 3D. Không chạy
-     trên màn hình cảm ứng hoặc khi bật giảm chuyển động; chỉ đổi biến CSS, không render lại React.
+     trên màn hình cảm ứng; chỉ đổi biến CSS, không render lại React.
    - Bụi sáng bay lên (`DustMotes`, ẩn trên mobile), vệt sáng chạy qua chữ mạ vàng.
 2. **Băng chữ chạy** (`LawTicker`): các nhãn "Cập nhật đến" khác nhau của sách mới; dừng khi rê chuột hoặc focus; ẩn khi
    không có dữ liệu. Dãy lặp để vòng chạy liền mạch, dãy thứ hai ẩn với trình đọc màn hình.

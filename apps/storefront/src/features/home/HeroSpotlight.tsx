@@ -12,7 +12,7 @@ export interface HeroSpotlightProps {
 
 /**
  * Section hero có ánh đèn và độ nghiêng sách theo chuột. Chỉ đặt biến CSS (không render lại React) và bỏ qua trên
- * màn hình cảm ứng hoặc khi người dùng bật giảm chuyển động.
+ * màn hình cảm ứng.
  */
 export function HeroSpotlight({ children, className }: HeroSpotlightProps) {
   const ref = useRef<HTMLElement>(null);
@@ -20,7 +20,7 @@ export function HeroSpotlight({ children, className }: HeroSpotlightProps) {
   useEffect(() => {
     const section = ref.current;
     if (!section) return;
-    if (!matchMedia("(pointer: fine)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!matchMedia("(pointer: fine)").matches) return;
 
     let frame = 0;
     const move = (event: PointerEvent) => {

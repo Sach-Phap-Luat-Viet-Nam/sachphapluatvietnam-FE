@@ -176,7 +176,7 @@ Thêm package `sanitize-html` (+ `@types/sanitize-html`) cho storefront, chỉ d
 `BookLoader` (`src/components/BookLoader.tsx`, CSS `book-loader` trong `globals.css`): cuốn sách mở bìa navy viền vàng,
 3 trang giấy ngà lật nối tiếp bằng CSS 3D, sách nổi nhẹ, chữ trạng thái màu vàng. Có `role="status"`, không cần
 JavaScript. Dùng ở `app/loading.tsx` (chung), `app/sach/loading.tsx`, `app/sach/[slug]/loading.tsx` và trạng thái tải
-giỏ, thanh toán, đơn hàng. Bật giảm chuyển động thì chỉ còn cuốn sách mở đứng yên.
+giỏ, thanh toán, đơn hàng. Chuyển động luôn bật, không theo giảm chuyển động của trình duyệt.
 
 ## Hạn chế / việc còn lại
 
