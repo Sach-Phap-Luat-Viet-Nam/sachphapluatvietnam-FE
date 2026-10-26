@@ -7,7 +7,9 @@ import { Container } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { serializeJsonLd } from "@/features/catalog/book-detail";
 import { getCombo } from "@/features/combo/api";
+import { ComboBooks3D, canShow3D } from "@/features/combo/ComboBooks3D";
 import { ComboCover, ComboCovers } from "@/features/combo/ComboCovers";
+import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { comboJsonLd, comboPath, itemDetail, savingsPercent, totalCopies } from "@/features/combo/combo";
 import { BuyComboButton } from "@/features/ordering/BuyComboButton";
 import { validityText } from "@/features/promotion/promotion";
@@ -84,6 +86,11 @@ export default async function ComboPage({ params }: ComboPageProps) {
                 className="object-cover"
               />
             </div>
+          ) : canShow3D(combo.items) ? (
+            // Không có ảnh riêng: dựng mô hình 3D từ bìa từng cuốn, nghiêng theo chuột như trang chi tiết sách.
+            <HeroSpotlight>
+              <ComboBooks3D items={combo.items} />
+            </HeroSpotlight>
           ) : (
             <ComboCovers items={combo.items} size="hero" />
           )}

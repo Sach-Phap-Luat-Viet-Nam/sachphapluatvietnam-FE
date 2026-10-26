@@ -12,7 +12,10 @@ App **storefront**. Combo không có SKU hay tồn kho riêng: đơn vẫn gồm
 áp giá combo (khách thêm lẻ từng cuốn vẫn được giá combo). Vì vậy FE **không gửi giá** và **không đổi giỏ hàng**.
 
 1. **Trang combo** `/combo/{slug}` (`app/combo/[slug]/page.tsx`, Server Component, cache 60 giây như trang sách):
-   - Bên trái: ảnh combo (`imageUrl`) nếu có, không thì các bìa trong bộ (tối đa 4, `ComboCovers`).
+   - Bên trái: ảnh combo (`imageUrl`) nếu có. Không có ảnh riêng mà combo gồm **1–2 sách** thì dựng **mô hình 3D** từng
+     cuốn từ `items[].coverImageUrl` (`ComboBooks3D` dùng `Book3D` cỡ `combo`, hai cuốn đứng cạnh nhau, nghiêng theo chuột
+     như trang chi tiết sách; một cuốn thì cỡ `detail`; cuốn chưa có ảnh bìa dùng bìa vẽ sẵn của `Book3D`). Combo từ 3
+     sách trở lên dùng bìa phẳng (tối đa 4, `ComboCovers`) vì cột ảnh không đủ chỗ cho nhiều mô hình 3D.
    - Bên phải: tên, mô tả, **khối đặt mua** (giá combo, giá mua lẻ gạch ngang, nhãn `−30%`, "Tiết kiệm …", hạn áp dụng), nút
      mua và danh sách **"Trong combo"** (bìa, tên sách là liên kết tới `/sach/{slug}`, loại bìa/ấn bản, `× số cuốn`, giá lẻ).
    - Có `generateMetadata` (title, description, canonical, Open Graph) và JSON-LD `Product` + `Offer` + `BreadcrumbList`.

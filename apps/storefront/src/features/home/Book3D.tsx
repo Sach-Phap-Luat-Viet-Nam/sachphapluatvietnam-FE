@@ -5,6 +5,8 @@ import { Scale } from "lucide-react";
 const BOOK_SIZES = {
   hero: "h-77.5 w-55 [--book-depth:40px] sm:h-102.5 sm:w-72.5 sm:[--book-depth:56px]",
   detail: "h-92 w-65 [--book-depth:48px] sm:h-118 sm:w-83 sm:[--book-depth:64px]",
+  // Hai cuốn đứng cạnh nhau trong cột 440px của trang combo.
+  combo: "h-56 w-40 [--book-depth:30px] sm:h-73 sm:w-52 sm:[--book-depth:40px] lg:h-62 lg:w-44 lg:[--book-depth:34px]",
 } as const;
 
 export interface Book3DProps {
