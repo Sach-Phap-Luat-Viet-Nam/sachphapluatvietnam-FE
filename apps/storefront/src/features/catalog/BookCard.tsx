@@ -51,6 +51,8 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
   const edition = [book.editionName, book.publishYear].filter((value) => value !== null && value !== "").join(" · ");
   const open = () => dialog.current?.showModal();
   const buyable = status.tone === "ok";
+  // Hiện mã SKU để khách đối chiếu khi đặt mua; chưa có thì dùng loại sách.
+  const tag = book.skuCode || bookTypeLabel(book.bookType);
 
   return (
     <article className="shelf-card motion-reveal flex h-full min-w-0 flex-col">
@@ -94,7 +96,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
             <span aria-hidden="true" className="bg-gold/50 h-px w-5" />
           </>
         )}
-        {bookTypeLabel(book.bookType)}
+        {tag}
       </p>
       <h3 className="font-editorial mt-2.5 text-xl leading-[1.4] font-semibold sm:text-[21px]">
         {/* Tên dài cắt ở 3 dòng để các thẻ cùng hàng thẳng nhau; tên đầy đủ có trong Xem nhanh. */}
@@ -136,7 +138,7 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
         <div className="grid gap-8 sm:grid-cols-[156px_1fr]">
           <BookCover book={book} size="dialog" className="mx-auto" />
           <div>
-            <p className="text-gold text-[11px] tracking-[0.24em] uppercase">{bookTypeLabel(book.bookType)}</p>
+            <p className="text-gold text-[11px] tracking-[0.24em] uppercase">{tag}</p>
             <h2 id={`book-${book.id}`} className="font-editorial mt-2 text-3xl leading-tight font-bold">
               {book.title}
             </h2>

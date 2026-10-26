@@ -8,6 +8,8 @@ export const bookSummarySchema = z.object({
   title: z.string(),
   slug: z.string(),
   bookType: z.string(),
+  /** Mã SKU đang hiện giá (`null` khi sách chưa có SKU); thẻ sách lùi về loại sách. */
+  skuCode: z.string().nullish(),
   editionName: z.string().nullable(),
   publishYear: z.number().nullable(),
   coverImageUrl: z.string().nullable(),

@@ -39,6 +39,14 @@ describe("BookCard", () => {
     expect(screen.queryByText("Còn hàng", { selector: "article > div span" })).not.toBeInTheDocument();
   });
 
+  it("shows the SKU code instead of the book type when the API provides it", async () => {
+    render(<BookCard book={{ ...book, skuCode: "SLVN-BLDS-2026-BM" }} />);
+    expect(screen.getAllByText("SLVN-BLDS-2026-BM")).not.toHaveLength(0);
+    expect(screen.queryByText("Bộ luật")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: book.title }));
+    expect(screen.getByRole("dialog", { name: book.title })).toHaveTextContent("SLVN-BLDS-2026-BM");
+  });
+
   it("marks upcoming books and books without a price", () => {
     render(
       <BookCard

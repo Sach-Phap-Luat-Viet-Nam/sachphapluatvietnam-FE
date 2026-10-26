@@ -108,6 +108,11 @@ phải có migration cập nhật giá trị cũ.
 
 ## Hạn chế / việc còn lại
 
+- Thẻ sách ở storefront (`BookCard`) hiện **mã SKU** thay cho loại sách. `GET /books` trả `skuCode` trong
+  `BookSummaryResponse`: SKU rẻ nhất của ấn bản mới nhất, đúng SKU cho ra `salePrice`/`listPrice` trên thẻ; `null` khi
+  sách chưa có SKU (thẻ lùi về loại sách). Sách `upcoming`/`discontinued`/`clearance` vẫn có `skuCode` như giá.
+  Còn lại: cập nhật `packages/api-client/openapi/v1.json` từ backend rồi chạy `pnpm api:generate` để type sinh ra có
+  `skuCode`.
 - Tìm kiếm tạm dùng `ILIKE` theo tên sách/ISBN, chưa tìm không dấu, theo tác giả, gợi ý (FR-11): chờ Meilisearch.
 - Ảnh bìa đã upload được qua Cloudinary; chưa xóa ảnh cũ trên Cloudinary khi đổi ảnh (ảnh mồ côi).
 - Chưa có upload file đọc thử (chỉ lưu URL), watermark đọc thử (NFR-16).
