@@ -77,12 +77,29 @@ describe("OfferShelf", () => {
     expect(scrollTo).toHaveBeenCalledTimes(4);
   });
 
+  it("chỉ băng-rôn đang xem được đánh dấu active (để chạy transition), đổi theo nút sau", async () => {
+    const user = userEvent.setup();
+    render(<OfferShelf popups={[popup(1), popup(2)]} />);
+    const card = (id: number) => screen.getByRole("button", { name: new RegExp(`Chương trình ${id}`) });
+    expect(card(1)).toHaveAttribute("data-active", "true");
+    expect(card(2)).toHaveAttribute("data-active", "false");
+
+    await user.click(screen.getByRole("button", { name: "Chương trình sau" }));
+
+    expect(card(1)).toHaveAttribute("data-active", "false");
+    expect(card(2)).toHaveAttribute("data-active", "true");
+  });
+
   it("hiện mỗi popup một thẻ có tên chương trình", () => {
     render(<OfferShelf popups={[popup(1), popup(2), popup(3)]} />);
 
     const list = screen.getByRole("list");
     const cards = within(list).getAllByRole("button");
-    expect(cards.map((card) => card.textContent)).toEqual(["Chương trình 1", "Chương trình 2", "Chương trình 3"]);
+    expect(cards.map((card) => card.textContent)).toEqual([
+      "Chương trình 1Xem lại nội dung",
+      "Chương trình 2Xem lại nội dung",
+      "Chương trình 3Xem lại nội dung",
+    ]);
     expect(screen.getByRole("heading", { name: "Chương trình đang diễn ra" })).toBeVisible();
   });
 

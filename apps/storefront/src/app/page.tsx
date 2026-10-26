@@ -7,6 +7,8 @@ import { CategoryStrip } from "@/components/CategoryStrip";
 import { BookCard } from "@/features/catalog/BookCard";
 import { getBooks, getCategoryTree } from "@/features/catalog/api";
 import type { BookSummary, CategoryNode } from "@/features/catalog/schemas";
+import { getCombos } from "@/features/combo/api";
+import { ComboShelf } from "@/features/combo/ComboShelf";
 import { Book3D } from "@/features/home/Book3D";
 import { DustMotes } from "@/features/home/DustMotes";
 import { HeroFanBook } from "@/features/home/HeroFanBook";
@@ -48,7 +50,8 @@ async function loadHomeData(): Promise<{ books: BookSummary[]; categories: Categ
 }
 
 export default async function HomePage() {
-  const [{ books, categories }, offers] = await Promise.all([loadHomeData(), getRunningPopups()]);
+  // `getCombos` không ném lỗi (trả null): combo chỉ là phần thêm, lỗi thì ẩn khu combo.
+  const [{ books, categories }, offers, combos] = await Promise.all([loadHomeData(), getRunningPopups(), getCombos()]);
   const featured = books[0];
 
   return (
@@ -189,6 +192,8 @@ export default async function HomePage() {
           )}
         </Container>
       </section>
+
+      <ComboShelf combos={combos ?? []} />
 
       {/* Chừa khoảng trống trước chân trang */}
       <div aria-hidden="true" className="h-20 sm:h-24" />

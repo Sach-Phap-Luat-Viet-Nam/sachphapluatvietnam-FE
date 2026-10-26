@@ -60,12 +60,13 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
         </div>
 
         {/* Băng-rôn trượt: mỗi lần một chương trình (vuốt/cuộn ngang, nút trái-phải, chấm tròn), nên nhiều chương trình
-            cũng không làm khu này dài thêm. */}
+            cũng không làm khu này dài thêm. Banner luôn 1920×1080 nên khung 16:9 hiện đủ ảnh, không cắt; `max-w-5xl`
+            để khung nhỏ hơn bề rộng nội dung một chút. */}
         <div
           role="group"
           aria-roledescription="carousel"
           aria-labelledby="running-offers"
-          className="relative mx-auto w-full max-w-3xl"
+          className="relative mx-auto w-full max-w-5xl"
         >
           <ul
             ref={track}
@@ -80,21 +81,39 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                 aria-label={`${position + 1} / ${popups.length}`}
                 className="w-full shrink-0 snap-center"
               >
+                {/* Chuyển động: băng-rôn đang xem sáng và to hết cỡ, băng-rôn bên cạnh mờ và nhỏ hơn chút; phần chữ trượt
+                    lên khi băng-rôn vào giữa. Chỉ animate opacity/transform (không gây CLS). */}
                 <button
                   type="button"
                   onClick={() => setSelected(popup)}
-                  className="group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-[16/10] w-full cursor-pointer overflow-hidden border text-left transition-colors sm:aspect-[16/9]"
+                  data-active={position === index}
+                  className={cn(
+                    "group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-video w-full cursor-pointer overflow-hidden border text-left transition-[opacity,transform,border-color] duration-500 ease-[var(--ease-out-soft)]",
+                    position === index ? "scale-100 opacity-100" : "scale-[0.94] opacity-40",
+                  )}
                 >
                   <Image
                     src={popup.imageUrl}
                     alt=""
                     fill
-                    sizes="(min-width: 768px) 768px, 100vw"
+                    sizes="(min-width: 1024px) 1024px, 100vw"
                     unoptimized
-                    className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
-                  {/* Ảnh banner đã tự có chữ; tên chương trình chỉ để trình đọc màn hình và nút bấm có nhãn. */}
-                  <span className="sr-only">{popup.title}</span>
+                  <span
+                    className={cn(
+                      "from-ink/90 via-ink/40 absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t to-transparent px-4 pt-10 pb-3 transition-[opacity,transform] delay-150 duration-500 ease-[var(--ease-out-soft)] sm:gap-1.5 sm:px-6 sm:pt-12 sm:pb-4",
+                      position === index ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+                    )}
+                  >
+                    <span className="font-editorial line-clamp-1 text-sm leading-snug font-bold sm:line-clamp-2 sm:text-base">
+                      {popup.title}
+                    </span>
+                    <span className="text-gold-pale flex items-center gap-1.5 text-xs font-medium">
+                      Xem lại nội dung
+                      <ArrowRight size={14} strokeWidth={1.6} aria-hidden="true" />
+                    </span>
+                  </span>
                 </button>
               </li>
             ))}

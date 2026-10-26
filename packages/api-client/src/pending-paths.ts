@@ -107,6 +107,30 @@ export interface PendingPaths {
     post?: never;
     delete?: never;
   } & OtherMethods;
+  /** Combo bộ sách đang chạy (docs/features/storefront-combo.md); `skuId` chỉ lấy combo có chứa SKU đó. */
+  "/api/v1/combos": {
+    parameters: NoParameters;
+    get: {
+      parameters: Omit<NoParameters, "query"> & { query?: { skuId?: number } };
+      requestBody?: never;
+      responses: Ok;
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
+  /** Chi tiết một combo đang chạy theo slug: 200 `ComboResponse`, 404 khi không chạy hoặc không tồn tại. */
+  "/api/v1/combos/{slug}": {
+    parameters: NoParameters;
+    get: {
+      parameters: Omit<NoParameters, "path"> & { path: { slug: string } };
+      requestBody?: never;
+      responses: Ok;
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
   "/api/v1/admin/promotions": Collection;
   "/api/v1/admin/promotions/{id}": Item;
   "/api/v1/admin/promotions/{id}/stats": {

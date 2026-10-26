@@ -66,7 +66,8 @@ export function OrderDetails({ order }: { order: Order }) {
         {order.appliedPromotions.length > 0 && (
           <ul aria-label="Ưu đãi đã áp" className="text-ok mt-4 ml-auto flex max-w-sm flex-col gap-1 text-sm">
             {order.appliedPromotions.map((promotion) => (
-              <li key={promotion.promotionId} className="flex justify-between gap-4">
+              // `promotionId` của combo là id combo nên có thể trùng id một chương trình: khóa kèm `kind`.
+              <li key={`${promotion.kind}-${promotion.promotionId}`} className="flex justify-between gap-4">
                 <span>
                   {promotion.name}
                   {promotion.couponCode && ` (mã ${promotion.couponCode})`}

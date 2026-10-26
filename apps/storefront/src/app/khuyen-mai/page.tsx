@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Container, cn } from "@slvn/ui";
 import { SUBMIT } from "@/components/form-styles";
+import { getCombos } from "@/features/combo/api";
+import { ComboCard } from "@/features/combo/ComboCard";
 import { getActivePromotions } from "@/features/promotion/api";
 import { PromotionCard } from "@/features/promotion/PromotionCard";
 
@@ -24,7 +26,8 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function PromotionsPage() {
-  const promotions = await getActivePromotions();
+  // `getCombos` trả null khi lỗi: combo chỉ là phần thêm nên ẩn khu combo, không báo lỗi cả trang.
+  const [promotions, combos] = await Promise.all([getActivePromotions(), getCombos()]);
   return (
     <main id="noi-dung">
       <Container className="pt-8 pb-20 sm:pt-10">
@@ -63,6 +66,25 @@ export default async function PromotionsPage() {
             </ul>
           )}
         </div>
+
+        {combos && combos.length > 0 && (
+          <section id="combo" aria-labelledby="combo-heading" className="mt-14 scroll-mt-6 sm:mt-16">
+            <h2
+              id="combo-heading"
+              className="font-editorial text-[34px] leading-[1.05] font-bold tracking-tight sm:text-[44px]"
+            >
+              Combo <span className="text-gold font-medium italic">bộ sách</span>
+            </h2>
+            <p className="text-mist mt-4 max-w-2xl leading-7">
+              Mua đủ bộ để được giá combo thấp hơn mua lẻ. Giá combo tự áp khi thanh toán, không cần nhập mã.
+            </p>
+            <ul className="mt-8 grid gap-6 sm:mt-10 md:grid-cols-2 lg:grid-cols-3">
+              {combos.map((combo) => (
+                <ComboCard key={combo.id} combo={combo} />
+              ))}
+            </ul>
+          </section>
+        )}
       </Container>
     </main>
   );

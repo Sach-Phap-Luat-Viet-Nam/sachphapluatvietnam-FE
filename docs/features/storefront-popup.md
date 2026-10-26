@@ -41,10 +41,16 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 - **Dữ liệu**: Server Component gọi `getRunningPopups()` (`features/popup/server.ts`, `GET /popups/running`, không giới hạn số lượng
   popup theo ưu tiên) cùng lúc với sách và danh mục, nên khu này nằm trong HTML dựng sẵn (làm mới 60 giây như trang
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
-- **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình, rộng tối đa 768px và căn
-  giữa (tỷ lệ 16:10 trên điện thoại, 16:9 từ `sm`; ảnh cắt từ phía trên, `object-cover object-top`). **Chỉ hiện ảnh**:
-  không có chữ mô tả đè lên ảnh, tên chương trình chỉ có trong `sr-only` làm nhãn nút. Không hiện ngày kết thúc (API
-  storefront không trả `endsAt`).
+- **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình. Banner luôn **1920×1080**
+  nên khung cố định **16:9 ở mọi cỡ màn hình** (`aspect-video`, `object-cover`) và hiện đủ ảnh, không cắt. Khung rộng tối
+  đa `max-w-5xl` (64rem) và căn giữa, nhỏ hơn bề rộng nội dung một chút. Tên chương trình (chữ nhỏ: `text-sm`, từ `sm` là
+  `text-base`, tối đa 1 dòng trên điện thoại và 2 dòng từ `sm`) và "Xem lại nội dung" nằm trên dải tối mỏng ở đáy ảnh;
+  muốn xem đủ tiêu đề thì bấm thẻ để mở hộp thoại. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+- **Chuyển động** (chỉ `opacity`/`transform`, 0,5 giây, easing `--ease-out-soft`; luôn bật, không theo
+  `prefers-reduced-motion` như quy ước ở `storefront-shell.md`): băng-rôn đang xem sáng và đủ cỡ, băng-rôn còn lại mờ
+  (`opacity-40`) và nhỏ hơn 6% (`scale-[0.94]`); phần tên chương trình mờ dần và trượt lên khi băng-rôn vào giữa. Trạng
+  thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. Chưa có tự động chuyển
+  băng-rôn.
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
   nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
   bật là có nút riêng thay vì bấm vào ảnh. Hộp thoại rộng đúng bằng ảnh; tiêu đề dài tự xuống dòng cạnh nút (thanh dưới
@@ -53,10 +59,10 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
-| Method | Route                    | Dùng cho                           | Xử lý                                                             |
-| ------ | ------------------------ | ---------------------------------- | ----------------------------------------------------------------- |
-| GET    | `/api/v1/popups/active`  | Popup đang chạy                    | 200 → parse Zod `popupSchema`; 204 → không hiện; lỗi → không hiện |
-| GET    | `/api/v1/popups/running` | Khu "Ưu đãi đang chạy" ở trang chủ | 200 → mảng `popupSchema` (không giới hạn, có thể rỗng); lỗi → ẩn khu    |
+| Method | Route                    | Dùng cho                           | Xử lý                                                                |
+| ------ | ------------------------ | ---------------------------------- | -------------------------------------------------------------------- |
+| GET    | `/api/v1/popups/active`  | Popup đang chạy                    | 200 → parse Zod `popupSchema`; 204 → không hiện; lỗi → không hiện    |
+| GET    | `/api/v1/popups/running` | Khu "Ưu đãi đang chạy" ở trang chủ | 200 → mảng `popupSchema` (không giới hạn, có thể rỗng); lỗi → ẩn khu |
 
 - Hai route đã có trong OpenAPI sinh ra (`pnpm api:fetch && pnpm api:generate`), response vẫn parse bằng Zod
   (`popupSchema`) theo `docs/features/popup.md` vì type sinh ra để số là `number | string`.
@@ -74,7 +80,8 @@ Không thêm biến mới. Dùng proxy `/api/v1` của storefront (`API_BASE_URL
 - Ảnh popup lớn có thể bị tính là LCP của trang (hiện sau khi tải trang); theo dõi Core Web Vitals khi bật popup thật.
 - Dấu đã xem của popup cũ (`popup:{id}:{updatedAt}` cũ) không tự xóa khỏi `localStorage`.
 - Chưa đếm lượt hiển thị/lượt bấm (backend chưa có API).
-- Ảnh popup dạng poster bị cắt ở thẻ (chỉ thấy phần trên); nội dung đầy đủ xem khi bấm vào thẻ. Muốn thẻ hiện nguyên
-  ảnh thì đổi `object-cover` thành `object-contain` ở `OfferShelf.tsx`, đổi lại là ảnh nhỏ hơn trong khung.
+- Thẻ giả định banner tỷ lệ 16:9 (1920×1080). Ảnh khác tỷ lệ (ví dụ poster dọc) sẽ bị cắt hai mép trên/dưới ở thẻ, nội
+  dung đầy đủ xem khi bấm vào thẻ. Muốn thẻ luôn hiện nguyên ảnh thì đổi `object-cover` thành `object-contain` ở
+  `OfferShelf.tsx` (ảnh lệch tỷ lệ sẽ có viền tối).
 - Khu này chỉ có ở trang chủ (chưa có ở các trang khác).
 - Số chương trình không bị giới hạn: khu này là **băng-rôn trượt** (mỗi lần một chương trình, không xuống hàng) với nút "Chương trình trước/sau" hai bên, chấm tròn phía dưới (chấm đang xem kéo dài) và vuốt/cuộn ngang; hết vòng thì quay lại đầu/cuối. Chỉ có một chương trình thì ẩn nút và chấm. Bấm băng-rôn mở lại popup đầy đủ như trước. Backend đã bỏ mức tối đa 3 (`PopupService.MaxRunningPopups`), cần deploy backend mới thì mới hiện quá 3 chương trình.
