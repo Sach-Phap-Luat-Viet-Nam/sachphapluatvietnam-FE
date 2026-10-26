@@ -14,7 +14,7 @@ import { addEdition, catalogKeys, fetchBook, updateBook } from "./api";
 import { BookForm } from "./BookForm";
 import { EditionCard } from "./EditionCard";
 import { EditionForm } from "./EditionForm";
-import { bookToFormValues, EMPTY_EDITION_FORM } from "./forms";
+import { bookToFormValues, EMPTY_EDITION_FORM, newEditionFormFrom } from "./forms";
 import { BOOK_STATUS_LABELS, bookStatusTone, enumLabel } from "./labels";
 import type { AdminBook } from "./schemas";
 import { useSaveBook } from "./use-save-book";
@@ -52,6 +52,7 @@ export function BookEditor({ bookId }: { bookId: number }) {
 function BookEditorContent({ book }: { book: AdminBook }) {
   const saveBook = useSaveBook();
   const [addingEdition, setAddingEdition] = useState(false);
+  const latestEdition = book.editions.find((edition) => edition.isLatest) ?? book.editions[0];
 
   return (
     <div className="flex max-w-5xl flex-col gap-8">
@@ -103,9 +104,17 @@ function BookEditorContent({ book }: { book: AdminBook }) {
             <h3 id="new-edition" className="text-lg font-semibold">
               Ấn bản mới
             </h3>
+            {latestEdition && (
+              <p className="text-muted leading-7">
+                Đã điền sẵn nhà xuất bản, khổ, số trang, khối lượng và văn bản pháp luật từ ấn bản mới nhất. Anh/chị
+                nhập ISBN, số QĐXB, tên ấn bản và ảnh bìa của ấn bản mới.
+              </p>
+            )}
             <EditionForm
               bookTitle={book.title}
-              defaultValues={EMPTY_EDITION_FORM}
+              defaultValues={
+                latestEdition ? newEditionFormFrom(latestEdition, new Date().getFullYear()) : EMPTY_EDITION_FORM
+              }
               submitLabel="Thêm ấn bản"
               onCancel={() => setAddingEdition(false)}
               onSave={async (body) => {

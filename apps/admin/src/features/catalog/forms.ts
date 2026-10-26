@@ -16,6 +16,7 @@ import type {
   CategoryFormValues,
   Edition,
   EditionFormValues,
+  QuickBookFormValues,
   LegalDocument,
   LegalDocumentFormValues,
   Sku,
@@ -146,6 +147,25 @@ export function editionToFormValues(edition: Edition): EditionFormValues {
   };
 }
 
+/**
+ * Form ấn bản mới (tái bản) điền sẵn từ ấn bản trước: giữ nhà xuất bản, khổ, số trang, khối lượng và văn bản pháp luật;
+ * để trống ISBN, QĐXB, tên ấn bản, ngày phát hành, ảnh bìa vì mỗi ấn bản một khác. Năm xuất bản là năm nay, trạng thái nháp.
+ */
+export function newEditionFormFrom(previous: Edition, year: number): EditionFormValues {
+  return {
+    ...EMPTY_EDITION_FORM,
+    publisher: previous.publisher,
+    size: previous.size ?? "",
+    pages: numberText(previous.pages),
+    weightGram: numberText(previous.weightGram),
+    publishYear: String(year),
+    legalDocuments: previous.legalDocuments.map((document) => ({
+      id: document.id,
+      label: legalDocumentLabel(document),
+    })),
+  };
+}
+
 /** Body `UpsertEditionRequest`; ISBN gửi dạng 13 số liền. */
 export function toEditionBody(values: EditionFormValues) {
   return {
@@ -202,6 +222,62 @@ export function toSkuCreateBody(values: SkuCreateFormValues) {
   return { skuCode: values.skuCode.trim().toUpperCase(), coverType: values.coverType, ...toSkuPriceBody(values) };
 }
 export type SkuCreateBody = ReturnType<typeof toSkuCreateBody>;
+
+// Tạo nhanh sách
+
+/** Form "Tạo nhanh": một SKU bìa mềm, đăng bán ngay; năm xuất bản mặc định là năm nay, nhà xuất bản là lần nhập trước. */
+export function emptyQuickBookForm(year: number, publisher = ""): QuickBookFormValues {
+  return {
+    title: "",
+    slug: "",
+    bookType: "code",
+    categoryIds: [],
+    authors: [],
+    isbn: "",
+    publisher,
+    publishingDecisionNo: "",
+    editionName: "",
+    publishYear: String(year),
+    pages: "",
+    weightGram: "",
+    coverImageUrl: "",
+    publishNow: true,
+    skus: [{ ...EMPTY_SKU_FORM }],
+  };
+}
+
+/**
+ * Body `POST /admin/books/quick`: ba phần như API riêng lẻ. Các ô không có trong form nhanh (mô tả, SEO, mục lục, ...) để
+ * trống, sửa sau ở màn chi tiết sách. Bỏ chọn "đăng bán ngay" thì cả đầu sách lẫn ấn bản ở "Nháp".
+ */
+export function toQuickBookBody(values: QuickBookFormValues) {
+  const published = values.publishNow;
+  return {
+    book: toBookBody({
+      ...EMPTY_BOOK_FORM,
+      title: values.title,
+      slug: values.slug,
+      bookType: values.bookType,
+      status: published ? "active" : "draft",
+      categoryIds: values.categoryIds,
+      authors: values.authors,
+    }),
+    edition: toEditionBody({
+      ...EMPTY_EDITION_FORM,
+      isbn: values.isbn,
+      publisher: values.publisher,
+      publishingDecisionNo: values.publishingDecisionNo,
+      status: published ? "on_sale" : "draft",
+      editionName: values.editionName,
+      publishYear: values.publishYear,
+      pages: values.pages,
+      weightGram: values.weightGram,
+      coverImageUrl: values.coverImageUrl,
+    }),
+    skus: values.skus.map(toSkuCreateBody),
+  };
+}
+export type QuickBookBody = ReturnType<typeof toQuickBookBody>;
 
 // Danh mục, tác giả, văn bản pháp luật
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { unwrap } from "@slvn/api-client";
 import { browserApi } from "@slvn/auth";
-import type { BookBody, EditionBody, SkuCreateBody } from "./forms";
+import type { BookBody, EditionBody, QuickBookBody, SkuCreateBody } from "./forms";
 import type { toAuthorBody, toCategoryBody, toLegalDocumentBody, toSkuPriceBody } from "./forms";
 import {
   adminBookSchema,
@@ -84,6 +84,12 @@ export async function updateBook(id: number, body: BookBody): Promise<AdminBook>
 }
 
 /** Thêm ấn bản; ấn bản đầu tiên của đầu sách tự thành ấn bản mới nhất. */
+/** Tạo trọn gói đầu sách + ấn bản đầu tiên + SKU trong một transaction: lỗi phần nào cũng không tạo gì. */
+export async function quickCreateBook(body: QuickBookBody): Promise<AdminBook> {
+  const data = await unwrap(browserApi().POST("/api/v1/admin/books/quick", { body }));
+  return adminBookSchema.parse(data);
+}
+
 export async function addEdition(bookId: number, body: EditionBody): Promise<AdminBook> {
   const data = await unwrap(
     browserApi().POST("/api/v1/admin/books/{id}/editions", {

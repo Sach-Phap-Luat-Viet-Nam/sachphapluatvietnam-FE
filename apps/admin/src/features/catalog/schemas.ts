@@ -250,3 +250,42 @@ export const legalDocumentFormSchema = z.object({
   effectiveDate: dateField,
 });
 export type LegalDocumentFormValues = z.infer<typeof legalDocumentFormSchema>;
+
+/**
+ * Form "Tạo nhanh sách": đầu sách + ấn bản đầu tiên + SKU trong một màn. Dùng lại đúng các ô và quy tắc của form riêng
+ * lẻ (`bookFormSchema`, `editionFormSchema`, `skuCreateFormSchema`) nên kiểm tra giống nhau.
+ */
+export const quickBookFormSchema = z
+  .object({
+    ...bookFormSchema.pick({ title: true, slug: true, bookType: true, categoryIds: true, authors: true }).shape,
+    ...editionFormSchema.pick({
+      isbn: true,
+      publisher: true,
+      publishingDecisionNo: true,
+      editionName: true,
+      publishYear: true,
+      pages: true,
+      weightGram: true,
+      coverImageUrl: true,
+    }).shape,
+    /** Đăng bán ngay: đầu sách "Đang hiển thị" và ấn bản "Đang bán"; bỏ chọn thì để cả hai ở "Nháp". */
+    publishNow: z.boolean(),
+    skus: z.array(skuCreateFormSchema).min(1, "Cần ít nhất một SKU."),
+  })
+  .superRefine(({ skus }, ctx) => {
+    // Backend: mỗi loại bìa một SKU, mã SKU không trùng (không phân biệt hoa thường).
+    const covers = new Set<string>();
+    const codes = new Set<string>();
+    skus.forEach((sku, index) => {
+      if (covers.has(sku.coverType)) {
+        ctx.addIssue({ code: "custom", path: ["skus", index, "coverType"], message: "Loại bìa này đã có SKU ở trên." });
+      }
+      covers.add(sku.coverType);
+      const code = sku.skuCode.trim().toUpperCase();
+      if (code && codes.has(code)) {
+        ctx.addIssue({ code: "custom", path: ["skus", index, "skuCode"], message: "Mã SKU bị trùng với dòng trên." });
+      }
+      codes.add(code);
+    });
+  });
+export type QuickBookFormValues = z.infer<typeof quickBookFormSchema>;

@@ -30,9 +30,14 @@ export function BookList() {
         title="Đầu sách"
         description="Tạo, sửa đầu sách cùng ấn bản và SKU. Đầu sách không xóa được, muốn gỡ khỏi website thì chuyển sang “Ẩn”."
         actions={
-          <Link href="/sach/tao-moi" className={buttonClassName()}>
-            <Plus size={18} aria-hidden="true" /> Thêm đầu sách
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/sach/tao-nhanh" className={buttonClassName()}>
+              <Plus size={18} aria-hidden="true" /> Tạo nhanh sách
+            </Link>
+            <Link href="/sach/tao-moi" className={buttonClassName({ variant: "outline" })}>
+              Thêm đầu sách
+            </Link>
+          </div>
         }
       />
 

@@ -13,12 +13,24 @@ vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"
 | Route                     | Màn hình                                       | Component (`features/catalog/`) |
 | ------------------------- | ---------------------------------------------- | ------------------------------- |
 | `/sach`                   | Danh sách đầu sách: tìm, lọc trạng thái, trang | `BookList`                      |
+| `/sach/tao-nhanh`         | **Tạo nhanh**: sách + ấn bản + SKU trong một màn | `QuickBookCreate`               |
 | `/sach/tao-moi`           | Tạo đầu sách, xong chuyển sang màn chi tiết    | `BookCreate`, `BookForm`        |
 | `/sach/<id>`              | Thông tin chung, ấn bản, SKU                   | `BookEditor`, `EditionCard`     |
 | `/sach/danh-muc`          | Cây danh mục                                   | `CategoryManager`               |
 | `/sach/tac-gia`           | Tác giả                                        | `AuthorManager`                 |
 | `/sach/van-ban-phap-luat` | Văn bản pháp luật                              | `LegalDocumentManager`          |
 
+- **Tạo nhanh sách** (`/sach/tao-nhanh`, nút "Tạo nhanh sách" ở danh sách): một màn gồm 3 phần: (1) tên sách (con trỏ
+  vào đây ngay, slug tự sinh), loại sách, tác giả, danh mục; (2) ấn bản: ISBN, số QĐXB, nhà xuất bản (điền sẵn lần nhập
+  trước, lưu ở `localStorage`), tên ấn bản, năm (mặc định năm nay), số trang, khối lượng, ảnh bìa; (3) SKU: mã SKU, loại
+  bìa, giá bìa, giá bán (tự điền bằng giá bìa khi rời ô giá bìa), thêm SKU bìa cứng nếu có. Ô "Hiển thị và mở bán ngay"
+  (mặc định bật) đặt đầu sách "Đang hiển thị" và ấn bản "Đang bán"; bỏ chọn thì cả hai ở "Nháp". Lưu bằng **một request**
+  `POST /admin/books/quick` (một transaction: lỗi phần nào cũng không tạo gì), xong mở màn chi tiết để bổ sung mô tả,
+  mục lục, SEO. Dùng lại đúng quy tắc của các form riêng lẻ (`quickBookFormSchema` lấy ô từ `bookFormSchema`,
+  `editionFormSchema`, `skuCreateFormSchema`) nên ISBN, giá, mã SKU kiểm tra giống nhau; chặn trùng loại bìa và mã SKU.
+  **Tạo ngay tác giả/danh mục còn thiếu** ngay trong form (nút "Tạo mới “…”" ở ô tác giả, ô "Thêm danh mục" ở cấp gốc).
+- **Tái bản**: "Thêm ấn bản" ở màn chi tiết điền sẵn từ ấn bản mới nhất (nhà xuất bản, khổ, số trang, khối lượng, văn bản
+  pháp luật, năm nay, trạng thái nháp), chỉ cần nhập ISBN, số QĐXB, tên ấn bản và ảnh bìa (`newEditionFormFrom`).
 - **Đưa một cuốn sách lên bán**: tạo danh mục/tác giả/văn bản (nếu chưa có) → tạo đầu sách → thêm ấn bản (ISBN, số
   QĐXB) → thêm SKU (loại bìa, giá) → đặt đầu sách "Đang hiển thị", ấn bản "Đang bán". Sách có hàng khi phiếu nhập kho
   được duyệt (phần Kho, `admin-inventory.md`).
@@ -47,6 +59,7 @@ OpenAPI sinh enum thành `number`; body có enum dùng `@ts-expect-error` kèm l
 | ------------------- | ----------------------------------------------------------------------- | ---------------------------- |
 | GET                 | `/api/v1/admin/books?Q=&Status=&Page=&Limit=`                           | Danh sách đầu sách           |
 | GET / POST / PUT    | `/api/v1/admin/books`, `/api/v1/admin/books/{id}`                       | Xem, tạo, sửa đầu sách       |
+| POST                | `/api/v1/admin/books/quick` (khai báo ở `pending-paths.ts`)             | Tạo nhanh sách + ấn bản + SKU |
 | POST / PUT          | `/api/v1/admin/books/{id}/editions`, `/api/v1/admin/editions/{id}`      | Thêm, sửa ấn bản             |
 | POST                | `/api/v1/admin/editions/{id}/set-latest`                                | Đổi ấn bản mới nhất          |
 | POST / PUT          | `/api/v1/admin/editions/{id}/skus`, `/api/v1/admin/skus/{id}`           | Thêm SKU, sửa giá            |
