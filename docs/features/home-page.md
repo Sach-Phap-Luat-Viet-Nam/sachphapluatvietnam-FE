@@ -25,7 +25,9 @@ nhất và dẫn khách vào tủ sách. Thiết kế "Thư viện đêm" trên 
      một phần cuốn kế tiếp, gợi ý vuốt.
    - Tên sách tối đa 3 dòng, giá luôn ở đáy thẻ để các thẻ cùng hàng thẳng nhau (áp dụng cả trang `/sach`).
    - Link "Xem tất cả sách mới" dẫn tới `/sach?sort=newest`.
-5. Dải cam kết (ISBN/QĐXB, "Cập nhật đến", phí ship).
+5. **Combo tiết kiệm** (`ComboShelf`): tối đa 3 combo bộ sách đang chạy (`GET /combos`), xem đủ ở `/khuyen-mai#combo`. Không
+   có combo hoặc không tải được thì ẩn cả khu (xem `storefront-combo.md`).
+6. Dải cam kết (ISBN/QĐXB, "Cập nhật đến", phí ship).
 
 Trang dựng tĩnh, làm mới sau 60 giây (ISR). Backend lỗi lúc dựng thì vẫn hiện hero (bìa chung "Tủ sách pháp luật"),
 các phần dữ liệu ẩn đi, ghi `console.error` và thử lại ở lần làm mới sau.
@@ -36,6 +38,7 @@ các phần dữ liệu ẩn đi, ghi `console.error` và thử lại ở lần 
 | ------ | ------------------------------------------ | ------------------------------------- |
 | GET    | `/api/v1/books?Page=1&Limit=4&Sort=newest` | Sách nổi bật, băng chữ, mới phát hành |
 | GET    | `/api/v1/categories`                       | Thanh danh mục                        |
+| GET    | `/api/v1/combos`                           | Khu "Combo tiết kiệm"                 |
 
 ## Cấu hình cần thiết
 
