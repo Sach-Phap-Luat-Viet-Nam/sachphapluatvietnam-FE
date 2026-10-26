@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Container, cn } from "@slvn/ui";
+import { animateScrollLeft } from "@/lib/animate-scroll";
+import type { ScrollAnimation } from "@/lib/animate-scroll";
 import { tourAnchor } from "@/lib/tour-anchor";
 import { safePopupLink } from "./popup";
 import type { Popup } from "./schemas";
@@ -24,6 +26,23 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const count = popups.length;
+  const animation = useRef<ScrollAnimation | null>(null);
+
+  // Trượt tới băng-rôn `target` bằng animation riêng (0,9 giây, easing mềm) thay cho `scroll-behavior: smooth` của trình
+  // duyệt vốn quá nhanh và không chỉnh được. `index` đặt ngay về đích; trong lúc trượt bỏ qua `onScroll` để chấm tròn
+  // không nhảy qua lại ở nửa đường.
+  const scrollToIndex = useCallback((target: number) => {
+    animation.current?.cancel();
+    setIndex(target);
+    const list = track.current;
+    if (!list || list.clientWidth === 0) return;
+    animation.current = animateScrollLeft(list, target * list.clientWidth, undefined, () => {
+      animation.current = null;
+    });
+  }, []);
+  // Khách chạm, vuốt hoặc lăn chuột thì nhường quyền cuộn cho tay, dừng animation đang chạy.
+  const stopAnimation = () => animation.current?.cancel();
+  useEffect(() => () => animation.current?.cancel(), []);
 
   useEffect(() => {
     if (selected && dialog.current && !dialog.current.open) {
@@ -35,16 +54,10 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
   // `index` nằm trong deps nên bấm nút hay vuốt tay cũng đếm lại 2 giây, không bị nhảy ngay sau thao tác của khách.
   useEffect(() => {
     if (count < 2 || paused || selected) return;
-    const timer = window.setInterval(() => {
-      const list = track.current;
-      if (!list || list.clientWidth === 0) return;
-      // `index` luôn theo vị trí cuộn (handleScroll) nên vuốt tay xong vẫn chuyển tiếp từ đúng băng-rôn đang xem.
-      const next = (index + 1) % count;
-      list.scrollTo({ left: next * list.clientWidth, behavior: "smooth" });
-      setIndex(next);
-    }, AUTO_ADVANCE_MS);
+    // `index` luôn theo vị trí cuộn (handleScroll) nên vuốt tay xong vẫn chuyển tiếp từ đúng băng-rôn đang xem.
+    const timer = window.setInterval(() => scrollToIndex((index + 1) % count), AUTO_ADVANCE_MS);
     return () => window.clearInterval(timer);
-  }, [count, paused, selected, index]);
+  }, [count, paused, selected, index, scrollToIndex]);
 
   if (popups.length === 0) {
     return null;
@@ -53,16 +66,11 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
   // Vị trí hiện tại theo vị trí cuộn, để chấm tròn đúng cả khi khách vuốt tay.
   const handleScroll = () => {
     const list = track.current;
-    if (list && list.clientWidth > 0) setIndex(Math.round(list.scrollLeft / list.clientWidth));
+    if (animation.current === null && list && list.clientWidth > 0)
+      setIndex(Math.round(list.scrollLeft / list.clientWidth));
   };
   // Hết một vòng thì quay lại đầu/cuối.
-  const goTo = (target: number) => {
-    const list = track.current;
-    if (!list) return;
-    const next = (target + popups.length) % popups.length;
-    list.scrollTo({ left: next * list.clientWidth, behavior: "smooth" });
-    setIndex(next);
-  };
+  const goTo = (target: number) => scrollToIndex((target + popups.length) % popups.length);
 
   const link = selected ? safePopupLink(selected.linkUrl) : null;
   return (
@@ -95,7 +103,9 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
           <ul
             ref={track}
             onScroll={handleScroll}
-            className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
+            onPointerDown={stopAnimation}
+            onWheel={stopAnimation}
+            className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto [&::-webkit-scrollbar]:hidden"
           >
             {popups.map((popup, position) => (
               <li
@@ -112,7 +122,7 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                   onClick={() => setSelected(popup)}
                   data-active={position === index}
                   className={cn(
-                    "group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-video w-full cursor-pointer overflow-hidden border text-left transition-[opacity,transform,border-color] duration-500 ease-[var(--ease-out-soft)]",
+                    "group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-video w-full cursor-pointer overflow-hidden border text-left transition-[opacity,transform,border-color] duration-900 ease-[var(--ease-out-soft)]",
                     position === index ? "scale-100 opacity-100" : "scale-[0.94] opacity-40",
                   )}
                 >
@@ -126,7 +136,7 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                   />
                   <span
                     className={cn(
-                      "from-ink/90 via-ink/40 absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t to-transparent px-4 pt-10 pb-3 transition-[opacity,transform] delay-150 duration-500 ease-[var(--ease-out-soft)] sm:gap-1.5 sm:px-6 sm:pt-12 sm:pb-4",
+                      "from-ink/90 via-ink/40 absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t to-transparent px-4 pt-10 pb-3 transition-[opacity,transform] delay-200 duration-900 ease-[var(--ease-out-soft)] sm:gap-1.5 sm:px-6 sm:pt-12 sm:pb-4",
                       position === index ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
                     )}
                   >

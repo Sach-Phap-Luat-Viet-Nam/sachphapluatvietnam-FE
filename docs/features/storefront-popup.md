@@ -48,7 +48,10 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 - **Chuyển động** (chỉ `opacity`/`transform`, 0,5 giây, easing `--ease-out-soft`; luôn bật, không theo
   `prefers-reduced-motion` như quy ước ở `storefront-shell.md`): băng-rôn đang xem sáng và đủ cỡ, băng-rôn còn lại mờ
   (`opacity-40`) và nhỏ hơn 6% (`scale-[0.94]`); dòng "Xem lại nội dung" mờ dần và trượt lên khi băng-rôn vào giữa. Trạng
-  thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. **Tự chuyển** sang băng-rôn kế tiếp
+  thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. **Trượt mượt**: không dùng `scroll-behavior: smooth` (trình duyệt tự quyết ~0,3–0,5 giây, không chỉnh được) mà tự
+  animate `scrollLeft` bằng `requestAnimationFrame` trong **0,9 giây** với easing ease-in-out cubic
+  (`lib/animate-scroll.ts`, `SLIDE_DURATION_MS`), tạm tắt `scroll-snap` trong lúc trượt; khách chạm, vuốt hoặc lăn chuột
+  thì dừng animation nhường cho tay. Hiệu ứng mờ/thu nhỏ của băng-rôn và dòng chữ cũng kéo dài 0,9 giây cho khớp. **Tự chuyển** sang băng-rôn kế tiếp
   mỗi **2 giây** (`AUTO_ADVANCE_MS`), hết vòng thì quay lại đầu; tạm dừng khi rê chuột vào khu này, khi focus bàn phím
   (`:focus-visible`) hoặc đang mở hộp thoại, và đếm lại 2 giây sau mỗi lần đổi băng-rôn (kể cả khách bấm nút hay vuốt
   tay). Chạm trên điện thoại không tạm dừng. Tự chuyển luôn bật, không theo `prefers-reduced-motion` như phần chuyển động.

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { animateScrollLeft } from "@/lib/animate-scroll";
 import { AUTO_ADVANCE_MS, OfferShelf } from "./OfferShelf";
 import type { Popup } from "./schemas";
 
@@ -15,11 +16,12 @@ function popup(id: number, overrides: Partial<Popup> = {}): Popup {
   };
 }
 
-const scrollTo = vi.fn();
+// Animation cuộn dùng requestAnimationFrame và layout thật nên giả lập ở đây; phần easing/thời lượng có test riêng ở
+// `lib/animate-scroll.test.ts`.
+const cancelScroll = vi.fn();
+vi.mock("@/lib/animate-scroll", () => ({ animateScrollLeft: vi.fn(() => ({ cancel: cancelScroll })) }));
 
 beforeAll(() => {
-  // jsdom chưa có Element.scrollTo.
-  Element.prototype.scrollTo = scrollTo;
   // jsdom chưa cài đặt <dialog>.showModal() và close().
   HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
     this.open = true;
@@ -30,7 +32,8 @@ beforeAll(() => {
   };
 });
 afterEach(() => {
-  scrollTo.mockClear();
+  vi.mocked(animateScrollLeft).mockClear();
+  cancelScroll.mockClear();
   sessionStorage.clear();
   localStorage.clear();
 });
@@ -74,7 +77,6 @@ describe("OfferShelf", () => {
 
     await user.click(screen.getByRole("button", { name: "Chương trình trước" }));
     expect(dot(3)).toHaveAttribute("aria-current", "true");
-    expect(scrollTo).toHaveBeenCalledTimes(4);
   });
 
   it("chỉ băng-rôn đang xem được đánh dấu active (để chạy transition), đổi theo nút sau", async () => {
@@ -180,7 +182,8 @@ describe("OfferShelf", () => {
       expect(dot(2)).toHaveAttribute("aria-current", "true");
       act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
       expect(dot(3)).toHaveAttribute("aria-current", "true");
-      expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: 2000 }));
+      // Cuộn bằng animation riêng tới đúng băng-rôn thứ ba (2 × bề rộng khung).
+      expect(animateScrollLeft).toHaveBeenLastCalledWith(expect.anything(), 2000, undefined, expect.any(Function));
 
       act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
       expect(dot(1)).toHaveAttribute("aria-current", "true");
@@ -204,7 +207,17 @@ describe("OfferShelf", () => {
 
       act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS * 3));
 
-      expect(scrollTo).not.toHaveBeenCalled();
+      expect(animateScrollLeft).not.toHaveBeenCalled();
+    });
+
+    it("khách chạm vào băng-rôn thì dừng animation để nhường cho tay vuốt", () => {
+      render(<OfferShelf popups={[popup(1), popup(2)]} />);
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
+      expect(animateScrollLeft).toHaveBeenCalledTimes(1);
+
+      fireEvent.pointerDown(screen.getByRole("list"));
+
+      expect(cancelScroll).toHaveBeenCalled();
     });
   });
 });
