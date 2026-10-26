@@ -43,7 +43,7 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
 - **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình. Banner luôn **1920×1080**
   nên khung cố định **16:9 ở mọi cỡ màn hình** (`aspect-video`, `object-cover`) và hiện đủ ảnh, không cắt. Khung rộng tối
-  đa `max-w-5xl` (64rem) và căn giữa, nhỏ hơn bề rộng nội dung một chút. **Không in tên chương trình** lên ảnh (banner đã có chữ; tên chỉ còn trong `sr-only` làm nhãn nút);
+  đa `max-w-3xl` (48rem) và căn giữa, gọn hơn bề rộng nội dung. **Không in tên chương trình** lên ảnh (banner đã có chữ; tên chỉ còn trong `sr-only` làm nhãn nút);
   dải tối mỏng ở đáy ảnh chỉ có "Xem lại nội dung", muốn xem đủ nội dung thì bấm thẻ để mở hộp thoại. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
 - **Chuyển động** (chỉ `opacity`/`transform`, 0,5 giây, easing `--ease-out-soft`; luôn bật, không theo
   `prefers-reduced-motion` như quy ước ở `storefront-shell.md`): băng-rôn đang xem sáng và đủ cỡ, băng-rôn còn lại mờ

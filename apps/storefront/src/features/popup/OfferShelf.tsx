@@ -79,13 +79,13 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
         </div>
 
         {/* Băng-rôn trượt: mỗi lần một chương trình (vuốt/cuộn ngang, nút trái-phải, chấm tròn), nên nhiều chương trình
-            cũng không làm khu này dài thêm. Banner luôn 1920×1080 nên khung 16:9 hiện đủ ảnh, không cắt; `max-w-5xl`
-            để khung nhỏ hơn bề rộng nội dung một chút. */}
+            cũng không làm khu này dài thêm. Banner luôn 1920×1080 nên khung 16:9 hiện đủ ảnh, không cắt; `max-w-3xl` (48rem)
+            để khung gọn hơn bề rộng nội dung. */}
         <div
           role="group"
           aria-roledescription="carousel"
           aria-labelledby="running-offers"
-          className="relative mx-auto w-full max-w-5xl"
+          className="relative mx-auto w-full max-w-3xl"
           // Chỉ chuột mới tạm dừng khi rê vào (chạm trên điện thoại thì không); bàn phím thì khi focus nhìn thấy.
           onPointerEnter={(event) => event.pointerType === "mouse" && setPaused(true)}
           onPointerLeave={() => setPaused(false)}
@@ -120,7 +120,7 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                     src={popup.imageUrl}
                     alt=""
                     fill
-                    sizes="(min-width: 1024px) 1024px, 100vw"
+                    sizes="(min-width: 768px) 768px, 100vw"
                     unoptimized
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
