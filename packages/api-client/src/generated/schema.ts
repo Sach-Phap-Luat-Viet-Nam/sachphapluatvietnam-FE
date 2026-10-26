@@ -821,6 +821,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/avatar/upload-signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ReplaceUploadSignatureResponse"];
+                        "application/json": components["schemas"]["ReplaceUploadSignatureResponse"];
+                        "text/json": components["schemas"]["ReplaceUploadSignatureResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetAvatarRequest"];
+                    "text/json": components["schemas"]["SetAvatarRequest"];
+                    "application/*+json": components["schemas"]["SetAvatarRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AvatarResponse"];
+                        "application/json": components["schemas"]["AvatarResponse"];
+                        "text/json": components["schemas"]["AvatarResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/addresses": {
         parameters: {
             query?: never;
@@ -2995,6 +3092,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/buy-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    "Idempotency-Key"?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BuyNowOrderRequest"];
+                    "text/json": components["schemas"]["BuyNowOrderRequest"];
+                    "application/*+json": components["schemas"]["BuyNowOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OrderResponse"];
+                        "application/json": components["schemas"]["OrderResponse"];
+                        "text/json": components["schemas"]["OrderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/{code}": {
         parameters: {
             query?: never;
@@ -3122,6 +3264,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/guest/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OrderResponse"];
+                        "application/json": components["schemas"]["OrderResponse"];
+                        "text/json": components["schemas"]["OrderResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/guest/{token}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelOrderRequest"];
+                    "text/json": components["schemas"]["CancelOrderRequest"];
+                    "application/*+json": components["schemas"]["CancelOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OrderResponse"];
+                        "application/json": components["schemas"]["OrderResponse"];
+                        "text/json": components["schemas"]["OrderResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/shipping/quote": {
         parameters: {
             query?: never;
@@ -3155,6 +3381,49 @@ export interface paths {
                         "text/plain": components["schemas"]["ShippingQuoteResponse"];
                         "application/json": components["schemas"]["ShippingQuoteResponse"];
                         "text/json": components["schemas"]["ShippingQuoteResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checkout/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CheckoutPreviewRequest"];
+                    "text/json": components["schemas"]["CheckoutPreviewRequest"];
+                    "application/*+json": components["schemas"]["CheckoutPreviewRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CheckoutPreviewResponse"];
+                        "application/json": components["schemas"]["CheckoutPreviewResponse"];
+                        "text/json": components["schemas"]["CheckoutPreviewResponse"];
                     };
                 };
             };
@@ -3295,6 +3564,592 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/promotions/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PublicPromotionResponse"][];
+                        "application/json": components["schemas"]["PublicPromotionResponse"][];
+                        "text/json": components["schemas"]["PublicPromotionResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Q?: string;
+                    Page?: number | string;
+                    Limit?: number | string;
+                    Skip?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PagedResponseOfAdminPromotionResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfAdminPromotionResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfAdminPromotionResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPromotionRequest"];
+                    "text/json": components["schemas"]["UpsertPromotionRequest"];
+                    "application/*+json": components["schemas"]["UpsertPromotionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPromotionResponse"];
+                        "application/json": components["schemas"]["AdminPromotionResponse"];
+                        "text/json": components["schemas"]["AdminPromotionResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/promotions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPromotionResponse"];
+                        "application/json": components["schemas"]["AdminPromotionResponse"];
+                        "text/json": components["schemas"]["AdminPromotionResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertPromotionRequest"];
+                    "text/json": components["schemas"]["UpsertPromotionRequest"];
+                    "application/*+json": components["schemas"]["UpsertPromotionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AdminPromotionResponse"];
+                        "application/json": components["schemas"]["AdminPromotionResponse"];
+                        "text/json": components["schemas"]["AdminPromotionResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/promotions/{id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PromotionStatsResponse"];
+                        "application/json": components["schemas"]["PromotionStatsResponse"];
+                        "text/json": components["schemas"]["PromotionStatsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/promotions/{id}/coupons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Page?: number | string;
+                    Limit?: number | string;
+                    Skip?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PagedResponseOfCouponResponse"];
+                        "application/json": components["schemas"]["PagedResponseOfCouponResponse"];
+                        "text/json": components["schemas"]["PagedResponseOfCouponResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCouponRequest"];
+                    "text/json": components["schemas"]["CreateCouponRequest"];
+                    "application/*+json": components["schemas"]["CreateCouponRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CouponResponse"];
+                        "application/json": components["schemas"]["CouponResponse"];
+                        "text/json": components["schemas"]["CouponResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/promotions/{id}/coupons/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GenerateCouponsRequest"];
+                    "text/json": components["schemas"]["GenerateCouponsRequest"];
+                    "application/*+json": components["schemas"]["GenerateCouponsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CouponResponse"][];
+                        "application/json": components["schemas"]["CouponResponse"][];
+                        "text/json": components["schemas"]["CouponResponse"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/coupons/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCouponRequest"];
+                    "text/json": components["schemas"]["UpdateCouponRequest"];
+                    "application/*+json": components["schemas"]["UpdateCouponRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CouponResponse"];
+                        "application/json": components["schemas"]["CouponResponse"];
+                        "text/json": components["schemas"]["CouponResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shipping/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ZoneResponse"][];
+                        "application/json": components["schemas"]["ZoneResponse"][];
+                        "text/json": components["schemas"]["ZoneResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertZoneRequest"];
+                    "text/json": components["schemas"]["UpsertZoneRequest"];
+                    "application/*+json": components["schemas"]["UpsertZoneRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ZoneResponse"];
+                        "application/json": components["schemas"]["ZoneResponse"];
+                        "text/json": components["schemas"]["ZoneResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shipping/zones/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpsertZoneRequest"];
+                    "text/json": components["schemas"]["UpsertZoneRequest"];
+                    "application/*+json": components["schemas"]["UpsertZoneRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ZoneResponse"];
+                        "application/json": components["schemas"]["ZoneResponse"];
+                        "text/json": components["schemas"]["ZoneResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shipping/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ShippingSettingsResponse"];
+                        "application/json": components["schemas"]["ShippingSettingsResponse"];
+                        "text/json": components["schemas"]["ShippingSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ShippingSettingsRequest"];
+                    "text/json": components["schemas"]["ShippingSettingsRequest"];
+                    "application/*+json": components["schemas"]["ShippingSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ShippingSettingsResponse"];
+                        "application/json": components["schemas"]["ShippingSettingsResponse"];
+                        "text/json": components["schemas"]["ShippingSettingsResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3360,6 +4215,7 @@ export interface components {
             nextStatuses: components["schemas"]["OrderStatus"][];
             /** Format: double */
             costOfGoods: null | number | string;
+            customerRisk: components["schemas"]["CustomerRiskResponse"];
         };
         AdminPopupResponse: {
             /** Format: int64 */
@@ -3381,6 +4237,56 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        AdminPromotionResponse: {
+            /** Format: int64 */
+            id: number | string;
+            name: string;
+            title: string;
+            description: null | string;
+            kind: components["schemas"]["PromotionKind"];
+            mode: components["schemas"]["PromotionMode"];
+            discountType: components["schemas"]["DiscountType"];
+            /** Format: double */
+            discountValue: number | string;
+            /** Format: double */
+            maxDiscountAmount: null | number | string;
+            /** Format: double */
+            minOrderAmount: number | string;
+            scopeType: components["schemas"]["PromotionScopeType"];
+            targetIds: (number | string)[];
+            excludeOnSaleItems: boolean;
+            audience: components["schemas"]["PromotionAudience"];
+            /** Format: int32 */
+            usageLimit: null | number | string;
+            /** Format: int32 */
+            perCustomerLimit: null | number | string;
+            /** Format: int32 */
+            usedCount: number | string;
+            /** Format: int32 */
+            couponCount: number | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            priority: number | string;
+            isPublic: boolean;
+            status: components["schemas"]["PromotionStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AppliedPromotionResponse: {
+            /** Format: int64 */
+            promotionId: number | string;
+            name: string;
+            kind: string;
+            couponCode: null | string;
+            /** Format: double */
+            amount: number | string;
+        };
         AuthorResponse: {
             /** Format: int64 */
             id: number | string;
@@ -3401,6 +4307,9 @@ export interface components {
             impersonatorId: null | number | string;
             /** Format: int32 */
             sessionVersion: number | string;
+        };
+        AvatarResponse: {
+            avatarUrl: null | string;
         };
         BatchResponse: {
             /** Format: int64 */
@@ -3443,6 +4352,7 @@ export interface components {
             coverImageUrl: null | string;
             updatedToText: null | string;
             editionStatus: null | components["schemas"]["EditionStatus"];
+            skuCode: null | string;
             /** Format: double */
             salePrice: null | number | string;
             /** Format: double */
@@ -3454,6 +4364,22 @@ export interface components {
             inStock: boolean;
         };
         BookType: number;
+        BuyNowOrderRequest: {
+            /** Format: int64 */
+            skuId: number | string;
+            /** Format: int32 */
+            quantity: number | string;
+            customerName: string;
+            phone: string;
+            email: null | string;
+            shippingAddress: components["schemas"]["ShippingAddressDto"];
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            invoiceInfo: null | components["schemas"]["InvoiceInfoDto"];
+            note: null | string;
+            couponCode?: null | string;
+            /** Format: double */
+            expectedTotal?: null | number | string;
+        };
         CancelOrderRequest: {
             reason: null | string;
         };
@@ -3511,8 +4437,60 @@ export interface components {
             currentPassword: string;
             newPassword: string;
         };
+        CheckoutPreviewRequest: {
+            source: components["schemas"]["CheckoutSource"];
+            /** Format: int64 */
+            skuId: null | number | string;
+            /** Format: int32 */
+            quantity: null | number | string;
+            province: null | string;
+            couponCode: null | string;
+            phone: null | string;
+        };
+        CheckoutPreviewResponse: {
+            items: components["schemas"]["PricedItemResponse"][];
+            /** Format: double */
+            subtotal: number | string;
+            /** Format: double */
+            discount: number | string;
+            /** Format: double */
+            shippingFee: number | string;
+            /** Format: double */
+            shippingDiscount: number | string;
+            /** Format: double */
+            total: number | string;
+            appliedPromotions: components["schemas"]["AppliedPromotionResponse"][];
+            couponApplied: null | boolean;
+            /** Format: double */
+            freeShippingThreshold: null | number | string;
+            /** Format: double */
+            amountToFreeShipping: number | string;
+            eta: null | components["schemas"]["EtaResponse"];
+            zoneName: null | string;
+            codAllowed: boolean;
+        };
+        CheckoutSource: number;
         ColorTheme: number;
+        CouponResponse: {
+            /** Format: int64 */
+            id: number | string;
+            /** Format: int64 */
+            promotionId: number | string;
+            code: string;
+            isActive: boolean;
+            /** Format: int32 */
+            usageLimit: null | number | string;
+            /** Format: int32 */
+            usedCount: number | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         CoverType: number;
+        CreateCouponRequest: {
+            code: string;
+            /** Format: int32 */
+            usageLimit: null | number | string;
+        };
         CreateOrderRequest: {
             customerName: string;
             phone: string;
@@ -3521,6 +4499,9 @@ export interface components {
             paymentMethod: components["schemas"]["PaymentMethod"];
             invoiceInfo: null | components["schemas"]["InvoiceInfoDto"];
             note: null | string;
+            couponCode?: null | string;
+            /** Format: double */
+            expectedTotal?: null | number | string;
         };
         CreateReceiptRequest: {
             note: null | string;
@@ -3541,6 +4522,22 @@ export interface components {
             password: string;
             roles: string[];
         };
+        CustomerRiskResponse: {
+            /** Format: int32 */
+            totalOrders: number | string;
+            /** Format: int32 */
+            deliveredCount: number | string;
+            /** Format: int32 */
+            cancelledCount: number | string;
+            /** Format: int32 */
+            failedCodCount: number | string;
+            /** Format: int32 */
+            openCodCount: number | string;
+            codBlocked: boolean;
+            openCodLimitReached: boolean;
+            codAllowed?: boolean;
+        };
+        DiscountType: number;
         EditionResponse: {
             /** Format: int64 */
             id: number | string;
@@ -3570,6 +4567,19 @@ export interface components {
             legalDocuments: components["schemas"]["LegalDocumentResponse"][];
         };
         EditionStatus: number;
+        EtaResponse: {
+            /** Format: int32 */
+            minDays: number | string;
+            /** Format: int32 */
+            maxDays: number | string;
+        };
+        GenerateCouponsRequest: {
+            /** Format: int32 */
+            count: number | string;
+            prefix: null | string;
+            /** Format: int32 */
+            usageLimit: null | number | string;
+        };
         InvoiceInfoDto: {
             companyName: string;
             taxCode: string;
@@ -3653,6 +4663,7 @@ export interface components {
             requiresTwoFactorSetup: boolean;
             isActive: boolean;
             theme: null | components["schemas"]["ColorTheme"];
+            avatarUrl: null | string;
             defaultAddress: null | components["schemas"]["AddressResponse"];
             invoiceInfo: null | components["schemas"]["InvoiceInfoResponse"];
         };
@@ -3677,6 +4688,8 @@ export interface components {
             quantity: number | string;
             /** Format: double */
             lineTotal: number | string;
+            /** Format: double */
+            discountAmount: number | string;
         };
         OrderResponse: {
             orderCode: string;
@@ -3695,7 +4708,10 @@ export interface components {
             /** Format: double */
             shippingFee: number | string;
             /** Format: double */
+            shippingDiscount: number | string;
+            /** Format: double */
             total: number | string;
+            appliedPromotions: components["schemas"]["AppliedPromotionResponse"][];
             invoiceRequired: boolean;
             invoiceInfo: null | components["schemas"]["InvoiceInfoDto"];
             note: null | string;
@@ -3705,6 +4721,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             history: components["schemas"]["OrderStatusLogResponse"][];
+            guestAccessToken: null | string;
         };
         OrderStatus: number;
         OrderStatusLogResponse: {
@@ -3736,12 +4753,20 @@ export interface components {
             items: components["schemas"]["AdminPopupResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
+        PagedResponseOfAdminPromotionResponse: {
+            items: components["schemas"]["AdminPromotionResponse"][];
+            meta: components["schemas"]["PageMeta"];
+        };
         PagedResponseOfAuthorResponse: {
             items: components["schemas"]["AuthorResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
         PagedResponseOfBookSummaryResponse: {
             items: components["schemas"]["BookSummaryResponse"][];
+            meta: components["schemas"]["PageMeta"];
+        };
+        PagedResponseOfCouponResponse: {
+            items: components["schemas"]["CouponResponse"][];
             meta: components["schemas"]["PageMeta"];
         };
         PagedResponseOfLegalDocumentResponse: {
@@ -3789,6 +4814,22 @@ export interface components {
         PreferencesResponse: {
             theme: null | components["schemas"]["ColorTheme"];
         };
+        PricedItemResponse: {
+            /** Format: int64 */
+            skuId: number | string;
+            skuCode: string;
+            bookTitle: string;
+            editionName: null | string;
+            coverType: string;
+            /** Format: double */
+            unitPrice: number | string;
+            /** Format: int32 */
+            quantity: number | string;
+            /** Format: double */
+            lineTotal: number | string;
+            /** Format: double */
+            discountAmount: number | string;
+        };
         PriceScheduleResponse: {
             /** Format: int64 */
             id: number | string;
@@ -3810,6 +4851,53 @@ export interface components {
             updatedAt: string;
         };
         PriceScheduleStatus: number;
+        PromotionAudience: number;
+        PromotionKind: number;
+        PromotionMode: number;
+        PromotionScopeType: number;
+        PromotionStatsResponse: {
+            /** Format: int64 */
+            promotionId: number | string;
+            /** Format: int32 */
+            usedCount: number | string;
+            /** Format: int32 */
+            releasedCount: number | string;
+            /** Format: double */
+            totalOrderDiscount: number | string;
+            /** Format: double */
+            totalShippingDiscount: number | string;
+            /** Format: int32 */
+            uniqueCustomers: number | string;
+        };
+        PromotionStatus: number;
+        PublicPromotionResponse: {
+            /** Format: int64 */
+            id: number | string;
+            title: string;
+            description: null | string;
+            kind: components["schemas"]["PromotionKind"];
+            mode: components["schemas"]["PromotionMode"];
+            discountType: components["schemas"]["DiscountType"];
+            /** Format: double */
+            discountValue: number | string;
+            /** Format: double */
+            maxDiscountAmount: null | number | string;
+            /** Format: double */
+            minOrderAmount: number | string;
+            scopeType: components["schemas"]["PromotionScopeType"];
+            excludeOnSaleItems: boolean;
+            audience: components["schemas"]["PromotionAudience"];
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: null | string;
+        };
+        QuoteItem: {
+            /** Format: int64 */
+            skuId: number | string;
+            /** Format: int32 */
+            quantity: number | string;
+        };
         RealtimeAuthRequest: {
             socketId: string;
             channelName: string;
@@ -3869,8 +4957,21 @@ export interface components {
         RejectReceiptRequest: {
             reason: string;
         };
+        ReplaceUploadSignatureResponse: {
+            uploadUrl: string;
+            apiKey: string;
+            /** Format: int64 */
+            timestamp: number | string;
+            publicId: string;
+            overwrite: boolean;
+            allowedFormats: string;
+            signature: string;
+        };
         ResetPasswordRequest: {
             newPassword: string;
+        };
+        SetAvatarRequest: {
+            avatarUrl: string;
         };
         SetRolesRequest: {
             roles: string[];
@@ -3887,12 +4988,39 @@ export interface components {
         ShippingQuoteRequest: {
             /** Format: double */
             subtotal: number | string;
+            province?: null | string;
+            items?: null | components["schemas"]["QuoteItem"][];
         };
         ShippingQuoteResponse: {
             /** Format: double */
             shippingFee: number | string;
             /** Format: double */
-            freeShippingThreshold: number | string;
+            freeShippingThreshold: null | number | string;
+            /** Format: double */
+            amountToFreeShipping: number | string;
+            eta: null | components["schemas"]["EtaResponse"];
+            zoneName: null | string;
+        };
+        ShippingSettingsRequest: {
+            /** Format: double */
+            freeShippingThreshold: null | number | string;
+            /** Format: int32 */
+            packagingWeightGram: number | string;
+            /** Format: int32 */
+            defaultBookWeightGram: number | string;
+            /** Format: double */
+            flatFee: number | string;
+        };
+        ShippingSettingsResponse: {
+            /** Format: double */
+            freeShippingThreshold: null | number | string;
+            /** Format: int32 */
+            packagingWeightGram: number | string;
+            /** Format: int32 */
+            defaultBookWeightGram: number | string;
+            /** Format: double */
+            flatFee: number | string;
+            isDefault: boolean;
         };
         SkuResponse: {
             /** Format: int64 */
@@ -3950,6 +5078,8 @@ export interface components {
         TwoFactorLoginRequest: {
             twoFactorToken: string;
             code: string;
+            /** @default false */
+            trustDevice: boolean;
         };
         TwoFactorSetupResponse: {
             sharedKey: string;
@@ -3958,6 +5088,11 @@ export interface components {
         UpdateCartItemRequest: {
             /** Format: int32 */
             quantity: number | string;
+        };
+        UpdateCouponRequest: {
+            isActive: boolean;
+            /** Format: int32 */
+            usageLimit: null | number | string;
         };
         UpdatePreferencesRequest: {
             theme: null | components["schemas"]["ColorTheme"];
@@ -4081,6 +5216,55 @@ export interface components {
             endsAt: string;
             note: null | string;
         };
+        UpsertPromotionRequest: {
+            name: string;
+            title: string;
+            description: null | string;
+            kind: components["schemas"]["PromotionKind"];
+            mode: components["schemas"]["PromotionMode"];
+            discountType: components["schemas"]["DiscountType"];
+            /** Format: double */
+            discountValue: number | string;
+            /** Format: double */
+            maxDiscountAmount: null | number | string;
+            /** Format: double */
+            minOrderAmount: number | string;
+            scopeType: components["schemas"]["PromotionScopeType"];
+            targetIds: null | (number | string)[];
+            excludeOnSaleItems: boolean;
+            audience: components["schemas"]["PromotionAudience"];
+            /** Format: int32 */
+            usageLimit: null | number | string;
+            /** Format: int32 */
+            perCustomerLimit: null | number | string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: null | string;
+            isActive: boolean;
+            /** Format: int32 */
+            priority: number | string;
+            isPublic: boolean;
+        };
+        UpsertZoneRequest: {
+            name: string;
+            isActive: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+            provinces: string[];
+            /** Format: int32 */
+            baseWeightGram: number | string;
+            /** Format: double */
+            baseFee: number | string;
+            /** Format: int32 */
+            stepWeightGram: number | string;
+            /** Format: double */
+            stepFee: number | string;
+            /** Format: int32 */
+            etaMinDays: number | string;
+            /** Format: int32 */
+            etaMaxDays: number | string;
+        };
         UserResponse: {
             /** Format: int64 */
             id: number | string;
@@ -4095,6 +5279,30 @@ export interface components {
             requiresTwoFactorSetup: boolean;
             isActive: boolean;
             theme: null | components["schemas"]["ColorTheme"];
+            avatarUrl: null | string;
+        };
+        ZoneResponse: {
+            /** Format: int64 */
+            id: number | string;
+            name: string;
+            isActive: boolean;
+            /** Format: int32 */
+            sortOrder: number | string;
+            provinces: string[];
+            /** Format: int32 */
+            baseWeightGram: number | string;
+            /** Format: double */
+            baseFee: number | string;
+            /** Format: int32 */
+            stepWeightGram: number | string;
+            /** Format: double */
+            stepFee: number | string;
+            /** Format: int32 */
+            etaMinDays: number | string;
+            /** Format: int32 */
+            etaMaxDays: number | string;
+            /** Format: date-time */
+            updatedAt: string;
         };
     };
     responses: never;
