@@ -23,7 +23,6 @@ describe("toBooksQuery", () => {
         q: "  dân sự ",
         category: "dan-su",
         type: "code",
-        cover: "hardcover",
         minPrice: "100000",
         maxPrice: "200000",
         sort: "price_asc",
@@ -33,7 +32,6 @@ describe("toBooksQuery", () => {
       Q: "dân sự",
       Category: "dan-su",
       Type: "code",
-      Cover: "hardcover",
       MinPrice: 100000,
       MaxPrice: 200000,
       Sort: "price_asc",
@@ -43,9 +41,10 @@ describe("toBooksQuery", () => {
   });
 
   it("drops values the backend would reject", () => {
-    expect(
-      toBooksQuery({ type: "xyz", cover: "leather", sort: "bad", minPrice: "-5", maxPrice: "abc", q: "   " }),
-    ).toEqual({ Page: 1, Limit: PAGE_SIZE });
+    expect(toBooksQuery({ type: "xyz", sort: "bad", minPrice: "-5", maxPrice: "abc", q: "   " })).toEqual({
+      Page: 1,
+      Limit: PAGE_SIZE,
+    });
   });
 
   it("swaps a reversed price range and caps the search length", () => {
@@ -155,7 +154,7 @@ describe("price ranges", () => {
 describe("activeFilters", () => {
   it("lists normalised filters with links that remove only that filter", () => {
     const filters = activeFilters(
-      { q: " dân sự ", category: "hop-dong", type: "code", cover: "bad", minPrice: "150000", page: "2" },
+      { q: " dân sự ", category: "hop-dong", type: "code", minPrice: "150000", page: "2" },
       flattenCategories(tree),
     );
     expect(filters.map((filter) => [filter.key, filter.label])).toEqual([
@@ -165,7 +164,7 @@ describe("activeFilters", () => {
       ["q", "“dân sự”"],
     ]);
     const type = filters.find((filter) => filter.key === "type");
-    expect(type?.removeHref).toBe("/sach?q=+d%C3%A2n+s%E1%BB%B1+&category=hop-dong&cover=bad&minPrice=150000");
+    expect(type?.removeHref).toBe("/sach?q=+d%C3%A2n+s%E1%BB%B1+&category=hop-dong&minPrice=150000");
   });
   it("removes both price bounds together and falls back to the slug for unknown categories", () => {
     const filters = activeFilters({ category: "khong-co", minPrice: "100000", maxPrice: "200000" }, []);

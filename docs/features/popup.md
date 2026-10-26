@@ -16,6 +16,10 @@ Module `SachLuat.Modules.Content`, schema `content`. Module này cũng là chỗ
    - Popup được chọn: `isActive = true`, `startsAt <= now`, và `endsAt` trống hoặc `> now`.
    - Nhiều popup cùng chạy → lấy `priority` lớn nhất; bằng nhau thì `startsAt` mới hơn, rồi `id` lớn hơn.
    - Không có popup nào → `204 No Content`.
+   - `GET /popups/running` trả các popup đang chạy cùng điều kiện và thứ tự ưu tiên như trên, **tối đa 3**
+     (`PopupService.MaxRunningPopups`), mảng rỗng khi không có. Phần tử đầu chính là popup `active`. Dùng cho khu
+     "Ưu đãi đang chạy" ở trang chủ để khách xem lại popup lỡ tắt; khu này không áp tần suất. Chạy quá 3 popup thì chỉ
+     3 popup ưu tiên cao nhất hiện ở đó.
 4. **Tần suất** do FE tự áp, lưu dấu "đã xem" ở trình duyệt với khóa `popup:{id}:{updatedAt}` (popup vừa sửa thì
    `updatedAt` đổi nên hiện lại):
 
@@ -38,6 +42,7 @@ Tiền tố `/api/v1`. API Admin dùng policy `content_admin` (`super_admin`, `m
 | Method | Route                            | Xác thực      | Request → Response                                                    |
 | ------ | -------------------------------- | ------------- | --------------------------------------------------------------------- |
 | GET    | `/popups/active`                 | Không         | → 200 `PopupResponse` hoặc 204                                        |
+| GET    | `/popups/running`                | Không         | → 200 `PopupResponse[]` (tối đa 3, có thể rỗng)                       |
 | GET    | `/admin/popups?page=&limit=`     | content_admin | → `PagedResponse<AdminPopupResponse>`, sắp theo ưu tiên               |
 | GET    | `/admin/popups/{id}`             | content_admin | → `AdminPopupResponse`                                                |
 | POST   | `/admin/popups`                  | content_admin | `UpsertPopupRequest` → 201 `AdminPopupResponse`                       |
@@ -91,7 +96,7 @@ Production tắt `Database:ApplyMigrationsOnStartup`, nên cần áp migration n
 
 ## Hạn chế / việc còn lại
 
-- Storefront chỉ nhận **một** popup; chưa nhắm theo trang (trang chủ, danh mục, chi tiết sách) hay theo đối tượng
+- Popup tự bật chỉ có **một** (`/popups/active`; `/popups/running` chỉ để xem lại ở trang chủ); chưa nhắm theo trang (trang chủ, danh mục, chi tiết sách) hay theo đối tượng
   (khách vãng lai, đã đăng nhập).
 - Chưa đếm lượt hiển thị/lượt bấm.
 - `GET /popups/active` chưa có cache, mỗi lần tải trang là một truy vấn (bảng nhỏ, chưa cần).

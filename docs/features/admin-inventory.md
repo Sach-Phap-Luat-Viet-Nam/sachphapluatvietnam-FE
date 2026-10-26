@@ -24,7 +24,7 @@ thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend
   (`dd/mm/yyyy`, mặc định hôm nay theo giờ Việt Nam, ô `components/DateInput.tsx`). Form chặn mã lô trùng trong cùng SKU
   (không phân biệt hoa thường) và hiện tổng số cuốn, tổng giá vốn. Lưu xong mở màn chi tiết phiếu. Lỗi theo dòng của backend
   (`lines[0].unitCost`) hiện đúng ô (`receiptFieldErrors`).
-- **Chọn SKU** (`SkuPicker`): backend chưa có API tìm SKU nên tìm qua API Catalog: gõ tên/slug/ISBN (từ 2 ký tự, 8 kết quả)
+- **Chọn SKU** (`SkuPicker`): backend chưa có API tìm SKU nên tìm qua API Catalog: gõ tên/slug/ISBN hoặc đúng mã SKU (từ 2 ký tự, 8 kết quả)
   → chọn đầu sách → chọn SKU theo ấn bản và loại bìa. Nhãn SKU đã chọn: tên sách · ấn bản · loại bìa · mã SKU.
 - **Duyệt phiếu**: chỉ `super_admin` thấy nút "Duyệt và nhập kho" (hỏi lại trước khi duyệt) và "Từ chối" (bắt buộc lý do).
   Người lập phiếu không thấy nút duyệt (backend trả `RECEIPT_SELF_APPROVAL`), vẫn từ chối được. Vai trò khác thấy câu "Phiếu

@@ -27,8 +27,9 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
     nên chạy cả khi chưa tải JavaScript; mức giá chọn nhanh là link.
   - Dòng "Đang lọc": mỗi bộ lọc là link bỏ riêng bộ lọc đó; giá trị đã chuẩn hóa như khi gọi API.
   - Sắp xếp dùng form có nút áp dụng (đổi bằng bàn phím không tải lại trang sau mỗi phím mũi tên).
-- Query string (`q`, `category`, `type`, `cover`, `minPrice`, `maxPrice`, `sort`, `page`) đi qua `toBooksQuery`: giá trị
+- Query string (`q`, `category`, `type`, `minPrice`, `maxPrice`, `sort`, `page`) đi qua `toBooksQuery`: giá trị
   backend sẽ từ chối bị bỏ qua, khoảng giá ngược được đảo lại.
+  Không có bộ lọc loại bìa (đã bỏ theo yêu cầu); loại bìa chỉ chọn ở trang chi tiết sách khi thêm vào giỏ.
 - **Thẻ sách**: bìa đứng trên "kệ", nhãn giảm giá hoặc "Sắp phát hành", loại sách, ấn bản · năm, dòng "Cập nhật đến",
   giá bán và giá bìa gạch ngang, trạng thái (sắp phát hành, ngừng bán, tạm hết hàng – bìa mờ, chưa có giá). Bấm bìa
   hoặc tên sách mở dialog xem nhanh, trong đó có nút sang trang chi tiết `/sach/<slug>` (`storefront-ordering.md`).

@@ -1,9 +1,6 @@
 import type { paths } from "@slvn/api-client";
 import { formatPrice } from "@slvn/utils";
-import { COVER_TYPE_LABELS } from "@/lib/labels";
 import type { BookSummary, CategoryNode } from "./schemas";
-
-export { COVER_TYPE_LABELS };
 
 export type CatalogParams = Record<string, string | string[] | undefined>;
 export type BooksQuery = NonNullable<paths["/api/v1/books"]["get"]["parameters"]["query"]>;
@@ -59,7 +56,6 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   const q = param(params, "q").trim().slice(0, MAX_QUERY_LENGTH);
   const category = param(params, "category").trim();
   const type = param(params, "type");
-  const cover = param(params, "cover");
   const sort = param(params, "sort");
   let minPrice = nonNegativeInt(param(params, "minPrice"));
   let maxPrice = nonNegativeInt(param(params, "maxPrice"));
@@ -70,7 +66,6 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   if (q) query.Q = q;
   if (category) query.Category = category;
   if (hasKey(BOOK_TYPE_LABELS, type)) query.Type = type;
-  if (hasKey(COVER_TYPE_LABELS, cover)) query.Cover = cover;
   if (hasKey(SORT_LABELS, sort)) query.Sort = sort;
   if (minPrice !== undefined) query.MinPrice = minPrice;
   if (maxPrice !== undefined) query.MaxPrice = maxPrice;
@@ -184,9 +179,6 @@ export function activeFilters(params: CatalogParams, categories: readonly FlatCa
   }
   if (query.Type && hasKey(BOOK_TYPE_LABELS, query.Type)) {
     filters.push({ key: "type", label: BOOK_TYPE_LABELS[query.Type], removeHref: remove("type") });
-  }
-  if (query.Cover && hasKey(COVER_TYPE_LABELS, query.Cover)) {
-    filters.push({ key: "cover", label: COVER_TYPE_LABELS[query.Cover], removeHref: remove("cover") });
   }
   const price = priceLabel(queryNumber(query.MinPrice), queryNumber(query.MaxPrice));
   if (price) filters.push({ key: "price", label: price, removeHref: remove("minPrice", "maxPrice") });

@@ -21,7 +21,7 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
    | --- | --------------------- | ---------------------------------------------------- |
    | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                   |
    | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                               |
-   | 3   | `search`              | Ô tìm sách theo tên hoặc ISBN                        |
+   | 3   | `search`              | Ô tìm sách theo tên, ISBN hoặc mã SKU                        |
    | 4   | `theme`               | Đổi giao diện sáng / tối                             |
    | 5   | `cart`                | Giỏ hàng, mua không cần tài khoản                    |
    | 6   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                   |

@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { cn } from "@slvn/ui";
 import type { CatalogParams } from "./catalog";
-import {
-  BOOK_TYPE_LABELS,
-  COVER_TYPE_LABELS,
-  PRICE_RANGES,
-  isPriceRangeActive,
-  param,
-  priceRangeHref,
-} from "./catalog";
+import { BOOK_TYPE_LABELS, PRICE_RANGES, isPriceRangeActive, param, priceRangeHref } from "./catalog";
 
 export interface CatalogFiltersProps {
   params: CatalogParams;
@@ -26,7 +19,6 @@ const FIELD = "border-border bg-ink-deep text-ivory h-11 w-full border px-3 text
 export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
   // Giá trị lạ trên URL bị bỏ khi gọi API (toBooksQuery) nên ở đây coi như "Tất cả".
   const type = Object.hasOwn(BOOK_TYPE_LABELS, param(params, "type")) ? param(params, "type") : "";
-  const cover = Object.hasOwn(COVER_TYPE_LABELS, param(params, "cover")) ? param(params, "cover") : "";
   return (
     <form action="/sach" className="flex flex-col gap-7">
       {["q", "category", "sort"].map((key) =>
@@ -98,26 +90,6 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
                 className={FIELD}
               />
             </label>
-          </div>
-        </fieldset>
-      </div>
-
-      <div className={DIVIDER}>
-        <fieldset>
-          <legend className={LEGEND}>Loại bìa</legend>
-          <div className="border-border grid grid-cols-3 border">
-            {[["", "Tất cả"], ...Object.entries(COVER_TYPE_LABELS)].map(([value, label], index) => (
-              <label
-                key={value}
-                className={cn(
-                  "has-checked:bg-gold has-checked:text-ink has-focus-visible:outline-gold flex min-h-11 items-center justify-center text-sm has-checked:font-semibold has-focus-visible:outline-2",
-                  index > 0 && "border-border border-l",
-                )}
-              >
-                <input type="radio" name="cover" value={value} defaultChecked={cover === value} className="sr-only" />
-                {label}
-              </label>
-            ))}
           </div>
         </fieldset>
       </div>
