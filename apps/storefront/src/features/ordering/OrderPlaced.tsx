@@ -6,18 +6,19 @@ import { ArrowRight, CircleCheck } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { SUBMIT } from "@/components/form-styles";
 import { useSession } from "@/lib/use-session";
-import { BankTransferInfo, isAwaitingTransfer } from "./BankTransferInfo";
+import { BankTransferInfo } from "./BankTransferInfo";
 import { OrderDetails } from "./OrderDetails";
-import type { BankAccount } from "./payment";
+import { isAwaitingTransfer } from "./payment";
 import type { Order } from "./schemas";
+import { useLiveOrder } from "./useOrders";
 
 export interface OrderPlacedProps {
   order: Order;
-  bankAccount: BankAccount | null;
 }
 
 /** Màn cảm ơn sau khi tạo đơn: mã đơn, hướng dẫn chuyển khoản (nếu có) và chi tiết đơn. */
-export function OrderPlaced({ order, bankAccount }: OrderPlacedProps) {
+export function OrderPlaced({ order: placed }: OrderPlacedProps) {
+  const order = useLiveOrder(placed);
   const heading = useRef<HTMLHeadingElement>(null);
   // Đơn đặt khi đã đăng nhập gắn với tài khoản: xem lại ở "Đơn của tôi"; khách vãng lai tra cứu bằng mã + SĐT.
   const member = useSession().status === "authenticated";
@@ -52,8 +53,11 @@ export function OrderPlaced({ order, bankAccount }: OrderPlacedProps) {
             : `Bạn lưu lại mã đơn và số điện thoại đặt hàng (${order.phone}) để tra cứu tình trạng đơn bất cứ lúc nào.`}
         </p>
 
-        {isAwaitingTransfer(order) && bankAccount && (
-          <BankTransferInfo order={order} bankAccount={bankAccount} className="mt-7" />
+        {isAwaitingTransfer(order) && <BankTransferInfo order={order} className="mt-7" />}
+        {order.paymentMethod === "bank_transfer" && order.paymentStatus === "paid" && (
+          <p role="status" className="text-ok mt-7 flex items-center gap-2.5 font-medium">
+            <CircleCheck size={20} /> Đã nhận được tiền chuyển khoản. Cảm ơn bạn!
+          </p>
         )}
 
         <div className="mt-8 flex flex-wrap gap-3">

@@ -123,7 +123,7 @@ async function submit(user: ReturnType<typeof userEvent.setup>) {
   await user.click(button);
 }
 
-function renderCheckout(ui: ReactElement = <Checkout bankAccount={null} />) {
+function renderCheckout(ui: ReactElement = <Checkout />) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
@@ -392,7 +392,7 @@ describe("Checkout", () => {
     expect(screen.getByRole("button", { name: "Đặt hàng" })).toBeEnabled();
   });
 
-  it("offers bank transfer only when a receiving account is configured", async () => {
+  it("shows the transfer details and QR returned by the backend after a bank transfer order", async () => {
     server.use(
       ...baseHandlers(),
       http.post(`${ORIGIN}/api/v1/orders`, () =>
@@ -401,14 +401,21 @@ describe("Checkout", () => {
             status: "pending_payment",
             paymentMethod: "bank_transfer",
             paymentExpiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+            paymentInstructions: {
+              bankName: "Ngân hàng A",
+              accountNumber: "0123456789",
+              accountName: "CONG TY SACH LUAT",
+              amount: 300000,
+              transferContent: "SLVN2610230001",
+              qrUrl: "https://qr.sepay.vn/img?acc=0123456789&bank=MBBank&amount=300000&des=SLVN2610230001",
+            },
           }),
           { status: 201 },
         ),
       ),
     );
     const user = userEvent.setup();
-    const bankAccount = { bankName: "Ngân hàng A", accountNumber: "0123456789", accountName: "CONG TY SACH LUAT" };
-    renderCheckout(<Checkout bankAccount={bankAccount} />);
+    renderCheckout();
 
     await fillRecipient(user);
     await user.click(screen.getByRole("radio", { name: /Chuyển khoản ngân hàng/ }));
@@ -416,14 +423,18 @@ describe("Checkout", () => {
 
     expect(await screen.findByRole("heading", { name: "Chuyển khoản để hoàn tất đơn" })).toBeVisible();
     expect(screen.getByText("0123456789")).toBeVisible();
+    expect(screen.getByRole("img", { name: /Mã QR chuyển khoản/ })).toHaveAttribute(
+      "src",
+      expect.stringContaining("qr.sepay.vn"),
+    );
     expect(screen.getByText(/Thời hạn chuyển khoản còn/)).toBeVisible();
   });
 
-  it("hides bank transfer when no receiving account is configured", async () => {
+  it("offers cash on delivery by default and bank transfer as an option", async () => {
     server.use(...baseHandlers());
     renderCheckout();
     expect(await screen.findByRole("radio", { name: /Thanh toán khi nhận hàng/ })).toBeChecked();
-    expect(screen.queryByRole("radio", { name: /Chuyển khoản/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Chuyển khoản ngân hàng/ })).toBeVisible();
   });
 });
 
@@ -472,7 +483,7 @@ describe("Checkout (Mua ngay)", () => {
       }),
     );
     const user = userEvent.setup();
-    renderCheckout(<Checkout bankAccount={null} buyNow={BUY_NOW} />);
+    renderCheckout(<Checkout buyNow={BUY_NOW} />);
 
     expect(await screen.findByText("Tái bản lần 3 · Bìa mềm")).toBeVisible();
     expect(screen.getByText("SL: 2 × 150.000 ₫")).toBeVisible();
@@ -515,7 +526,7 @@ describe("Checkout (Mua ngay)", () => {
       http.post(`${ORIGIN}/api/v1/orders/buy-now`, () => problem(409, "OUT_OF_STOCK")),
     );
     const user = userEvent.setup();
-    renderCheckout(<Checkout bankAccount={null} buyNow={BUY_NOW} />);
+    renderCheckout(<Checkout buyNow={BUY_NOW} />);
 
     await fillRecipient(user);
     await submit(user);
@@ -533,11 +544,11 @@ describe("Checkout (Mua ngay)", () => {
 
   it("explains a tampered link and a SKU that no longer belongs to the book", async () => {
     server.use(...buyNowHandlers(BOOK));
-    const { unmount } = renderCheckout(<Checkout bankAccount={null} buyNow="invalid" />);
+    const { unmount } = renderCheckout(<Checkout buyNow="invalid" />);
     expect(screen.getByRole("heading", { name: "Liên kết không hợp lệ" })).toBeVisible();
     unmount();
 
-    renderCheckout(<Checkout bankAccount={null} buyNow={{ ...BUY_NOW, skuId: 999 }} />);
+    renderCheckout(<Checkout buyNow={{ ...BUY_NOW, skuId: 999 }} />);
     expect(await screen.findByRole("heading", { name: "Sách không còn bán" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Quay lại trang sách" })).toHaveAttribute(
       "href",

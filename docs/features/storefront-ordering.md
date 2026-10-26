@@ -110,9 +110,16 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   chi tiết đơn; khách vãng lai được nhắc lưu mã + số điện thoại và link tra cứu, thành viên có link "Xem đơn của tôi"
   (`/don-hang/<mã>`). Đơn **không** lưu vào storage của trình duyệt vì có dữ liệu cá
   nhân; tải lại trang thì mất màn cảm ơn, khách tra cứu bằng mã đơn.
-- **Chuyển khoản**: chỉ hiện khi `BANK_ACCOUNT` trong `features/ordering/payment.ts` khác `null`. Khi đó màn cảm ơn hiện
-  ngân hàng, số tài khoản, chủ tài khoản, số tiền, nội dung = mã đơn và đồng hồ đếm ngược tới `paymentExpiresAt`
-  (30 phút).
+- **Chuyển khoản (SePay)**: luôn có lựa chọn "Chuyển khoản ngân hàng". Thông tin thanh toán do backend trả trong
+  `order.paymentInstructions` (ngân hàng, số tài khoản, chủ tài khoản, số tiền, nội dung = mã đơn, `qrUrl`), không còn
+  cấu hình tĩnh ở FE. `BankTransferInfo` hiện các thông tin đó cùng **mã QR VietQR** (`next/image`, `unoptimized`, chỉ nạp
+  `https://`) và đồng hồ đếm ngược tới `paymentExpiresAt` (30 phút). Backend chưa cấu hình tài khoản nhận tiền
+  (`paymentInstructions = null`) thì hiện lời nhắn liên hệ cửa hàng kèm mã đơn.
+- **Tự cập nhật khi tiền về**: màn cảm ơn (`useLiveOrder`) và chi tiết đơn của tôi (`useMyOrder`) hỏi lại đơn khi còn
+  chờ chuyển khoản (`paymentPollInterval`): thành viên 5 giây/lần qua `GET /orders/{code}`, khách vãng lai 15 giây/lần
+  qua `POST /orders/lookup` (giới hạn 10 request/phút/IP). SePay xác nhận tiền thì đơn thành `paid`, khối hướng dẫn
+  biến mất và hiện "Đã nhận được tiền chuyển khoản". Dừng hỏi khi đơn đã thanh toán hoặc bị hủy; lỗi mạng tạm thời giữ
+  nguyên dữ liệu cũ.
 
 ### Tra cứu đơn `/don-hang/tra-cuu`
 
@@ -183,8 +190,14 @@ giỏ, thanh toán, đơn hàng. Chuyển động luôn bật, không theo giả
 
 ## Hạn chế / việc còn lại
 
-- **Thông tin tài khoản nhận chuyển khoản chưa có**: `BANK_ACCOUNT = null` nên chỉ có COD. Điền ngân hàng, số tài khoản,
-  chủ tài khoản vào `features/ordering/payment.ts` để bật chuyển khoản.
+- **Chuyển khoản phụ thuộc cấu hình backend**: cần `SePay:AccountNumber`, `SePay:BankName` và webhook SePay (xem
+  `docs/features/sepay-payment.md` ở repo backend). Chưa cấu hình thì khách vẫn chọn được chuyển khoản nhưng không thấy
+  số tài khoản/QR (có lời nhắn liên hệ); FE chưa có cách biết trước để ẩn lựa chọn này.
+- Khách vãng lai tải lại trang thì mất màn cảm ơn và hướng dẫn chuyển khoản (đơn không lưu ở trình duyệt); tra cứu lại
+  bằng mã đơn + số điện thoại ở `/don-hang/tra-cuu` vẫn có `paymentInstructions` nếu đơn còn chờ thanh toán (chưa hiện
+  hướng dẫn chuyển khoản ở trang tra cứu).
+- Trang cảm ơn dùng `lookupOrder` để theo dõi nên chưa dùng link `guestAccessToken` của backend
+  (`GET /orders/guest/{token}`).
 - Backend Render (kiểm tra 24/10/2026): `POST /cart/items`, `DELETE /cart/items/{id}` trả 500 `INTERNAL_ERROR`,
   `/health/ready` trả 503 (Redis/CSDL chưa sẵn sàng); `GET /cart`, `GET /books/{slug}`, `POST /shipping/quote` chạy
   được. Chưa thử được thêm giỏ và đặt hàng end-to-end với backend thật.

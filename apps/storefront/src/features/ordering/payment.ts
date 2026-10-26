@@ -1,20 +1,28 @@
-import type { PaymentMethod } from "./order-forms";
+import type { Order } from "./schemas";
 
-export interface BankAccount {
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
+/** Đơn chuyển khoản chưa nhận tiền: cần hiện hướng dẫn chuyển khoản và theo dõi để tự cập nhật khi tiền về. */
+export function isAwaitingTransfer(order: Pick<Order, "paymentMethod" | "paymentStatus" | "status">): boolean {
+  return order.paymentMethod === "bank_transfer" && order.paymentStatus === "unpaid" && order.status !== "cancelled";
 }
 
-/**
- * Tài khoản nhận chuyển khoản. Backend chưa có API nên hiển thị nội dung tĩnh (docs/api_reference.md); điền khi Sách
- * Luật Việt Nam cung cấp. `null` thì ẩn lựa chọn chuyển khoản để khách không đặt đơn mà không biết chuyển tiền vào đâu.
- */
-export const BANK_ACCOUNT: BankAccount | null = null;
+/** Chu kỳ hỏi lại đơn đang chờ chuyển khoản (ms) để biết SePay đã xác nhận tiền chưa. */
+export const MEMBER_POLL_MS = 5_000;
+/** Khách vãng lai tra cứu bằng mã + SĐT, giới hạn 10 request/phút/IP nên hỏi thưa hơn. */
+export const GUEST_POLL_MS = 15_000;
 
-/** Phương thức thanh toán cho khách chọn: chuyển khoản chỉ hiện khi đã cấu hình tài khoản nhận tiền. */
-export function availablePaymentMethods(bankAccount: BankAccount | null): PaymentMethod[] {
-  return bankAccount ? ["cod", "bank_transfer"] : ["cod"];
+/** `false` khi không cần theo dõi nữa (đã thanh toán, đã hủy, không phải chuyển khoản). */
+export function paymentPollInterval(order: Order | undefined, member: boolean): number | false {
+  if (!order || !isAwaitingTransfer(order)) return false;
+  return member ? MEMBER_POLL_MS : GUEST_POLL_MS;
+}
+
+/** Ảnh QR chỉ nạp từ địa chỉ https do backend trả, tránh nhúng URL lạ. */
+export function safeQrUrl(qrUrl: string): string | null {
+  try {
+    return new URL(qrUrl).protocol === "https:" ? qrUrl : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Số giây còn lại tới hạn thanh toán (`paymentExpiresAt`), không âm. */

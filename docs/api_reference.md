@@ -502,7 +502,7 @@ Giỏ **không** lưu mã giảm giá và không có `/cart/apply-coupon`: FE gi
 
 - Thành công → backend **xóa giỏ** (riêng `buy-now` không đụng giỏ); FE xóa state giỏ và chuyển trang cảm ơn với `orderCode`.
 - Phí ship do Admin cấu hình (module Shipping): theo vùng tỉnh/thành và trọng lượng khi có `province` và đã có vùng giao hàng, không thì phí cố định `flatFee` (mặc định 30.000đ); **miễn phí khi tạm tính (trước giảm giá) ≥ `freeShippingThreshold`** (mặc định 300.000đ, `null` = tắt, BR-14). Tỉnh ngoài mọi vùng đang bật → 422 `ADDRESS_NOT_SUPPORTED`. Trang thanh toán dùng `POST /checkout/preview`; con số chốt là response tạo đơn.
-- COD → `pending_confirm`. Chuyển khoản → `pending_payment` với `paymentExpiresAt` = tạo đơn + 30 phút; quá hạn chưa đối soát được thì hệ thống **tự hủy** (FE hiển thị đồng hồ đếm ngược). Số tài khoản và nội dung chuyển khoản chưa có API: FE hiển thị nội dung tĩnh, ghi rõ nội dung = `orderCode`.
+- COD → `pending_confirm`. Chuyển khoản → `pending_payment` với `paymentExpiresAt` = tạo đơn + 30 phút; quá hạn chưa đối soát được thì hệ thống **tự hủy** (FE hiển thị đồng hồ đếm ngược). Thông tin chuyển khoản nằm trong `OrderResponse.paymentInstructions` (`bankName`, `accountNumber`, `accountName`, `amount`, `transferContent` = `orderCode`, `qrUrl` ảnh VietQR), chỉ có khi đơn còn `pending_payment` và backend đã cấu hình `SePay:*`, ngược lại `null`. Tiền về thì SePay gọi webhook của backend và đơn tự chuyển `paid`; FE hỏi lại đơn định kỳ để cập nhật.
 - **Chống bom hàng COD** theo số điện thoại (đã chuẩn hóa `+84…` → `0…`): đủ `Ordering:MaxOpenCodOrdersPerPhone` (mặc định 3) đơn COD đang mở → `TOO_MANY_OPEN_ORDERS`; đủ `Ordering:CodFailedDeliveryLimit` (mặc định 2) đơn COD giao thất bại → `COD_NOT_ALLOWED`. Chuyển khoản luôn đặt được; preview có `phone` thì trả `codAllowed` để FE ẩn COD trước.
 - Nút “Hủy đơn” hiện theo `canCancel` (BR-12: trạng thái còn chuyển được sang `cancelled`: `pending_payment`, `pending_confirm`, `preorder_waiting`, `confirmed`). Khách vãng lai tự hủy qua link `POST /orders/guest/{token}/cancel`; tra cứu bằng mã đơn + SĐT không trả token nên không hủy được từ đó.
 - Đơn của thành viên gắn với tài khoản đang đăng nhập lúc đặt; đơn đặt khi chưa đăng nhập xem bằng link `guestAccessToken` hoặc tra cứu `/orders/lookup` (`phone` dạng `0…` hay `+84…` đều khớp).
@@ -821,7 +821,7 @@ Chuyển trạng thái sai bảng trả 409 `ORDER_INVALID_TRANSITION`. Tác đ�
 
 | Chuyển sang           | Tác động                                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------------------- |
-| `paid`                | `paymentStatus = paid` (đối soát chuyển khoản thủ công)                                           |
+| `paid`                | `paymentStatus = paid` (tự động qua webhook SePay khi đủ tiền, hoặc đối soát thủ công)                                           |
 | `packing`             | Trừ tồn thật theo FIFO lô in, ghi giá vốn từng dòng                                               |
 | `cancelled`           | Hoàn tồn tạm giữ và trả lượt dùng khuyến mãi/mã giảm giá                                          |
 | `delivered` (đơn COD) | `paymentStatus = paid`                                                                            |
@@ -988,7 +988,7 @@ export async function api(path: string, init: RequestInit = {}, retry = true): P
 | Hạng mục                                                                      | Hiện trạng                              | FE tạm làm gì                                                                |
 | ----------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
 | CORS cho trình duyệt gọi thẳng khác site                                      | Đã bật theo `Cors:AllowedOrigins`, nhưng cookie `sl_refresh` là `SameSite=Strict` | Proxy `/api/v1` qua Next.js (`proxy.ts`)                 |
-| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                     | Chưa có                                 | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền là nội dung tĩnh |
+| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                     | Chưa có                                 | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền và QR lấy từ `paymentInstructions` của backend |
 | Phí ship theo đơn vị vận chuyển (GHN/GHTK...)                                 | Biểu phí tự quản lý theo vùng tỉnh + trọng lượng, có thời gian giao dự kiến | Dùng `/checkout/preview` hoặc `/shipping/quote` |
 | Combo, giá sỉ                                                                 | Chưa có (đã có mã giảm giá và khuyến mãi tự áp) | —                                                                    |
 | Đặt trước (pre-order)                                                         | Chưa có                                 | Ấn bản `upcoming` chỉ hiển thị                                               |

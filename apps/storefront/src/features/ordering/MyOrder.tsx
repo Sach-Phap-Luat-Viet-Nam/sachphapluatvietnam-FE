@@ -8,11 +8,10 @@ import { isApiError } from "@slvn/api-client";
 import { cn } from "@slvn/ui";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL } from "@/components/form-styles";
-import { BankTransferInfo, isAwaitingTransfer } from "./BankTransferInfo";
+import { BankTransferInfo } from "./BankTransferInfo";
 import { orderingErrorMessage } from "./errors";
 import { OrderDetails } from "./OrderDetails";
-import { BANK_ACCOUNT } from "./payment";
-import type { BankAccount } from "./payment";
+import { isAwaitingTransfer } from "./payment";
 import { OrdersSignInRequired } from "./OrdersSignInRequired";
 import { useCancelOrder, useMyOrder } from "./useOrders";
 
@@ -115,12 +114,10 @@ function CancelOrder({ code, cancel, onCancelled }: CancelOrderProps) {
 
 export interface MyOrderProps {
   code: string;
-  /** Mặc định lấy cấu hình trong `payment.ts`; truyền vào để test. */
-  bankAccount?: BankAccount | null;
 }
 
 /** Chi tiết một đơn của thành viên: trạng thái, chuyển khoản (nếu chờ), chi tiết đơn, hủy đơn khi còn được. */
-export function MyOrder({ code, bankAccount = BANK_ACCOUNT }: MyOrderProps) {
+export function MyOrder({ code }: MyOrderProps) {
   const { session, data: order, error, isError, isFetching, refetch } = useMyOrder(code);
   const cancel = useCancelOrder(code);
   const content = useRef<HTMLDivElement>(null);
@@ -181,7 +178,7 @@ export function MyOrder({ code, bankAccount = BANK_ACCOUNT }: MyOrderProps) {
           <CircleCheck size={18} /> Đã hủy đơn hàng.
         </p>
       )}
-      {isAwaitingTransfer(order) && bankAccount && <BankTransferInfo order={order} bankAccount={bankAccount} />}
+      {isAwaitingTransfer(order) && <BankTransferInfo order={order} />}
       <OrderDetails order={order} />
       <div className="border-gold/20 flex flex-col gap-3 border-t pt-6">
         {order.canCancel ? (

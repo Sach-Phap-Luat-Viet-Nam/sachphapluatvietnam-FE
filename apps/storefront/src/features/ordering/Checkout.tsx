@@ -31,6 +31,7 @@ import { previewKey, useCheckoutPreview } from "./useCheckoutPreview";
 import {
   CHECKOUT_DEFAULTS,
   CHECKOUT_FIELDS,
+  PAYMENT_METHODS,
   checkoutSchema,
   isValidPhone,
   normalizePhone,
@@ -40,10 +41,8 @@ import type { CheckoutValues, CreateOrderBody, PaymentMethod } from "./order-for
 import { orderingErrorMessage } from "./errors";
 import { PAYMENT_METHOD_LABELS, label } from "./labels";
 import { OrderPlaced } from "./OrderPlaced";
-import { BANK_ACCOUNT, availablePaymentMethods } from "./payment";
 import { SavedAddressPicker } from "./SavedAddressPicker";
 import type { AddressChoice } from "./SavedAddressPicker";
-import type { BankAccount } from "./payment";
 import type { Order } from "./schemas";
 import type { ReactNode } from "react";
 import { useCart, useClearCartCache, useRefreshCart } from "./useCart";
@@ -712,8 +711,6 @@ function BuyNowCheckout({ selection, methods, onPlaced }: CheckoutModeProps & { 
 }
 
 export interface CheckoutProps {
-  /** Mặc định lấy cấu hình trong `payment.ts`; truyền vào để test. */
-  bankAccount?: BankAccount | null;
   /** Lựa chọn "Mua ngay" đọc từ URL (`parseBuyNowParams`); `null` là đặt từ giỏ. */
   buyNow?: BuyNowSelection | "invalid" | null;
 }
@@ -722,11 +719,11 @@ export interface CheckoutProps {
  * Trang thanh toán: form thông tin giao hàng bên cạnh tóm tắt giỏ (hoặc một dòng Mua ngay), đặt xong thì hiện màn cảm ơn
  * tại chỗ.
  */
-export function Checkout({ bankAccount = BANK_ACCOUNT, buyNow = null }: CheckoutProps) {
+export function Checkout({ buyNow = null }: CheckoutProps) {
   // Giữ đơn vừa tạo trong state (không lưu vào storage) vì đơn có thông tin cá nhân của khách.
   const [placed, setPlaced] = useState<Order | null>(null);
   const saveAddress = useSaveAddress();
-  const methods = availablePaymentMethods(bankAccount);
+  const methods = [...PAYMENT_METHODS];
 
   const handlePlaced = (order: Order, addressToSave: AddressBody | null) => {
     setPlaced(order);
@@ -749,7 +746,7 @@ export function Checkout({ bankAccount = BANK_ACCOUNT, buyNow = null }: Checkout
             </span>
           )}
         </p>
-        <OrderPlaced order={placed} bankAccount={bankAccount} />
+        <OrderPlaced order={placed} />
       </div>
     );
   }

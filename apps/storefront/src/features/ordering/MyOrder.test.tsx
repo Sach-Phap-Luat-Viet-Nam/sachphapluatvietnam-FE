@@ -63,7 +63,7 @@ function problem(status: number, code: string) {
   return HttpResponse.json({ title: code, status, code, traceId: "00-trace" }, { status });
 }
 
-function renderOrder(ui = <MyOrder code="SLVN2610230001" bankAccount={null} />) {
+function renderOrder(ui = <MyOrder code="SLVN2610230001" />) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
@@ -160,12 +160,19 @@ describe("MyOrder", () => {
             status: "pending_payment",
             paymentMethod: "bank_transfer",
             paymentExpiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+            paymentInstructions: {
+              bankName: "Ngân hàng A",
+              accountNumber: "0123456789",
+              accountName: "CONG TY SACH LUAT",
+              amount: 300000,
+              transferContent: "SLVN2610230001",
+              qrUrl: "https://qr.sepay.vn/img?acc=0123456789&bank=MBBank&amount=300000&des=SLVN2610230001",
+            },
           }),
         ),
       ),
     );
-    const bankAccount = { bankName: "Ngân hàng A", accountNumber: "0123456789", accountName: "CONG TY SACH LUAT" };
-    renderOrder(<MyOrder code="SLVN2610230001" bankAccount={bankAccount} />);
+    renderOrder();
 
     expect(await screen.findByRole("heading", { name: "Chuyển khoản để hoàn tất đơn" })).toBeVisible();
     expect(screen.getByText(/Thời hạn chuyển khoản còn/)).toBeVisible();

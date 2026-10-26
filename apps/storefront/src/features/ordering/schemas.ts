@@ -73,6 +73,17 @@ export const orderStatusLogSchema = z.object({
   createdAt: z.string(),
 });
 
+/** Hướng dẫn chuyển khoản do backend trả (SePay); `transferContent` là mã đơn, `qrUrl` là ảnh VietQR. */
+export const paymentInstructionsSchema = z.object({
+  bankName: z.string(),
+  accountNumber: z.string(),
+  accountName: z.string(),
+  amount: z.number(),
+  transferContent: z.string(),
+  qrUrl: z.string(),
+});
+export type PaymentInstructions = z.infer<typeof paymentInstructionsSchema>;
+
 /** `OrderResponse`: trả về khi tạo đơn và khi tra cứu đơn. */
 export const orderSchema = z.object({
   orderCode: z.string(),
@@ -98,6 +109,8 @@ export const orderSchema = z.object({
   canCancel: z.boolean(),
   createdAt: z.string(),
   history: z.array(orderStatusLogSchema),
+  /** Chỉ có với đơn chuyển khoản còn chờ thanh toán và khi backend đã cấu hình tài khoản nhận tiền. */
+  paymentInstructions: paymentInstructionsSchema.nullable().default(null),
 });
 export type Order = z.infer<typeof orderSchema>;
 

@@ -38,12 +38,12 @@ App **storefront**, mọi trang (`PromoPopup` đặt trong `app/layout.tsx`).
 Khách lỡ tắt popup lúc mới vào web thì xem lại được ở khu **"Ưu đãi đang chạy"** trên trang chủ, nằm giữa dải danh mục
 và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ nguyên, không đổi.
 
-- **Dữ liệu**: Server Component gọi `getRunningPopups()` (`features/popup/server.ts`, `GET /popups/running`, tối đa 3
+- **Dữ liệu**: Server Component gọi `getRunningPopups()` (`features/popup/server.ts`, `GET /popups/running`, không giới hạn số lượng
   popup theo ưu tiên) cùng lúc với sách và danh mục, nên khu này nằm trong HTML dựng sẵn (làm mới 60 giây như trang
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
-- **Giao diện** (`features/popup/OfferShelf.tsx`): desktop là lưới 3 thẻ; điện thoại và tablet là hàng vuốt ngang, lộ một
-  phần thẻ kế tiếp. Mỗi thẻ gồm ảnh popup (khung 16:10, cắt từ phía trên, `object-cover object-top`), tên chương trình
-  (tự xuống dòng khi dài) và "Xem lại nội dung" luôn nằm **sát đáy thẻ** (các thẻ trong hàng cao bằng nhau). Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+- **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình, chiều rộng bằng khung nội
+  dung (tỷ lệ 16:10 trên điện thoại, 21:9 từ `sm`, 24:9 từ `lg`; ảnh cắt từ phía trên, `object-cover object-top`). Tên
+  chương trình và "Xem lại nội dung" nằm trên dải tối ở đáy ảnh. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
   nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
   bật là có nút riêng thay vì bấm vào ảnh. Hộp thoại rộng đúng bằng ảnh; tiêu đề dài tự xuống dòng cạnh nút (thanh dưới
@@ -55,7 +55,7 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 | Method | Route                    | Dùng cho                           | Xử lý                                                             |
 | ------ | ------------------------ | ---------------------------------- | ----------------------------------------------------------------- |
 | GET    | `/api/v1/popups/active`  | Popup đang chạy                    | 200 → parse Zod `popupSchema`; 204 → không hiện; lỗi → không hiện |
-| GET    | `/api/v1/popups/running` | Khu "Ưu đãi đang chạy" ở trang chủ | 200 → mảng `popupSchema` (tối đa 3, có thể rỗng); lỗi → ẩn khu    |
+| GET    | `/api/v1/popups/running` | Khu "Ưu đãi đang chạy" ở trang chủ | 200 → mảng `popupSchema` (không giới hạn, có thể rỗng); lỗi → ẩn khu    |
 
 - Hai route đã có trong OpenAPI sinh ra (`pnpm api:fetch && pnpm api:generate`), response vẫn parse bằng Zod
   (`popupSchema`) theo `docs/features/popup.md` vì type sinh ra để số là `number | string`.
@@ -76,4 +76,4 @@ Không thêm biến mới. Dùng proxy `/api/v1` của storefront (`API_BASE_URL
 - Ảnh popup dạng poster bị cắt ở thẻ (chỉ thấy phần trên); nội dung đầy đủ xem khi bấm vào thẻ. Muốn thẻ hiện nguyên
   ảnh thì đổi `object-cover` thành `object-contain` ở `OfferShelf.tsx`, đổi lại là ảnh nhỏ hơn trong khung.
 - Khu này chỉ có ở trang chủ (chưa có ở các trang khác).
-- Chạy quá 3 popup cùng lúc thì khu này chỉ hiện 3 popup ưu tiên cao nhất.
+- Số chương trình không bị giới hạn: khu này là **băng-rôn trượt** (mỗi lần một chương trình, không xuống hàng) với nút "Chương trình trước/sau" hai bên, chấm tròn phía dưới (chấm đang xem kéo dài) và vuốt/cuộn ngang; hết vòng thì quay lại đầu/cuối. Chỉ có một chương trình thì ẩn nút và chấm. Bấm băng-rôn mở lại popup đầy đủ như trước. Backend đã bỏ mức tối đa 3 (`PopupService.MaxRunningPopups`), cần deploy backend mới thì mới hiện quá 3 chương trình.
