@@ -10,9 +10,10 @@ import { isApiError } from "@slvn/api-client";
 import type { CheckoutPreviewBody } from "@slvn/api-client";
 import { fieldErrors } from "@slvn/auth";
 import { cn } from "@slvn/ui";
-import { PROVINCES, formatPrice } from "@slvn/utils";
+import { formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
+import { ProvinceSelect } from "@/components/ProvinceSelect";
 import { TextField } from "@/components/TextField";
 import { coverTypeLabel } from "@/lib/labels";
 import { MAX_ADDRESSES } from "@/lib/account-api";
@@ -325,22 +326,17 @@ function CheckoutForm({ summary, methods, blocker, submitOrder, recovery, onPlac
             <SavedAddressPicker addresses={savedAddresses} value={selectedAddress} onChange={chooseAddress} />
           )}
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField
+            <ProvinceSelect
               id="province"
               label="Tỉnh/Thành phố"
               autoComplete="address-level1"
-              list="province-options"
               registration={register("shippingAddress.province")}
+              value={province}
               error={
                 errors.shippingAddress?.province?.message ??
                 (addressUnsupported ? "Chưa hỗ trợ giao đến địa chỉ này." : undefined)
               }
             />
-            <datalist id="province-options">
-              {PROVINCES.map((name) => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
             <TextField
               id="ward"
               label="Phường/Xã"

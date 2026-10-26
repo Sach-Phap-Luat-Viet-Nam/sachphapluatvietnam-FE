@@ -120,7 +120,7 @@ test("opens a book, adds it to the cart and places a COD order", async ({ page }
   await expect(page.getByText("Vui lòng nhập họ tên người nhận.")).toBeVisible();
   await page.getByLabel("Họ và tên").fill("Khách Demo");
   await page.getByLabel("Số điện thoại").fill("0901234567");
-  await page.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
+  await page.getByLabel("Tỉnh/Thành phố").selectOption("Hà Nội");
   await page.getByLabel("Phường/Xã").fill("Phường Cầu Giấy");
   await page.getByLabel("Số nhà, tên đường").fill("1 Xuân Thủy");
   await page.screenshot({ path: testInfo.outputPath("checkout.png"), fullPage: true });

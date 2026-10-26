@@ -103,7 +103,7 @@ describe("Account", () => {
     const form = screen.getByRole("form", { name: "Thêm địa chỉ" });
     // Người nhận, số điện thoại điền sẵn từ hồ sơ.
     expect(within(form).getByLabelText("Tên người nhận")).toHaveValue("Nguyễn Văn A");
-    await user.type(within(form).getByLabelText("Tỉnh/Thành phố"), "TP. Hồ Chí Minh");
+    await user.selectOptions(within(form).getByLabelText("Tỉnh/Thành phố"), "TP. Hồ Chí Minh");
     await user.type(within(form).getByLabelText("Phường/Xã"), "Phường Bến Nghé");
     await user.type(within(form).getByLabelText("Số nhà, tên đường"), "2 Lê Duẩn");
     await user.click(within(form).getByRole("button", { name: "Lưu địa chỉ" }));

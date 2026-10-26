@@ -1,10 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authErrorMessage, fieldErrors } from "@slvn/auth";
 import { cn } from "@slvn/ui";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
+import { ProvinceSelect } from "@/components/ProvinceSelect";
 import { TextField } from "@/components/TextField";
 import type { Address } from "@/lib/account-api";
 import { useSaveAddress } from "@/lib/use-account";
@@ -27,6 +28,7 @@ export function AddressForm({ address, initial, forceDefault, onDone }: AddressF
   const prefix = address ? `address-${address.id}` : "address-new";
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -34,6 +36,7 @@ export function AddressForm({ address, initial, forceDefault, onDone }: AddressF
     resolver: zodResolver(addressFormSchema),
     defaultValues: address ?? { ...EMPTY_ADDRESS, ...initial, isDefault: forceDefault },
   });
+  const province = useWatch({ control, name: "province" });
 
   const onSubmit = async (values: AddressFormValues) => {
     try {
@@ -75,11 +78,12 @@ export function AddressForm({ address, initial, forceDefault, onDone }: AddressF
           registration={register("phone")}
           error={errors.phone?.message}
         />
-        <TextField
+        <ProvinceSelect
           id={`${prefix}-province`}
           label="Tỉnh/Thành phố"
           autoComplete="address-level1"
           registration={register("province")}
+          value={province}
           error={errors.province?.message}
         />
         <TextField

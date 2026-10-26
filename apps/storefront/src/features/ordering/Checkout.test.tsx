@@ -131,7 +131,7 @@ function renderCheckout(ui: ReactElement = <Checkout bankAccount={null} />) {
 async function fillRecipient(user: ReturnType<typeof userEvent.setup>) {
   await user.type(await screen.findByLabelText("Họ và tên"), "Nguyễn Văn A");
   await user.type(screen.getByLabelText("Số điện thoại"), "090 123 4567");
-  await user.type(screen.getByLabelText("Tỉnh/Thành phố"), "Hà Nội");
+  await user.selectOptions(screen.getByLabelText("Tỉnh/Thành phố"), "Hà Nội");
   await user.type(screen.getByLabelText("Phường/Xã"), "Phường Cầu Giấy");
   await user.type(screen.getByLabelText("Số nhà, tên đường"), "1 Xuân Thủy");
 }
@@ -290,7 +290,7 @@ describe("Checkout", () => {
 
     await user.click(screen.getByRole("radio", { name: "Giao đến địa chỉ khác" }));
     expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("");
-    await user.type(screen.getByLabelText("Tỉnh/Thành phố"), "Đà Nẵng");
+    await user.selectOptions(screen.getByLabelText("Tỉnh/Thành phố"), "Đà Nẵng");
     await user.type(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
     await user.type(screen.getByLabelText("Số nhà, tên đường"), "3 Bạch Đằng");
     await user.click(screen.getByLabelText("Lưu địa chỉ này vào sổ địa chỉ"));
@@ -662,7 +662,7 @@ describe("Checkout (khuyến mãi và phí vận chuyển)", () => {
     const user = userEvent.setup();
     renderCheckout();
 
-    await user.type(await screen.findByLabelText("Tỉnh/Thành phố"), "Đảo Hoàng Sa");
+    await user.selectOptions(await screen.findByLabelText("Tỉnh/Thành phố"), "Cà Mau");
 
     expect((await screen.findAllByText("Chưa hỗ trợ giao đến địa chỉ này.")).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Đặt hàng" })).toBeDisabled();
