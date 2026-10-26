@@ -9,7 +9,10 @@ export default function ComboNotFound() {
         <span className="font-editorial text-gold text-7xl italic">404</span>
         <h1 className="font-editorial text-4xl font-bold">Không tìm thấy combo</h1>
         <p className="text-mist max-w-md">Combo có thể đã hết thời gian áp dụng hoặc tạm ngừng bán.</p>
-        <Link href="/khuyen-mai" className="btn-sweep bg-gold text-ink flex h-12 items-center gap-2.5 px-7 font-semibold">
+        <Link
+          href="/khuyen-mai"
+          className="btn-sweep bg-gold text-ink flex h-12 items-center gap-2.5 px-7 font-semibold"
+        >
           Xem các ưu đãi đang chạy <ArrowRight size={17} />
         </Link>
       </Container>
