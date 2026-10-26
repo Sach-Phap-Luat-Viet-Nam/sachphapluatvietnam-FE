@@ -38,8 +38,12 @@ combo` tới `/khuyen-mai#combo`. Không có combo hoặc không tải được 
    nên khối "Ưu đãi đã áp" của `CartSummary`/`CheckoutSummary` hiện "Combo … −30.000 ₫", và đơn đã đặt hiện ở `OrderDetails`.
    `promotionId` của combo là **id combo** (có thể trùng id một chương trình), nên `key` của danh sách ưu đãi là
    `kind-promotionId`.
-5. **Không cộng dồn**: combo không cộng dồn với khuyến mãi giảm trên tổng đơn, backend chọn bên lợi hơn cho khách (hòa thì giữ
-   chương trình). Trang combo có ghi chú này cho khách.
+5. **Cộng dồn với khuyến mãi giảm trên đơn**: backend tính combo trước, rồi khuyến mãi giảm trên tổng đơn (tự áp hoặc mã)
+   tính tiếp trên **số tiền còn lại sau combo**, trong trần tổng mức giảm `Promotion:MaxTotalDiscountPercent` (chỉ áp cho
+   dòng thuộc combo, xem `promotion.md` của backend). Giỏ và thanh toán hiện cả hai dòng trong "Ưu đãi đã áp" (ví dụ
+   "Combo … −5.000 ₫" và "Khai trương −25.000 ₫"), `Tổng thanh toán` và `Giảm giá khuyến mãi` là số backend tổng hợp. Trang
+   combo có ghi chú này cho khách. Điều kiện hiện nút mua (mục 6) vẫn dựa vào việc combo có rẻ hơn giá lẻ hiện hành, không
+   phụ thuộc việc có khuyến mãi cộng thêm.
 6. **Combo không còn lợi** (`savings = 0`): sách trong bộ đang có **lịch giá** làm tổng giá lẻ hiện hành (`retailPrice`)
    thấp hơn hoặc bằng giá combo (ví dụ mỗi tập đang 290.000đ nên mua lẻ 580.000đ, combo 625.000đ) thì backend **không áp
    combo**, khách trả giá lẻ. FE xử lý để không quảng cáo sai:
