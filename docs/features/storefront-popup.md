@@ -41,9 +41,10 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 - **Dữ liệu**: Server Component gọi `getRunningPopups()` (`features/popup/server.ts`, `GET /popups/running`, không giới hạn số lượng
   popup theo ưu tiên) cùng lúc với sách và danh mục, nên khu này nằm trong HTML dựng sẵn (làm mới 60 giây như trang
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
-- **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình, chiều rộng bằng khung nội
-  dung (tỷ lệ 16:10 trên điện thoại, 21:9 từ `sm`, 24:9 từ `lg`; ảnh cắt từ phía trên, `object-cover object-top`). Tên
-  chương trình và "Xem lại nội dung" nằm trên dải tối ở đáy ảnh. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+- **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình, rộng tối đa 768px và căn
+  giữa (tỷ lệ 16:10 trên điện thoại, 16:9 từ `sm`; ảnh cắt từ phía trên, `object-cover object-top`). **Chỉ hiện ảnh**:
+  không có chữ mô tả đè lên ảnh, tên chương trình chỉ có trong `sr-only` làm nhãn nút. Không hiện ngày kết thúc (API
+  storefront không trả `endsAt`).
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
   nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
   bật là có nút riêng thay vì bấm vào ảnh. Hộp thoại rộng đúng bằng ảnh; tiêu đề dài tự xuống dòng cạnh nút (thanh dưới

@@ -82,11 +82,7 @@ describe("OfferShelf", () => {
 
     const list = screen.getByRole("list");
     const cards = within(list).getAllByRole("button");
-    expect(cards.map((card) => card.textContent)).toEqual([
-      "Chương trình 1Xem lại nội dung",
-      "Chương trình 2Xem lại nội dung",
-      "Chương trình 3Xem lại nội dung",
-    ]);
+    expect(cards.map((card) => card.textContent)).toEqual(["Chương trình 1", "Chương trình 2", "Chương trình 3"]);
     expect(screen.getByRole("heading", { name: "Chương trình đang diễn ra" })).toBeVisible();
   });
 

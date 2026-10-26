@@ -61,7 +61,12 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
 
         {/* Băng-rôn trượt: mỗi lần một chương trình (vuốt/cuộn ngang, nút trái-phải, chấm tròn), nên nhiều chương trình
             cũng không làm khu này dài thêm. */}
-        <div role="group" aria-roledescription="carousel" aria-labelledby="running-offers" className="relative">
+        <div
+          role="group"
+          aria-roledescription="carousel"
+          aria-labelledby="running-offers"
+          className="relative mx-auto w-full max-w-3xl"
+        >
           <ul
             ref={track}
             onScroll={handleScroll}
@@ -78,23 +83,18 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                 <button
                   type="button"
                   onClick={() => setSelected(popup)}
-                  className="group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-[16/10] w-full cursor-pointer overflow-hidden border text-left transition-colors sm:aspect-[21/9] lg:aspect-[24/9]"
+                  className="group bg-ink-deep border-gold/30 hover:border-gold relative block aspect-[16/10] w-full cursor-pointer overflow-hidden border text-left transition-colors sm:aspect-[16/9]"
                 >
                   <Image
                     src={popup.imageUrl}
                     alt=""
                     fill
-                    sizes="(min-width: 1280px) 1200px, 100vw"
+                    sizes="(min-width: 768px) 768px, 100vw"
                     unoptimized
                     className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
                   />
-                  <span className="from-ink/90 via-ink/50 absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t to-transparent px-5 pt-14 pb-5 sm:px-8 sm:pb-7">
-                    <span className="font-editorial text-xl leading-snug font-bold sm:text-3xl">{popup.title}</span>
-                    <span className="text-gold-pale flex items-center gap-2 text-sm font-medium">
-                      Xem lại nội dung
-                      <ArrowRight size={16} strokeWidth={1.6} aria-hidden="true" />
-                    </span>
-                  </span>
+                  {/* Ảnh banner đã tự có chữ; tên chương trình chỉ để trình đọc màn hình và nút bấm có nhãn. */}
+                  <span className="sr-only">{popup.title}</span>
                 </button>
               </li>
             ))}
