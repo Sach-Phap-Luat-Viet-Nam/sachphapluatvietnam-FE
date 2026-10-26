@@ -43,12 +43,11 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
   chủ), không phải đợi tải ở trình duyệt. Lỗi hoặc không có popup thì **ẩn cả khu**, không làm hỏng trang.
 - **Giao diện** (`features/popup/OfferShelf.tsx`): băng-rôn trượt, mỗi lần một chương trình. Banner luôn **1920×1080**
   nên khung cố định **16:9 ở mọi cỡ màn hình** (`aspect-video`, `object-cover`) và hiện đủ ảnh, không cắt. Khung rộng tối
-  đa `max-w-5xl` (64rem) và căn giữa, nhỏ hơn bề rộng nội dung một chút. Tên chương trình (chữ nhỏ: `text-sm`, từ `sm` là
-  `text-base`, tối đa 1 dòng trên điện thoại và 2 dòng từ `sm`) và "Xem lại nội dung" nằm trên dải tối mỏng ở đáy ảnh;
-  muốn xem đủ tiêu đề thì bấm thẻ để mở hộp thoại. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
+  đa `max-w-5xl` (64rem) và căn giữa, nhỏ hơn bề rộng nội dung một chút. **Không in tên chương trình** lên ảnh (banner đã có chữ; tên chỉ còn trong `sr-only` làm nhãn nút);
+  dải tối mỏng ở đáy ảnh chỉ có "Xem lại nội dung", muốn xem đủ nội dung thì bấm thẻ để mở hộp thoại. Không hiện ngày kết thúc (API storefront không trả `endsAt`).
 - **Chuyển động** (chỉ `opacity`/`transform`, 0,5 giây, easing `--ease-out-soft`; luôn bật, không theo
   `prefers-reduced-motion` như quy ước ở `storefront-shell.md`): băng-rôn đang xem sáng và đủ cỡ, băng-rôn còn lại mờ
-  (`opacity-40`) và nhỏ hơn 6% (`scale-[0.94]`); phần tên chương trình mờ dần và trượt lên khi băng-rôn vào giữa. Trạng
+  (`opacity-40`) và nhỏ hơn 6% (`scale-[0.94]`); dòng "Xem lại nội dung" mờ dần và trượt lên khi băng-rôn vào giữa. Trạng
   thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. Chưa có tự động chuyển
   băng-rôn.
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và

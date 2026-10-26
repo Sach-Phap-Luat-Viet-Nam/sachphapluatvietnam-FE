@@ -106,9 +106,8 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
                       position === index ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
                     )}
                   >
-                    <span className="font-editorial line-clamp-1 text-sm leading-snug font-bold sm:line-clamp-2 sm:text-base">
-                      {popup.title}
-                    </span>
+                    {/* Banner đã có chữ nên không in lại tên chương trình; vẫn giữ làm nhãn cho trình đọc màn hình. */}
+                    <span className="sr-only">{popup.title}</span>
                     <span className="text-gold-pale flex items-center gap-1.5 text-xs font-medium">
                       Xem lại nội dung
                       <ArrowRight size={14} strokeWidth={1.6} aria-hidden="true" />
