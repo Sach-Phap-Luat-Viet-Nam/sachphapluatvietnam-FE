@@ -17,7 +17,7 @@ App **storefront**. Combo không có SKU hay tồn kho riêng: đơn vẫn gồm
      như trang chi tiết sách; một cuốn thì cỡ `detail`; cuốn chưa có ảnh bìa dùng bìa vẽ sẵn của `Book3D`). Combo từ 3
      sách trở lên dùng bìa phẳng (tối đa 4, `ComboCovers`) vì cột ảnh không đủ chỗ cho nhiều mô hình 3D.
    - Bên phải: tên, mô tả, **khối đặt mua** (giá combo, **giá gốc** gạch ngang, nhãn `−48%`, "Tiết kiệm … so với giá gốc", hạn áp dụng), nút
-     mua và danh sách **"Trong combo"** (bìa, tên sách là liên kết tới `/sach/{slug}`, loại bìa/ấn bản, `× số cuốn`, giá lẻ).
+     mua và danh sách **"Trong combo"** (bìa, tên sách là liên kết tới `/sach/{slug}`, loại bìa/ấn bản, `× số cuốn`, **giá gốc** (giá bìa `listPrice`) của một cuốn, không phải giá sau giảm).
    - Có `generateMetadata` (title, description, canonical, Open Graph) và JSON-LD `Product` + `Offer` + `BreadcrumbList`.
    - Combo không chạy/đã xóa/có sách không còn ở Catalog: `not-found.tsx` (404, không index).
 2. **Nút mua** (`features/ordering/BuyComboButton.tsx`, client): thêm **lần lượt từng sách** của bộ vào giỏ bằng

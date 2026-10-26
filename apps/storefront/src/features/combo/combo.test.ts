@@ -4,6 +4,7 @@ import {
   combosForSkus,
   hasSavings,
   itemDetail,
+  itemOriginalPrice,
   itemsSummary,
   originalPrice,
   originalPriceName,
@@ -181,5 +182,19 @@ describe("comboJsonLd", () => {
     expect(product).not.toHaveProperty("description");
     expect(product).not.toHaveProperty("image");
     expect(product?.offers).not.toHaveProperty("priceValidUntil");
+  });
+});
+
+describe("itemOriginalPrice", () => {
+  it("hiện giá bìa của một cuốn, không phải giá sau giảm", () => {
+    expect(itemOriginalPrice(item(1, { unitPrice: 290000, listPrice: 400000 }))).toBe(400000);
+  });
+
+  it("backend cũ chưa trả listPrice thì dùng giá hiện hành", () => {
+    expect(itemOriginalPrice(item(1, { unitPrice: 290000 }))).toBe(290000);
+  });
+
+  it("không bao giờ thấp hơn giá hiện hành", () => {
+    expect(itemOriginalPrice(item(1, { unitPrice: 290000, listPrice: 100000 }))).toBe(290000);
   });
 });

@@ -15,6 +15,7 @@ import {
   comboPath,
   hasSavings,
   itemDetail,
+  itemOriginalPrice,
   originalPrice,
   originalPriceName,
   payablePrice,
@@ -204,7 +205,7 @@ export default async function ComboPage({ params }: ComboPageProps) {
                   </div>
                   <p className="shrink-0 text-right text-sm">
                     <span className="text-sand block">× {item.quantity}</span>
-                    <span className="text-mist block">{formatPrice(item.unitPrice)} / cuốn</span>
+                    <span className="text-mist block">{formatPrice(itemOriginalPrice(item))} / cuốn</span>
                   </p>
                 </li>
               ))}

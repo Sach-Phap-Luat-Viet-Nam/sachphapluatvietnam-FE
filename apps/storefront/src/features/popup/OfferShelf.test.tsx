@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { OfferShelf } from "./OfferShelf";
+import { AUTO_ADVANCE_MS, OfferShelf } from "./OfferShelf";
 import type { Popup } from "./schemas";
 
 function popup(id: number, overrides: Partial<Popup> = {}): Popup {
@@ -157,5 +157,54 @@ describe("OfferShelf", () => {
     await user.click(screen.getByRole("button", { name: "Đóng quảng cáo" }));
     await user.click(screen.getByRole("button", { name: /Chương trình 3/ }));
     expect(screen.queryByRole("link", { name: "Xem chương trình" })).not.toBeInTheDocument();
+  });
+
+  describe("tự chuyển băng-rôn", () => {
+    const dot = (position: number) => screen.getByRole("button", { name: `Chuyển tới chương trình ${position}` });
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // jsdom không có layout nên `clientWidth` luôn 0; cho băng-rôn một bề rộng để tính được vị trí.
+      vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(1000);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("sang băng-rôn kế tiếp mỗi 2 giây rồi quay lại đầu", () => {
+      render(<OfferShelf popups={[popup(1), popup(2), popup(3)]} />);
+      expect(dot(1)).toHaveAttribute("aria-current", "true");
+
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
+      expect(dot(2)).toHaveAttribute("aria-current", "true");
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
+      expect(dot(3)).toHaveAttribute("aria-current", "true");
+      expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: 2000 }));
+
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
+      expect(dot(1)).toHaveAttribute("aria-current", "true");
+    });
+
+    it("tạm dừng khi rê chuột vào và chạy lại khi rời đi", () => {
+      render(<OfferShelf popups={[popup(1), popup(2)]} />);
+      const carousel = screen.getByRole("group", { name: "Chương trình đang diễn ra" });
+
+      fireEvent.pointerEnter(carousel, { pointerType: "mouse" });
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS * 3));
+      expect(dot(1)).toHaveAttribute("aria-current", "true");
+
+      fireEvent.pointerLeave(carousel, { pointerType: "mouse" });
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS));
+      expect(dot(2)).toHaveAttribute("aria-current", "true");
+    });
+
+    it("chỉ có một chương trình thì không tự chuyển", () => {
+      render(<OfferShelf popups={[popup(1)]} />);
+
+      act(() => void vi.advanceTimersByTime(AUTO_ADVANCE_MS * 3));
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
   });
 });

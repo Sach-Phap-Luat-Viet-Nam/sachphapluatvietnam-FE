@@ -15,6 +15,8 @@ export const comboItemSchema = z.object({
   quantity: z.number(),
   /** Giá hiện hành (đã gồm lịch giá) của một cuốn khi mua lẻ. */
   unitPrice: z.number(),
+  /** Giá bìa (giá gốc) của một cuốn, không đổi khi sách có lịch giá. Tùy chọn để FE chạy được với backend cũ. */
+  listPrice: z.number().optional(),
   isSellable: z.boolean(),
 });
 export type ComboItem = z.infer<typeof comboItemSchema>;

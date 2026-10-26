@@ -7,6 +7,11 @@ export function comboPath(slug: string): string {
   return `/combo/${slug}`;
 }
 
+/** Giá gốc (giá bìa) của một cuốn trong bộ; backend cũ chưa trả `listPrice` thì dùng giá hiện hành. */
+export function itemOriginalPrice(item: Pick<ComboItem, "listPrice" | "unitPrice">): number {
+  return Math.max(item.listPrice ?? item.unitPrice, item.unitPrice);
+}
+
 /** Tổng số cuốn trong một bộ. */
 export function totalCopies(combo: Pick<Combo, "items">): number {
   return combo.items.reduce((sum, item) => sum + item.quantity, 0);

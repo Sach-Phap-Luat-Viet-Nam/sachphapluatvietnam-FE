@@ -10,6 +10,8 @@ import { safePopupLink } from "./popup";
 import type { Popup } from "./schemas";
 
 const CLOSE_LABEL = "Đóng quảng cáo";
+/** Thời gian giữa hai lần tự chuyển băng-rôn. */
+export const AUTO_ADVANCE_MS = 2000;
 
 /**
  * Khu "Chương trình đang diễn ra" ở trang chủ: băng-rôn trượt, khách lỡ tắt popup lúc mới vào web thì bấm vào để xem lại đầy đủ. Không áp
@@ -20,12 +22,29 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
   const track = useRef<HTMLUListElement>(null);
   const [selected, setSelected] = useState<Popup | null>(null);
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = popups.length;
 
   useEffect(() => {
     if (selected && dialog.current && !dialog.current.open) {
       dialog.current.showModal();
     }
   }, [selected]);
+
+  // Tự chuyển sang băng-rôn kế tiếp mỗi 2 giây. Tạm dừng khi rê chuột/focus bàn phím vào khu này hoặc đang mở hộp thoại;
+  // `index` nằm trong deps nên bấm nút hay vuốt tay cũng đếm lại 2 giây, không bị nhảy ngay sau thao tác của khách.
+  useEffect(() => {
+    if (count < 2 || paused || selected) return;
+    const timer = window.setInterval(() => {
+      const list = track.current;
+      if (!list || list.clientWidth === 0) return;
+      // `index` luôn theo vị trí cuộn (handleScroll) nên vuốt tay xong vẫn chuyển tiếp từ đúng băng-rôn đang xem.
+      const next = (index + 1) % count;
+      list.scrollTo({ left: next * list.clientWidth, behavior: "smooth" });
+      setIndex(next);
+    }, AUTO_ADVANCE_MS);
+    return () => window.clearInterval(timer);
+  }, [count, paused, selected, index]);
 
   if (popups.length === 0) {
     return null;
@@ -67,6 +86,11 @@ export function OfferShelf({ popups }: { popups: Popup[] }) {
           aria-roledescription="carousel"
           aria-labelledby="running-offers"
           className="relative mx-auto w-full max-w-5xl"
+          // Chỉ chuột mới tạm dừng khi rê vào (chạm trên điện thoại thì không); bàn phím thì khi focus nhìn thấy.
+          onPointerEnter={(event) => event.pointerType === "mouse" && setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
+          onFocusCapture={(event) => event.target.matches(":focus-visible") && setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
         >
           <ul
             ref={track}

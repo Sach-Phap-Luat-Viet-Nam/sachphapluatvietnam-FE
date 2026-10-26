@@ -48,8 +48,10 @@ và phần "Vừa lên kệ" (`app/page.tsx`). Popup tự bật ở trên giữ 
 - **Chuyển động** (chỉ `opacity`/`transform`, 0,5 giây, easing `--ease-out-soft`; luôn bật, không theo
   `prefers-reduced-motion` như quy ước ở `storefront-shell.md`): băng-rôn đang xem sáng và đủ cỡ, băng-rôn còn lại mờ
   (`opacity-40`) và nhỏ hơn 6% (`scale-[0.94]`); dòng "Xem lại nội dung" mờ dần và trượt lên khi băng-rôn vào giữa. Trạng
-  thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. Chưa có tự động chuyển
-  băng-rôn.
+  thái theo vị trí cuộn nên đúng cả khi khách vuốt tay; thẻ đang xem có `data-active="true"`. **Tự chuyển** sang băng-rôn kế tiếp
+  mỗi **2 giây** (`AUTO_ADVANCE_MS`), hết vòng thì quay lại đầu; tạm dừng khi rê chuột vào khu này, khi focus bàn phím
+  (`:focus-visible`) hoặc đang mở hộp thoại, và đếm lại 2 giây sau mỗi lần đổi băng-rôn (kể cả khách bấm nút hay vuốt
+  tay). Chạm trên điện thoại không tạm dừng. Tự chuyển luôn bật, không theo `prefers-reduced-motion` như phần chuyển động.
 - **Bấm thẻ** mở `<dialog>` cùng kiểu popup tự bật: ảnh đầy đủ, nút đóng (X hoặc Esc), thanh dưới có tên chương trình và
   nút **"Xem chương trình"** nếu popup có link (link kiểm tra bằng `safePopupLink`, link ngoài mở tab mới). Khác popup tự
   bật là có nút riêng thay vì bấm vào ảnh. Hộp thoại rộng đúng bằng ảnh; tiêu đề dài tự xuống dòng cạnh nút (thanh dưới
