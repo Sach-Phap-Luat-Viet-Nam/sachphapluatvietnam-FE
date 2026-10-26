@@ -102,7 +102,10 @@ export default async function ComboPage({ params }: ComboPageProps) {
             )}
           </div>
 
-          <section aria-label="Đặt mua" className="border-gold/30 bg-panel flex flex-col gap-5 border px-6 py-7 sm:px-8">
+          <section
+            aria-label="Đặt mua"
+            className="border-gold/30 bg-panel flex flex-col gap-5 border px-6 py-7 sm:px-8"
+          >
             <div className="flex flex-col gap-1.5">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="text-gold-pale text-3xl font-semibold">{formatPrice(combo.comboPrice)}</span>
