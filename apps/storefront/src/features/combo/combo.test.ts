@@ -1,4 +1,14 @@
-import { comboJsonLd, comboPath, combosForSkus, itemDetail, itemsSummary, savingsPercent, totalCopies } from "./combo";
+import {
+  comboJsonLd,
+  comboPath,
+  combosForSkus,
+  hasSavings,
+  itemDetail,
+  itemsSummary,
+  payablePrice,
+  savingsPercent,
+  totalCopies,
+} from "./combo";
 import type { Combo, ComboItem } from "./schemas";
 
 function item(skuId: number, overrides: Partial<ComboItem> = {}): ComboItem {
@@ -63,6 +73,21 @@ describe("savingsPercent", () => {
   });
 });
 
+describe("hasSavings và payablePrice", () => {
+  // Sách đang có lịch giá 290.000đ/cuốn: mua lẻ cả bộ 580.000đ, thấp hơn giá combo 625.000đ nên backend không áp combo.
+  const onSchedule = combo({ comboPrice: 625000, retailPrice: 580000, savings: 0 });
+
+  it("combo chỉ có lợi khi tiết kiệm được tiền", () => {
+    expect(hasSavings(combo())).toBe(true);
+    expect(hasSavings(onSchedule)).toBe(false);
+  });
+
+  it("khách thực trả giá combo khi có lợi, còn không thì trả giá mua lẻ", () => {
+    expect(payablePrice(combo())).toBe(70000);
+    expect(payablePrice(onSchedule)).toBe(580000);
+  });
+});
+
 describe("combosForSkus", () => {
   const ab = combo({ id: 1 });
   const bc = combo({ id: 2, items: [item(12), item(13)] });
@@ -118,6 +143,12 @@ describe("comboJsonLd", () => {
       image: "https://cdn.example/12.jpg",
       offers: { availability: "https://schema.org/OutOfStock" },
     });
+  });
+
+  it("giá của Offer là số tiền khách thực trả, không phải giá combo chưa áp dụng", () => {
+    const [product] = graph(combo({ comboPrice: 625000, retailPrice: 580000, savings: 0 }));
+
+    expect(product).toMatchObject({ offers: { price: 580000 } });
   });
 
   it("bỏ các field chưa có dữ liệu thay vì xuất null", () => {

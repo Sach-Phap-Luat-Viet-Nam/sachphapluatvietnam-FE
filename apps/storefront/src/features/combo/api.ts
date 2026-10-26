@@ -2,17 +2,23 @@ import "server-only";
 import { cache } from "react";
 import { isApiError, unwrap } from "@slvn/api-client";
 import { serverApi } from "@/lib/api";
+import { hasSavings } from "./combo";
 import { comboSchema } from "./schemas";
 import type { Combo } from "./schemas";
 
 /**
- * Combo đang chạy (mới nhất trước, tối đa 50, đã ẩn combo có sách ngừng bán). `null` khi không tải được: combo chỉ là
- * phần thêm nên trang gọi hàm này ẩn khu combo chứ không báo lỗi cả trang. Bọc `cache` để nhiều khu trên một trang
- * (và Next.js) dùng chung một request.
+ * Combo đang chạy và **đang có lợi cho khách** (mới nhất trước, tối đa 50, backend đã ẩn combo có sách ngừng bán). Combo
+ * không còn lợi (`savings = 0`: sách đang có lịch giá nên mua lẻ không cao hơn giá combo) bị bỏ vì không có gì để quảng
+ * cáo; trang `/combo/{slug}` vẫn mở được qua `getCombo`. `null` khi không tải được: combo chỉ là phần thêm nên trang gọi
+ * hàm này ẩn khu combo chứ không báo lỗi cả trang. Bọc `cache` để nhiều khu trên một trang (và Next.js) dùng chung một
+ * request.
  */
 export const getCombos = cache(async (): Promise<Combo[] | null> => {
   try {
-    return comboSchema.array().parse(await unwrap(serverApi.GET("/api/v1/combos")));
+    return comboSchema
+      .array()
+      .parse(await unwrap(serverApi.GET("/api/v1/combos")))
+      .filter(hasSavings);
   } catch (error) {
     console.error("Không tải được danh sách combo", error);
     return null;

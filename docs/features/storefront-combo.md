@@ -37,6 +37,14 @@ combo` tới `/khuyen-mai#combo`. Không có combo hoặc không tải được 
    `kind-promotionId`.
 5. **Không cộng dồn**: combo không cộng dồn với khuyến mãi giảm trên tổng đơn, backend chọn bên lợi hơn cho khách (hòa thì giữ
    chương trình). Trang combo có ghi chú này cho khách.
+6. **Combo không còn lợi** (`savings = 0`): sách trong bộ đang có **lịch giá** làm tổng giá lẻ hiện hành (`retailPrice`)
+   thấp hơn hoặc bằng giá combo (ví dụ mỗi tập đang 290.000đ nên mua lẻ 580.000đ, combo 625.000đ) thì backend **không áp
+   combo**, khách trả giá lẻ. FE xử lý để không quảng cáo sai:
+   - `getCombos()` (trang chủ, `/khuyen-mai`, mục trên trang sách) **bỏ** combo này (`hasSavings`).
+   - Trang `/combo/{slug}` vẫn mở được nhưng hiện **giá khách thực trả** (`payablePrice` = nhỏ hơn của giá combo và giá lẻ),
+     ghi chú "đang có giá ưu đãi, giá combo sẽ tự áp dụng trở lại khi hết ưu đãi" và **ẩn nút mua combo**; khách mua từng
+     cuốn ở danh sách "Trong combo". JSON-LD `Offer.price` cũng là `payablePrice`.
+   - Hết lịch giá thì combo tự có lợi trở lại và hiện lại ở mọi nơi (trang dựng lại mỗi 60 giây).
 
 Hàm thuần: `features/combo/combo.ts` (đường dẫn, số cuốn, % tiết kiệm chỉ để hiển thị, lọc combo theo SKU, JSON-LD),
 `features/ordering/buy-combo.ts` (thêm cả bộ vào giỏ, dừng ở lỗi đầu tiên).

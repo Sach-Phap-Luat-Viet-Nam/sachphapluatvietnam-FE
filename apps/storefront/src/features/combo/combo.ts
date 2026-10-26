@@ -21,6 +21,19 @@ export function savingsPercent(combo: Pick<Combo, "retailPrice" | "savings">): n
   return Math.max(1, Math.round((combo.savings / combo.retailPrice) * 100));
 }
 
+/**
+ * Combo đang có lợi cho khách (`savings > 0`). Sách đang có lịch giá thì tổng giá lẻ hiện hành có thể thấp hơn hoặc bằng
+ * giá combo: backend không áp combo lúc đó (`savings = 0`), nên FE không quảng cáo và không bán như một ưu đãi.
+ */
+export function hasSavings(combo: Pick<Combo, "savings">): boolean {
+  return combo.savings > 0;
+}
+
+/** Số tiền khách thực trả cho một bộ: giá combo, hoặc tổng giá lẻ khi combo không còn lợi (backend không áp combo). */
+export function payablePrice(combo: Pick<Combo, "comboPrice" | "retailPrice">): number {
+  return Math.min(combo.comboPrice, combo.retailPrice);
+}
+
 /** Combo có chứa ít nhất một trong các SKU (dùng cho mục "Có trong combo" ở trang sách), giữ thứ tự backend trả. */
 export function combosForSkus(combos: readonly Combo[], skuIds: readonly number[]): Combo[] {
   const wanted = new Set(skuIds);
@@ -53,7 +66,7 @@ export function comboJsonLd(combo: Combo): Record<string, unknown> {
         image,
         offers: {
           "@type": "Offer",
-          price: combo.comboPrice,
+          price: payablePrice(combo),
           priceCurrency: "VND",
           priceValidUntil: combo.endsAt ?? undefined,
           availability: `${SCHEMA}/${combo.isSellable ? "InStock" : "OutOfStock"}`,
