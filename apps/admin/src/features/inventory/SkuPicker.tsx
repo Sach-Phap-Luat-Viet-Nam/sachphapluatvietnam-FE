@@ -14,6 +14,10 @@ import { COVER_TYPE_LABELS, skuLabel } from "./labels";
 import type { SkuOption, SkuSearchResult } from "./schemas";
 
 const MIN_QUERY_LENGTH = 2;
+/** 404 ở đây nghĩa là backend đang chạy chưa có API tìm SKU (chưa cập nhật), không phải "không có kết quả". */
+const SEARCH_UNAVAILABLE = {
+  NOT_FOUND: "Máy chủ chưa có chức năng tìm SKU. Nhờ quản trị viên cập nhật backend rồi thử lại.",
+};
 const OPTION =
   "border-border hover:border-primary hover:bg-primary/5 focus-visible:border-primary flex min-h-11 w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors";
 
@@ -111,7 +115,7 @@ export function SkuPicker({ id, value, onChange, invalid, describedBy }: SkuPick
       {!enabled ? (
         <p className={HINT}>Gõ ít nhất {MIN_QUERY_LENGTH} ký tự để tìm SKU.</p>
       ) : skus.isError ? (
-        <ErrorStatus error={skus.error} onRetry={() => void skus.refetch()} />
+        <ErrorStatus error={skus.error} onRetry={() => void skus.refetch()} overrides={SEARCH_UNAVAILABLE} />
       ) : skus.isPending ? (
         <p role="status" className={HINT}>
           Đang tìm…

@@ -6,6 +6,7 @@ import {
   receiptFieldErrors,
   receiptToFormValues,
   receiptTotals,
+  batchCodeSuggestions,
   suggestBatchCode,
   toIssueBody,
   toReceiptBody,
@@ -142,7 +143,9 @@ describe("thêm và nhân bản dòng phiếu", () => {
     expect(copy.quantity).toBe("");
   });
 
-  it("gợi ý mã lô theo ngày nhập", () => {
+  it("gợi ý mã lô theo ngày và theo tháng của ngày nhập", () => {
+    expect(batchCodeSuggestions("2026-10-26")).toEqual(["LO-261026", "LO-2026-10"]);
+    expect(batchCodeSuggestions("")).toEqual([]);
     expect(suggestBatchCode("2026-10-26")).toBe("LO-261026");
     expect(suggestBatchCode("")).toBe("");
   });

@@ -29,6 +29,8 @@ thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend
   - **Thêm dòng** giữ xưởng in và ngày nhập của dòng trước (`nextReceiptLine`), con trỏ nhảy vào ô tìm SKU của dòng mới.
   - **Nhân bản** dòng (`duplicateReceiptLine`) giữ SKU, xưởng in, giá vốn, ngày nhập; bỏ mã lô và số lượng (lô mới phải
     khác mã), con trỏ nhảy vào ô Mã lô.
+  - Dưới ô Mã lô có **nút gợi ý** `LO-yyMMdd` (theo ngày) và `LO-yyyy-MM` (theo tháng) theo ngày nhập của dòng, bấm là điền
+    (`batchCodeSuggestions`).
   - Chọn SKU xong thì **gợi ý mã lô** `LO-yyMMdd` theo ngày nhập (`suggestBatchCode`, chỉ khi ô còn trống, đã chọn sẵn
     để gõ đè) và con trỏ nhảy sang ô Mã lô.
 - **Chọn SKU** (`SkuPicker`): **một bước**, gõ một phần tên sách, mã SKU hoặc ISBN (từ 2 ký tự, 8 kết quả) qua

@@ -41,10 +41,18 @@ export function duplicateReceiptLine(line: ReceiptLineFormValues): ReceiptLineFo
   return { ...line, batchCode: "", quantity: "" };
 }
 
-/** Mã lô gợi ý theo ngày nhập (`2026-10-26` → `LO-261026`); người dùng sửa được. */
-export function suggestBatchCode(receivedAt: string): string {
+/**
+ * Các mã lô gợi ý theo ngày nhập để bấm điền nhanh: theo ngày (`2026-10-26` → `LO-261026`) và theo tháng
+ * (`LO-2026-10`, dạng ví dụ ở ô Mã lô). Rỗng khi ngày chưa hợp lệ.
+ */
+export function batchCodeSuggestions(receivedAt: string): string[] {
   const [year, month, day] = receivedAt.split("-");
-  return year && month && day ? `LO-${year.slice(2)}${month}${day}` : "";
+  return year && month && day ? [`LO-${year.slice(2)}${month}${day}`, `LO-${year}-${month}`] : [];
+}
+
+/** Mã lô điền sẵn khi vừa chọn SKU: gợi ý đầu tiên (theo ngày nhập); người dùng sửa được. */
+export function suggestBatchCode(receivedAt: string): string {
+  return batchCodeSuggestions(receivedAt)[0] ?? "";
 }
 
 /** Tên sách của phiếu để nhận ra phiếu ở danh sách: sách đầu tiên, thêm "+N" khi còn sách khác. */

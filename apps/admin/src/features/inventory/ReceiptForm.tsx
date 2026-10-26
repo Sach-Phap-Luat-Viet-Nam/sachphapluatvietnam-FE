@@ -24,6 +24,7 @@ import {
   nextReceiptLine,
   receiptFieldErrors,
   receiptTotals,
+  batchCodeSuggestions,
   suggestBatchCode,
   toReceiptBody,
 } from "./forms";
@@ -235,12 +236,19 @@ function ReceiptLineFields({
           hint="Ví dụ LO-2026-10. Tự đổi sang chữ hoa."
           error={lineErrors?.batchCode?.message}
         >
-          <input
-            {...register(`lines.${index}.batchCode`)}
-            {...fieldA11y(`${prefix}-batch`, lineErrors?.batchCode?.message, true)}
-            autoComplete="off"
-            className={`${INPUT} uppercase`}
-          />
+          <div className="flex flex-col gap-2">
+            <input
+              {...register(`lines.${index}.batchCode`)}
+              {...fieldA11y(`${prefix}-batch`, lineErrors?.batchCode?.message, true)}
+              autoComplete="off"
+              className={`${INPUT} uppercase`}
+            />
+            <BatchCodeSuggestions
+              control={control}
+              index={index}
+              onPick={(code) => setValue(`lines.${index}.batchCode`, code, { shouldDirty: true, shouldValidate: true })}
+            />
+          </div>
         </Field>
         <Field id={`${prefix}-printer`} label="Xưởng in" optional error={lineErrors?.printerName?.message}>
           <input
@@ -288,6 +296,31 @@ function ReceiptLineFields({
         />
       </div>
     </li>
+  );
+}
+
+/** Nút điền nhanh mã lô theo ngày nhập của dòng (đổi ngày nhập thì gợi ý đổi theo). */
+function BatchCodeSuggestions({
+  control,
+  index,
+  onPick,
+}: {
+  control: Control<ReceiptFormValues>;
+  index: number;
+  onPick: (code: string) => void;
+}) {
+  const receivedAt = useWatch({ control, name: `lines.${index}.receivedAt` });
+  const suggestions = batchCodeSuggestions(receivedAt);
+  if (suggestions.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Gợi ý mã lô dòng ${index + 1}`}>
+      <span className="text-muted text-sm">Gợi ý:</span>
+      {suggestions.map((code) => (
+        <Button key={code} variant="outline" size="sm" onClick={() => onPick(code)} aria-label={`Điền mã lô ${code}`}>
+          {code}
+        </Button>
+      ))}
+    </div>
   );
 }
 

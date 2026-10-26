@@ -199,4 +199,32 @@ describe("ReceiptCreate", () => {
     expect(secondQuantity).toHaveValue("");
     expect(secondCost).toHaveValue("45000");
   });
+
+  it("bấm nút gợi ý để điền nhanh mã lô theo ngày nhập", async () => {
+    signIn(["super_admin"]);
+    const user = userEvent.setup();
+    renderCreate();
+
+    const monthly = screen.getByRole("button", { name: /^Điền mã lô LO-\d{4}-\d{2}$/ });
+    await user.click(monthly);
+
+    expect(screen.getByLabelText("Mã lô")).toHaveValue(monthly.textContent);
+    await user.click(screen.getByRole("button", { name: /^Điền mã lô LO-\d{6}$/ }));
+    expect((screen.getByLabelText("Mã lô") as HTMLInputElement).value).toMatch(/^LO-\d{6}$/);
+  });
+
+  it("backend chưa có API tìm SKU (404) thì báo rõ thay vì câu chung chung", async () => {
+    signIn(["super_admin"]);
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/inventory/sku-search`, () =>
+        HttpResponse.json({ title: "Không tìm thấy", status: 404, code: "NOT_FOUND" }, { status: 404 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderCreate();
+
+    await user.type(screen.getByLabelText("SKU"), "pl250");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Máy chủ chưa có chức năng tìm SKU");
+  });
 });
