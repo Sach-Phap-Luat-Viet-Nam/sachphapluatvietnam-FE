@@ -28,7 +28,10 @@ Hợp đồng API: `docs/features/checkout-promotion-shipping.md`. File này mô
   `POST /shipping/quote` chỉ còn dùng phía server để lấy ngưỡng miễn ship (`freeShippingThreshold` có thể `null`).
 - `/khuyen-mai`: Server Component, `getActivePromotions()` (cache 60 s), `PromotionCard` cho từng chương trình. Hạn dùng
   lấy ngày của `endsAt` trừ 1 giây theo giờ Việt Nam. Lỗi tải hiện thông báo nhẹ, danh sách rỗng hiện trạng thái trống.
+  Dưới danh sách có mục **Combo bộ sách** (`#combo`, `GET /combos`), ẩn khi không có combo (xem `storefront-combo.md`).
 - Chi tiết đơn (`OrderDetails`): giảm giá theo dòng, "Giảm phí ship", danh sách ưu đãi đã áp.
+- Danh sách ưu đãi đã áp (`CheckoutSummary`, `OrderDetails`) có thể gồm ưu đãi `kind = "combo"` (không giảm phí ship, không
+  có mã). `promotionId` của combo là id combo nên `key` là `kind-promotionId`, tránh trùng với id chương trình.
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
