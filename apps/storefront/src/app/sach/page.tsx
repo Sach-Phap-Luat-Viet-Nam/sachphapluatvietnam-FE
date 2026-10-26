@@ -104,7 +104,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
       <Container className="flex items-start gap-12 pt-10 pb-6 sm:pt-12">
         <aside
           aria-label="Bộ lọc"
-          className="border-gold/25 bg-panel hidden w-72 shrink-0 flex-col gap-7 border px-6.5 py-7 lg:flex"
+          className="border-gold/25 bg-panel hidden w-72 shrink-0 flex-col gap-7 border px-6.5 py-7 lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto"
         >
           <div className="flex items-baseline justify-between">
             <h2 className="font-editorial text-[26px] font-bold">Bộ lọc</h2>
