@@ -39,7 +39,7 @@ export async function login(values: LoginValues, portal: LoginPortal = "storefro
 /** Bước nhập mã 6 số, dùng `twoFactorToken` từ `login` (hạn 5 phút). Trả người dùng của phiên mới. */
 export async function loginWithTwoFactor(twoFactorToken: string, code: string): Promise<SessionUser> {
   const session = authResponseSchema.parse(
-    await unwrap(authApi().POST("/api/v1/auth/login/2fa", { body: { twoFactorToken, code } })),
+    await unwrap(authApi().POST("/api/v1/auth/login/2fa", { body: { twoFactorToken, code, trustDevice: false } })),
   );
   startSession(session);
   return session.user;

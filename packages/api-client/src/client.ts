@@ -5,8 +5,11 @@ import { ApiError } from "./api-error";
 import type { paths } from "./generated/schema";
 import type { PendingPaths } from "./pending-paths";
 
-/** Route sinh từ OpenAPI cộng các route backend đã có nhưng chưa sinh lại type (`pending-paths.ts`). */
-type ClientPaths = paths & PendingPaths;
+/**
+ * Route sinh từ OpenAPI, trong đó `pending-paths.ts` ghi đè route trùng (không giao kiểu): OpenAPI sinh enum thành
+ * `number` và field tùy chọn thành bắt buộc, lệch với JSON backend thật nhận (chuỗi snake_case).
+ */
+type ClientPaths = Omit<paths, keyof PendingPaths> & PendingPaths;
 
 export type ApiClient = Client<ClientPaths>;
 

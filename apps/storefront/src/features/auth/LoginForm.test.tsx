@@ -149,7 +149,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
-    expect(otpBody).toEqual({ twoFactorToken: "2fa-token", code: "123456" });
+    expect(otpBody).toEqual({ twoFactorToken: "2fa-token", code: "123456", trustDevice: false });
   });
 
   it("returns to the password step when the 2FA token expired", async () => {

@@ -1,6 +1,7 @@
-// Route backend đã chạy nhưng chưa có trong `openapi/v1.json` (chưa sinh lại được vì OpenAPI chỉ bật ở Development).
-// Khai báo tạm ở đây với response `unknown`, nơi gọi parse bằng Zod theo docs. Sau khi
-// `pnpm api:fetch && pnpm api:generate` có route này thì xóa khai báo tương ứng.
+// Khai báo tay các route mà type sinh từ `openapi/v1.json` chưa dùng được: route chưa có trong OpenAPI, hoặc đã có
+// nhưng enum sinh thành `number` (backend nhận chuỗi snake_case) và field tùy chọn thành bắt buộc. Khai báo ở đây
+// ghi đè bản sinh ra (xem `ClientPaths` trong `client.ts`); response để `unknown`, nơi gọi parse bằng Zod theo docs.
+// Xóa khai báo tương ứng khi OpenAPI của backend sinh đúng kiểu.
 
 type NoParameters = { query?: never; header?: never; path?: never; cookie?: never };
 type JsonBody<T> = { content: { "application/json": T } };

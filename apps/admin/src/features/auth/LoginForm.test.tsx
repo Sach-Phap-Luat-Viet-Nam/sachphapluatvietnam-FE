@@ -164,7 +164,7 @@ describe("LoginForm (admin)", () => {
     await user.paste("123 456");
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
-    expect(otp).toEqual({ twoFactorToken: "2fa-token", code: "123456" });
+    expect(otp).toEqual({ twoFactorToken: "2fa-token", code: "123456", trustDevice: false });
   });
 
   it("báo khi đang bật Caps Lock ở ô mật khẩu", async () => {
