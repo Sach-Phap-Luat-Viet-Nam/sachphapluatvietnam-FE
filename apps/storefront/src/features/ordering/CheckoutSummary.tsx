@@ -106,7 +106,8 @@ export function CheckoutSummary({
           className="border-ok/50 bg-ok/10 text-ok flex flex-col gap-1.5 border px-4 py-3 text-[15px]"
         >
           {preview.appliedPromotions.map((promotion) => (
-            <li key={promotion.promotionId} className="flex justify-between gap-4">
+            // `promotionId` của combo là id combo nên có thể trùng id một chương trình: khóa kèm `kind`.
+            <li key={`${promotion.kind}-${promotion.promotionId}`} className="flex justify-between gap-4">
               <span>{promotion.name}</span>
               <span className="shrink-0 font-medium">−{formatPrice(promotion.amount)}</span>
             </li>
