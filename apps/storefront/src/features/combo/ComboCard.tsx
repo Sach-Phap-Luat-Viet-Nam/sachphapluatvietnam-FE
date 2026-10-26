@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { formatPrice } from "@slvn/utils";
 import { ComboCovers } from "./ComboCovers";
-import { comboPath, itemsSummary, savingsPercent, totalCopies } from "./combo";
+import { comboPath, itemsSummary, originalPrice, savingsAmount, savingsPercent, totalCopies } from "./combo";
 import type { Combo } from "./schemas";
 
 /**
- * Một combo trong danh sách (trang chủ, khuyến mãi, trang sách): bìa, tên, các sách trong bộ, giá combo so với mua lẻ.
+ * Một combo trong danh sách (trang chủ, khuyến mãi, trang sách): bìa, tên, các sách trong bộ, giá combo so với giá gốc.
  * Cả thẻ là một vùng bấm (liên kết nằm ở tên combo), nên khách vuốt/bấm đâu trên thẻ cũng mở trang combo.
  */
 export function ComboCard({ combo }: { combo: Combo }) {
   const titleId = `combo-${combo.id}`;
   const percent = savingsPercent(combo);
+  const saved = savingsAmount(combo);
   return (
     <li>
       <article
@@ -30,10 +31,10 @@ export function ComboCard({ combo }: { combo: Combo }) {
         <div className="mt-auto flex flex-col gap-1.5">
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="text-gold-pale text-2xl font-semibold">{formatPrice(combo.comboPrice)}</span>
-            {combo.savings > 0 && (
+            {saved > 0 && (
               <span className="text-mist line-through">
-                <span className="sr-only">Giá mua lẻ </span>
-                {formatPrice(combo.retailPrice)}
+                <span className="sr-only">Giá gốc </span>
+                {formatPrice(originalPrice(combo))}
               </span>
             )}
             {percent !== null && (
@@ -42,7 +43,7 @@ export function ComboCard({ combo }: { combo: Combo }) {
               </span>
             )}
           </p>
-          {combo.savings > 0 && <p className="text-ok text-sm">Tiết kiệm {formatPrice(combo.savings)} so với mua lẻ</p>}
+          {saved > 0 && <p className="text-ok text-sm">Tiết kiệm {formatPrice(saved)} so với giá gốc</p>}
         </div>
       </article>
     </li>

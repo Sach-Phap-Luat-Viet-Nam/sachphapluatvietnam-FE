@@ -16,7 +16,7 @@ App **storefront**. Combo không có SKU hay tồn kho riêng: đơn vẫn gồm
      cuốn từ `items[].coverImageUrl` (`ComboBooks3D` dùng `Book3D` cỡ `combo`, hai cuốn đứng cạnh nhau, nghiêng theo chuột
      như trang chi tiết sách; một cuốn thì cỡ `detail`; cuốn chưa có ảnh bìa dùng bìa vẽ sẵn của `Book3D`). Combo từ 3
      sách trở lên dùng bìa phẳng (tối đa 4, `ComboCovers`) vì cột ảnh không đủ chỗ cho nhiều mô hình 3D.
-   - Bên phải: tên, mô tả, **khối đặt mua** (giá combo, giá mua lẻ gạch ngang, nhãn `−30%`, "Tiết kiệm …", hạn áp dụng), nút
+   - Bên phải: tên, mô tả, **khối đặt mua** (giá combo, **giá gốc** gạch ngang, nhãn `−48%`, "Tiết kiệm … so với giá gốc", hạn áp dụng), nút
      mua và danh sách **"Trong combo"** (bìa, tên sách là liên kết tới `/sach/{slug}`, loại bìa/ấn bản, `× số cuốn`, giá lẻ).
    - Có `generateMetadata` (title, description, canonical, Open Graph) và JSON-LD `Product` + `Offer` + `BreadcrumbList`.
    - Combo không chạy/đã xóa/có sách không còn ở Catalog: `not-found.tsx` (404, không index).
@@ -40,6 +40,14 @@ combo` tới `/khuyen-mai#combo`. Không có combo hoặc không tải được 
    `kind-promotionId`.
 5. **Không cộng dồn**: combo không cộng dồn với khuyến mãi giảm trên tổng đơn, backend chọn bên lợi hơn cho khách (hòa thì giữ
    chương trình). Trang combo có ghi chú này cho khách.
+6. **Combo không còn lợi** (`savings = 0`): sách trong bộ đang có **lịch giá** làm tổng giá lẻ hiện hành (`retailPrice`)
+   thấp hơn hoặc bằng giá combo (ví dụ mỗi tập đang 290.000đ nên mua lẻ 580.000đ, combo 625.000đ) thì backend **không áp
+   combo**, khách trả giá lẻ. FE xử lý để không quảng cáo sai:
+   - `getCombos()` (trang chủ, `/khuyen-mai`, mục trên trang sách) **bỏ** combo này (`hasSavings`).
+   - Trang `/combo/{slug}` vẫn mở được nhưng hiện **giá khách thực trả** (`payablePrice` = nhỏ hơn của giá combo và giá lẻ),
+     ghi chú "đang có giá ưu đãi, giá combo sẽ tự áp dụng trở lại khi hết ưu đãi" và **ẩn nút mua combo**; khách mua từng
+     cuốn ở danh sách "Trong combo". JSON-LD `Offer.price` cũng là `payablePrice`.
+   - Hết lịch giá thì combo tự có lợi trở lại và hiện lại ở mọi nơi (trang dựng lại mỗi 60 giây).
 
 Hàm thuần: `features/combo/combo.ts` (đường dẫn, số cuốn, % tiết kiệm chỉ để hiển thị, lọc combo theo SKU, JSON-LD),
 `features/ordering/buy-combo.ts` (thêm cả bộ vào giỏ, dừng ở lỗi đầu tiên).
@@ -56,9 +64,13 @@ Hai route chưa có trong OpenAPI sinh ra, khai báo tạm ở `packages/api-cli
 | POST   | `/api/v1/cart/items`       | Nút mua combo (mỗi sách một lần)              | Lỗi hiện theo `code`: `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `MAX_QTY_EXCEEDED`, `CART_FULL` |
 | POST   | `/api/v1/checkout/preview` | Giỏ và thanh toán (có sẵn)                    | `appliedPromotions[].kind = "combo"`                                                       |
 
-`ComboResponse`: `{id, name, slug, description, imageUrl, comboPrice, retailPrice, savings, items[], isSellable, startsAt,
+`ComboResponse`: `{id, name, slug, description, imageUrl, comboPrice, retailPrice, listPrice, savings, items[], isSellable, startsAt,
 endsAt}`; mỗi item `{skuId, skuCode, bookTitle, bookSlug, editionName, coverType, coverImageUrl, quantity, unitPrice,
-isSellable}`. Mọi số tiền do backend tính (`retailPrice` là tổng giá hiện hành của một bộ).
+isSellable}`. Mọi số tiền do backend tính: `retailPrice` là tổng giá **hiện hành** (đã gồm lịch giá) của một bộ, `listPrice`
+là tổng **giá bìa** (giá gốc, không đổi khi có lịch giá). FE hiện giá cũ gạch ngang là `listPrice` và "Tiết kiệm" tính theo
+giá gốc (`originalPrice`, `savingsAmount`, `savingsPercent` trong `combo.ts`), còn việc combo có được áp hay không (nút mua,
+có hiện trong danh sách) dựa vào `savings` so với `retailPrice` (xem mục 6). `listPrice` là tùy chọn trong schema: backend
+cũ chưa trả thì dùng `retailPrice` thay thế, nên FE lên trước backend vẫn chạy.
 
 ## Cấu hình cần thiết (biến môi trường)
 

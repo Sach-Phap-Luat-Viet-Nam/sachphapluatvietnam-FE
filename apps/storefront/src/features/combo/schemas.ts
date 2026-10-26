@@ -27,8 +27,13 @@ export const comboSchema = z.object({
   imageUrl: z.string().nullable(),
   /** Giá một bộ. */
   comboPrice: z.number(),
-  /** Tổng giá hiện hành của một bộ nếu mua lẻ. */
+  /** Tổng giá hiện hành (đã áp lịch giá) của một bộ nếu mua lẻ. */
   retailPrice: z.number(),
+  /**
+   * Tổng giá bìa (giá gốc) của một bộ, để hiện giá cũ gạch ngang. Tùy chọn để trang vẫn chạy khi FE lên trước backend
+   * có trường này; thiếu thì dùng `retailPrice` (xem `originalPrice`).
+   */
+  listPrice: z.number().optional(),
   /** `max(0, retailPrice − comboPrice)`. */
   savings: z.number(),
   items: z.array(comboItemSchema),

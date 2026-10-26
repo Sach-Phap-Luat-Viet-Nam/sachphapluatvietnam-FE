@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Info } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import { Container } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { serializeJsonLd } from "@/features/catalog/book-detail";
@@ -10,7 +10,17 @@ import { getCombo } from "@/features/combo/api";
 import { ComboBooks3D, canShow3D } from "@/features/combo/ComboBooks3D";
 import { ComboCover, ComboCovers } from "@/features/combo/ComboCovers";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
-import { comboJsonLd, comboPath, itemDetail, savingsPercent, totalCopies } from "@/features/combo/combo";
+import {
+  comboJsonLd,
+  comboPath,
+  hasSavings,
+  itemDetail,
+  originalPrice,
+  payablePrice,
+  savingsAmount,
+  savingsPercent,
+  totalCopies,
+} from "@/features/combo/combo";
 import { BuyComboButton } from "@/features/ordering/BuyComboButton";
 import { validityText } from "@/features/promotion/promotion";
 
@@ -26,7 +36,7 @@ export async function generateMetadata({ params }: ComboPageProps): Promise<Meta
   }
 
   const description =
-    combo.description || `${combo.name}: ${totalCopies(combo)} cuốn, giá combo ${formatPrice(combo.comboPrice)}.`;
+    combo.description || `${combo.name}: ${totalCopies(combo)} cuốn, giá ${formatPrice(payablePrice(combo))}.`;
   const image = combo.imageUrl ?? combo.items.find((item) => item.coverImageUrl)?.coverImageUrl;
   return {
     title: combo.name,
@@ -48,6 +58,9 @@ export default async function ComboPage({ params }: ComboPageProps) {
   if (!combo) notFound();
 
   const percent = savingsPercent(combo);
+  // Sách đang có lịch giá làm mua lẻ không cao hơn giá combo: backend không áp combo nên không bán như một ưu đãi.
+  const deal = hasSavings(combo);
+  const saved = savingsAmount(combo);
   // JSON-LD tự sinh qua JSON.stringify và đã thoát `<` (SKILL.md mục 5).
   const jsonLd = serializeJsonLd(comboJsonLd(combo));
 
@@ -115,33 +128,54 @@ export default async function ComboPage({ params }: ComboPageProps) {
           >
             <div className="flex flex-col gap-1.5">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="text-gold-pale text-3xl font-semibold">{formatPrice(combo.comboPrice)}</span>
-                {combo.savings > 0 && (
+                <span className="text-gold-pale text-3xl font-semibold">{formatPrice(payablePrice(combo))}</span>
+                {deal && saved > 0 && (
                   <span className="text-mist line-through">
-                    <span className="sr-only">Giá mua lẻ </span>
-                    {formatPrice(combo.retailPrice)}
+                    <span className="sr-only">Giá gốc </span>
+                    {formatPrice(originalPrice(combo))}
                   </span>
                 )}
-                {percent !== null && (
+                {deal && percent !== null && (
                   <span className="bg-burgundy text-cream px-2 py-0.5 text-sm font-semibold">
                     <span className="sr-only">Tiết kiệm </span>−{percent}%
                   </span>
                 )}
               </div>
-              {combo.savings > 0 && <p className="text-ok">Tiết kiệm {formatPrice(combo.savings)} so với mua lẻ.</p>}
+              {deal ? (
+                saved > 0 && <p className="text-ok">Tiết kiệm {formatPrice(saved)} so với giá gốc.</p>
+              ) : (
+                <p className="text-mist text-sm">Giá mua lẻ cả bộ hiện tại (đã gồm giá ưu đãi của từng cuốn).</p>
+              )}
               <p className="text-mist text-sm">{validityText(combo)}</p>
             </div>
 
-            <BuyComboButton
-              lines={combo.items.map(({ skuId, quantity }) => ({ skuId, quantity }))}
-              isSellable={combo.isSellable}
-            />
+            {deal ? (
+              <>
+                <BuyComboButton
+                  lines={combo.items.map(({ skuId, quantity }) => ({ skuId, quantity }))}
+                  isSellable={combo.isSellable}
+                />
 
-            <p className="text-mist flex gap-2.5 text-sm leading-6">
-              <Info size={17} className="text-gold mt-0.5 shrink-0" aria-hidden="true" />
-              Giá combo tự áp ở bước thanh toán khi giỏ có đủ các sách bên dưới; mua nhiều bộ thì mỗi bộ được giảm
-              riêng. Combo không cộng dồn với khuyến mãi giảm trên tổng đơn: hệ thống tự chọn ưu đãi có lợi hơn cho bạn.
-            </p>
+                <p className="text-mist flex gap-2.5 text-sm leading-6">
+                  <Info size={17} className="text-gold mt-0.5 shrink-0" aria-hidden="true" />
+                  Giá combo tự áp ở bước thanh toán khi giỏ có đủ các sách bên dưới; mua nhiều bộ thì mỗi bộ được giảm
+                  riêng. Combo không cộng dồn với khuyến mãi giảm trên tổng đơn: hệ thống tự chọn ưu đãi có lợi hơn cho
+                  bạn.
+                </p>
+              </>
+            ) : (
+              <p
+                role="note"
+                className="border-upcoming/50 bg-upcoming/10 flex gap-2.5 border px-4 py-3 text-sm leading-6"
+              >
+                <AlertTriangle size={17} className="text-upcoming mt-0.5 shrink-0" aria-hidden="true" />
+                <span>
+                  Các sách trong combo đang có giá ưu đãi nên mua lẻ ({formatPrice(combo.retailPrice)}) không cao hơn
+                  giá combo ({formatPrice(combo.comboPrice)}). Giá combo sẽ tự áp dụng trở lại khi giá ưu đãi kết thúc;
+                  bây giờ bạn mua từng cuốn ở danh sách bên dưới với giá ưu đãi.
+                </span>
+              </p>
+            )}
           </section>
 
           <section aria-labelledby="trong-combo">
