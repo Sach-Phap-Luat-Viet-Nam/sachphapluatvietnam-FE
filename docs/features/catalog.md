@@ -77,7 +77,7 @@ Giá trong response (danh sách, chi tiết, và `AdminBookResponse`):
 (khớp nguyên mã; SKU không phân biệt hoa/thường).
 `category` gồm cả danh mục con; `legalDocument` khớp văn bản gắn với ấn bản hoặc nhãn "Cập nhật đến".
 
-**Admin** (policy `catalog_admin`: super_admin, product_manager, bắt buộc 2FA):
+**Admin** (policy `catalog_admin`: super_admin, product_manager, Super Admin bắt buộc 2FA):
 
 | Method              | Route                                                           | Mô tả                                                                                                                             |
 | ------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -94,7 +94,7 @@ Giá trong response (danh sách, chi tiết, và `AdminBookResponse`):
 
 Các API sửa đầu sách/ấn bản/SKU trả lại toàn bộ đầu sách (`AdminBookResponse`).
 
-**Lịch giá** (policy `pricing_admin`: super_admin, product_manager, marketing, bắt buộc 2FA):
+**Lịch giá** (policy `pricing_admin`: super_admin, product_manager, marketing, Super Admin bắt buộc 2FA):
 
 | Method | Route                                 | Request → Response                                                   |
 | ------ | ------------------------------------- | -------------------------------------------------------------------- |

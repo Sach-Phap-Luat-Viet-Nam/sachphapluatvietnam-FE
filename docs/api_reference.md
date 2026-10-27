@@ -32,7 +32,7 @@ FE cần nắm 6 quy ước dưới đây; mọi endpoint ở các mục sau đ�
 - Gửi access token trong header: `Authorization: Bearer <accessToken>`. Token sống **15 phút** (`expiresIn = 900` giây). Lưu trong bộ nhớ (state), không lưu `localStorage`.
 - Refresh token nằm trong cookie HttpOnly `sl_refresh`, JS không đọc được. Khi API trả 401: gọi `POST /api/v1/auth/refresh` (kèm cookie) lấy token mới rồi gọi lại request; refresh cũng 401 (`INVALID_REFRESH_TOKEN`) thì chuyển về màn đăng nhập.
 - Chỉ **một** request refresh chạy tại một thời điểm (dùng chung một promise): mỗi lần refresh, token cũ bị thu hồi; hai request refresh song song với cùng cookie sẽ bị coi là dùng lại token và **đăng xuất mọi phiên**.
-- API Admin (`/api/v1/admin/...`) cần đúng vai trò **và** phiên đã qua 2FA; thiếu thì 403.
+- API Admin (`/api/v1/admin/...`) cần đúng vai trò; riêng Super Admin còn cần phiên đã qua 2FA. Thiếu thì 403.
 - Mỗi tài khoản chỉ đăng nhập **một nơi**: đăng nhập mới (login/2FA) kết thúc mọi phiên cũ ngay (access token cũ cũng bị 401 nhờ claim `sv` = `sessionVersion`), backend báo qua Pusher (`docs/features/session-realtime.md`).
 
 ### Cookie do backend đặt
@@ -527,7 +527,7 @@ Giỏ **không** lưu mã giảm giá và không có `/cart/apply-coupon`: FE gi
 
 ## Admin — người dùng và phân quyền
 
-Mọi API dưới `/api/v1/admin` yêu cầu Bearer token của nhân viên **đã qua 2FA** và đúng vai trò trong bảng dưới; thiếu token → 401, sai vai trò hoặc chưa 2FA → 403 `FORBIDDEN`. FE nên ẩn menu theo `user.roles`.
+Mọi API dưới `/api/v1/admin` yêu cầu Bearer token của nhân viên đúng vai trò trong bảng dưới (Super Admin phải **đã qua 2FA**, vai trò khác không bắt buộc); thiếu token → 401, sai vai trò hoặc Super Admin chưa 2FA → 403 `FORBIDDEN`. FE nên ẩn menu theo `user.roles`.
 
 | Nhóm API                                                                                      | super\_admin | product\_manager | warehouse\_keeper | order\_manager | customer\_service | accountant | marketing |
 | --------------------------------------------------------------------------------------------- | ------------ | ---------------- | ----------------- | -------------- | ----------------- | ---------- | --------- |
