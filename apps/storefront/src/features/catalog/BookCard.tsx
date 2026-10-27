@@ -155,13 +155,13 @@ export function BookCard({ book, index, cartAction, dialogCartAction }: BookCard
             </div>
             {saleEnds && <p className="text-upcoming mt-2 text-sm">Giá ưu đãi đến {saleEnds}</p>}
             {buyable && dialogCartAction ? (
-              <div className="mt-6 flex flex-col gap-1">
+              <div className="mt-6 flex flex-col gap-3">
                 {dialogCartAction}
                 <Link
                   href={bookPath(book.slug)}
-                  className="link-underline text-gold flex min-h-11 w-fit items-center gap-2"
+                  className="border-ivory/40 text-ivory hover:border-gold hover:text-gold bg-ivory/5 flex min-h-12 items-center justify-center gap-2.5 border px-6 text-base font-semibold transition-colors"
                 >
-                  Xem chi tiết sách <ArrowRight size={16} />
+                  Xem chi tiết sách <ArrowRight size={17} />
                 </Link>
               </div>
             ) : (
