@@ -72,7 +72,7 @@ export function QuickBuyButton({ slug, title, variant = "icon" }: QuickBuyButton
         disabled={busy}
         aria-label={`Mua ngay ${title}`}
         className={cn(
-          "border-gold text-gold hover:bg-gold hover:text-ink flex h-11 items-center justify-center gap-1.5 border px-3.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-60",
+          "border-gold bg-gold text-ink flex h-11 items-center justify-center gap-1.5 border px-3.5 text-sm font-semibold whitespace-nowrap transition-[filter] hover:brightness-110 disabled:opacity-60",
         )}
       >
         {label}
