@@ -11,8 +11,10 @@ export const sessionUserSchema = z.object({
   email: z.string(),
   fullName: z.string(),
   roles: z.array(z.string()),
-  /** Nhân viên chưa bật 2FA: phải sang màn bật 2FA, gọi API Admin sẽ bị 403. */
+  /** Super Admin chưa bật 2FA: phải sang màn bật 2FA, gọi API Admin sẽ bị 403. Vai trò khác luôn `false`. */
   requiresTwoFactorSetup: z.boolean(),
+  /** Đã bật 2FA. Nhân viên không phải Super Admin tự chọn bật; thiếu ở backend bản cũ thì coi như chưa bật. */
+  twoFactorEnabled: z.boolean().optional(),
   /** Giao diện storefront đã chọn; `null` khi chưa chọn (dùng mặc định tối). */
   theme: z.enum(["dark", "light"]).nullish(),
   /** Link ảnh đại diện (docs/features/user-avatar.md); `null` khi chưa có, thiếu ở backend bản cũ. */

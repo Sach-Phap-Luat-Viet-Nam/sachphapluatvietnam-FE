@@ -11,11 +11,18 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }), usePathname:
 const ORIGIN = window.location.origin;
 const server = setupServer();
 
-function signIn(roles: string[], requiresTwoFactorSetup = false) {
+function signIn(roles: string[], requiresTwoFactorSetup = false, twoFactorEnabled = !requiresTwoFactorSetup) {
   startSession({
     accessToken: "t1",
     expiresIn: 900,
-    user: { id: 3, email: "nv@sachluat.vn", fullName: "Lê Nhân Viên", roles, requiresTwoFactorSetup },
+    user: {
+      id: 3,
+      email: "nv@sachluat.vn",
+      fullName: "Lê Nhân Viên",
+      roles,
+      requiresTwoFactorSetup,
+      twoFactorEnabled,
+    },
   });
 }
 
@@ -49,8 +56,23 @@ describe("AdminShell", () => {
     expect(screen.getByText("Nội dung")).toBeVisible();
   });
 
-  it("đưa nhân viên chưa bật 2FA sang màn bật 2FA", async () => {
-    signIn(["product_manager"], true);
+  it("nhân viên thường chưa bật 2FA vẫn vào được và thấy gợi ý bật 2FA", () => {
+    signIn(["warehouse_keeper"], false, false);
+    render(<AdminShell>Nội dung</AdminShell>);
+
+    expect(screen.getByText("Nội dung")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Bật xác thực 2 lớp" })).toHaveAttribute("href", "/xac-thuc-hai-lop");
+  });
+
+  it("không gợi ý bật 2FA khi đã bật", () => {
+    signIn(["warehouse_keeper"]);
+    render(<AdminShell>Nội dung</AdminShell>);
+
+    expect(screen.queryByRole("link", { name: "Bật xác thực 2 lớp" })).not.toBeInTheDocument();
+  });
+
+  it("đưa Super Admin chưa bật 2FA sang màn bật 2FA", async () => {
+    signIn(["super_admin"], true);
     render(<AdminShell>Nội dung</AdminShell>);
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/xac-thuc-hai-lop"));

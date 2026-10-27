@@ -11,6 +11,7 @@ import {
   Megaphone,
   Menu,
   Percent,
+  ShieldCheck,
   ShoppingCart,
   Truck,
   UserRound,
@@ -25,6 +26,7 @@ import { cn } from "@slvn/ui";
 import { modulesForRoles } from "@/lib/modules";
 import type { AdminModuleId } from "@/lib/modules";
 import { staffRoleLabels } from "@/lib/roles";
+import { TWO_FACTOR_SETUP_PATH } from "@/lib/routes";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 import { LogoutButton } from "./LogoutButton";
 import { SessionGate } from "./SessionGate";
@@ -124,6 +126,16 @@ function ShellLayout({ user, children }: { user: SessionUser; children: ReactNod
                 <span className="truncate">{user.fullName}</span>
               </p>
               <p className="text-primary-foreground/75 text-sm">{staffRoleLabels(user.roles).join(" · ")}</p>
+              {/* 2FA không bắt buộc với nhân viên thường: gợi ý tự bật; phiên đăng nhập hộ không bật hộ được. */}
+              {user.twoFactorEnabled !== true && !impersonation && (
+                <Link
+                  href={TWO_FACTOR_SETUP_PATH}
+                  className="text-primary-foreground/85 hover:text-primary-foreground flex min-h-11 items-center gap-2 text-sm underline-offset-4 hover:underline"
+                >
+                  <ShieldCheck size={18} aria-hidden="true" className="shrink-0" />
+                  Bật xác thực 2 lớp
+                </Link>
+              )}
               <LogoutButton
                 className="text-primary-foreground/85 hover:text-primary-foreground"
                 errorClassName="text-primary-foreground font-medium"

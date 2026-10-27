@@ -8,6 +8,7 @@ function signedIn(overrides: Partial<SessionUser> = {}) {
     fullName: "Quản trị",
     roles: ["super_admin"],
     requiresTwoFactorSetup: false,
+    twoFactorEnabled: true,
     ...overrides,
   };
   return { status: "authenticated", user, sessionVersion: 0 } as const;
@@ -28,14 +29,16 @@ describe("gateDecision", () => {
     expect(gateDecision(signedIn({ roles: ["customer"] }), "two-factor-setup")).toMatchObject({ kind: "forbidden" });
   });
 
-  it("đưa nhân viên chưa bật 2FA sang màn bật 2FA", () => {
-    expect(gateDecision(signedIn({ requiresTwoFactorSetup: true }), "admin")).toEqual({
-      kind: "redirect",
-      to: "/xac-thuc-hai-lop",
-    });
-    expect(gateDecision(signedIn({ requiresTwoFactorSetup: true }), "two-factor-setup")).toMatchObject({
-      kind: "allow",
-    });
+  it("đưa Super Admin chưa bật 2FA sang màn bật 2FA", () => {
+    const required = signedIn({ requiresTwoFactorSetup: true, twoFactorEnabled: false });
+    expect(gateDecision(required, "admin")).toEqual({ kind: "redirect", to: "/xac-thuc-hai-lop" });
+    expect(gateDecision(required, "two-factor-setup")).toMatchObject({ kind: "allow" });
+  });
+
+  it("nhân viên thường chưa bật 2FA vẫn vào trang quản trị và tự vào được màn bật 2FA", () => {
+    const optional = signedIn({ roles: ["warehouse_keeper"], twoFactorEnabled: false });
+    expect(gateDecision(optional, "admin")).toMatchObject({ kind: "allow" });
+    expect(gateDecision(optional, "two-factor-setup")).toMatchObject({ kind: "allow" });
   });
 
   it("không cho vào lại màn bật 2FA khi đã bật", () => {
@@ -48,7 +51,7 @@ describe("gateDecision", () => {
 
   it("phiên đăng nhập hộ nhân viên chưa bật 2FA vẫn vào trang quản trị", () => {
     const impersonated = {
-      ...signedIn({ roles: ["warehouse_keeper"], requiresTwoFactorSetup: true }),
+      ...signedIn({ roles: ["warehouse_keeper"], twoFactorEnabled: false }),
       impersonation: { impersonatorId: 1, expiresAt: 900_000 },
     };
     expect(gateDecision(impersonated, "admin")).toMatchObject({ kind: "allow" });

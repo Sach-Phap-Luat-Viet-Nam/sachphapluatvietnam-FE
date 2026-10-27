@@ -40,10 +40,11 @@ export function UserCard({ account, kind, currentUserId }: UserCardProps) {
               <StatusBadge tone="danger">Đã vô hiệu hóa</StatusBadge>
             )}
             {kind === "staff" &&
-              (account.requiresTwoFactorSetup ? (
-                <StatusBadge tone="warning">Chưa bật 2FA</StatusBadge>
-              ) : (
+              (account.twoFactorEnabled ? (
                 <StatusBadge tone="info">Đã bật 2FA</StatusBadge>
+              ) : (
+                // Chỉ Super Admin bị bắt buộc 2FA nên mới tô cảnh báo; nhân viên khác chưa bật là bình thường.
+                <StatusBadge tone={account.requiresTwoFactorSetup ? "warning" : "neutral"}>Chưa bật 2FA</StatusBadge>
               ))}
           </div>
           <p className="text-muted text-sm break-all">

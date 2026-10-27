@@ -2,7 +2,7 @@
 
 ## Mục đích
 
-Nhân viên đăng nhập vào app **admin** (email, mật khẩu, mã 6 số), bật xác thực 2 lớp ở lần đăng nhập đầu, rồi vào khung
+Nhân viên đăng nhập vào app **admin** (email, mật khẩu, mã 6 số), bật xác thực 2 lớp (bắt buộc với Super Admin ở lần đăng nhập đầu, nhân viên khác tự chọn), rồi vào khung
 quản trị có menu theo vai trò. Đây là nền cho các màn nghiệp vụ: Sách, Nội dung (popup), Kho, Đơn hàng, Nhân viên và
 Khách hàng.
 
@@ -10,11 +10,11 @@ Khách hàng.
 
 App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi trang `noindex`, `robots.txt` chặn toàn bộ.
 
-| Route                   | Màn hình                                       | Điều kiện vào                                |
-| ----------------------- | ---------------------------------------------- | -------------------------------------------- |
-| `/dang-nhap`            | Đăng nhập (`features/auth/LoginForm.tsx`)      | Không                                        |
-| `/xac-thuc-hai-lop`     | Bật 2FA (`features/auth/TwoFactorSetupScreen`) | Nhân viên có `requiresTwoFactorSetup = true` |
-| `/` (nhóm `(quan-tri)`) | Tổng quan (`features/dashboard`)               | Nhân viên đã bật 2FA                         |
+| Route                   | Màn hình                                       | Điều kiện vào                                       |
+| ----------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| `/dang-nhap`            | Đăng nhập (`features/auth/LoginForm.tsx`)      | Không                                               |
+| `/xac-thuc-hai-lop`     | Bật 2FA (`features/auth/TwoFactorSetupScreen`) | Nhân viên chưa bật 2FA (`twoFactorEnabled != true`) |
+| `/` (nhóm `(quan-tri)`) | Tổng quan (`features/dashboard`)               | Nhân viên (Super Admin phải đã bật 2FA)             |
 
 - **Phiên** dùng chung package `@slvn/auth` với storefront (access token trong bộ nhớ, cookie `sl_refresh`, refresh
   một luồng), xem `docs/features/auth-login.md`.
@@ -22,9 +22,13 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   gửi tới `/api/v1/auth` nên server không biết phiên.
   - Chưa đăng nhập: chuyển về `/dang-nhap?next=<trang đang mở>`.
   - Tài khoản chỉ có vai trò `customer`: hiện "Không có quyền truy cập" kèm nút Đăng xuất.
-  - Nhân viên chưa bật 2FA: chuyển sang `/xac-thuc-hai-lop`. Đã bật thì không vào lại màn này được.
+  - Super Admin chưa bật 2FA (`requiresTwoFactorSetup = true`): chuyển sang `/xac-thuc-hai-lop`.
+  - Nhân viên khác chưa bật 2FA vẫn vào trang quản trị bình thường. Sidebar có link "Bật xác thực 2 lớp" (ẩn khi đã bật
+    hoặc đang đăng nhập hộ); màn bật 2FA lúc này ghi rõ không bắt buộc và có link "Để sau, quay lại trang quản trị"
+    thay cho nút Đăng xuất.
+  - Đã bật 2FA thì không vào lại màn này được.
 - **Giao diện đăng nhập / bật 2FA** (`components/AuthLayout.tsx`): desktop chia hai cột, bên trái là khối thương hiệu navy
-  kèm 3 ghi chú bảo mật (bắt buộc 2FA, phiên 12 giờ, chỉ tài khoản do Super Admin cấp), bên phải là thẻ form; mobile chỉ
+  kèm 3 ghi chú bảo mật (xác thực 2 lớp, phiên 12 giờ, chỉ tài khoản do Super Admin cấp), bên phải là thẻ form; mobile chỉ
   còn tên thương hiệu và thẻ form. Ô email/mật khẩu có icon, ô mật khẩu báo "Đang bật Caps Lock", nút gửi có vòng xoay
   khi chờ. Bước nhập mã có nhãn "Bước 2/2 · Xác thực 2 lớp".
 - **Ô mã 6 số** (`features/auth/CodeForm.tsx`, dùng cho bước đăng nhập 2FA và màn bật 2FA): chỉ giữ chữ số (dán

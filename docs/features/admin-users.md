@@ -22,7 +22,8 @@ không có vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền 
 
 - **Nhân viên và Khách hàng cùng một giao diện** (`UserCard`, `AccountActions`): cùng đầu trang, ô tìm (`UserSearch`),
   danh sách thẻ, phân trang và thanh thao tác. Chỉ khác ở những chỗ khách hàng không có:
-  - Nhân viên: nhãn "Chưa bật/Đã bật 2FA", dòng "Vai trò" (mỗi vai trò một nhãn), nút Đổi vai trò, nút "Thêm nhân viên".
+  - Nhân viên: nhãn "Chưa bật/Đã bật 2FA" theo `twoFactorEnabled` (chưa bật chỉ tô cảnh báo với Super Admin, vì chỉ
+    Super Admin bắt buộc), dòng "Vai trò" (mỗi vai trò một nhãn), nút Đổi vai trò, nút "Thêm nhân viên".
   - Khách hàng: số điện thoại cạnh email, nút "Xem chi tiết" (tên khách cũng là link tới trang chi tiết).
   - Mọi dòng: tên, nhãn "Bạn" (chính mình), "Hoạt động" hoặc "Đã vô hiệu hóa", email. Tìm theo email, họ tên hoặc số
     điện thoại (`q`, bấm Tìm mới gọi API).
@@ -33,8 +34,8 @@ không có vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền 
     **Kích hoạt lại** (`success-outline`, viền xanh lá).
   - Mỗi nút có icon. Kết quả và lỗi hiện ngay dưới thanh nút của dòng đó; form Đổi vai trò / Đặt mật khẩu mở ngay dưới
     thanh nút, mở form này thì đóng form kia. Trang chi tiết khách dùng đúng thanh nút này.
-- **Thêm nhân viên**: email, họ tên, mật khẩu tạm (≥ 8 ký tự), ít nhất một vai trò nhân viên. Nhân viên phải tự bật 2FA ở
-  lần đăng nhập đầu; Super Admin tự báo mật khẩu tạm. Email trùng (`EMAIL_TAKEN`) hiện ngay ở ô email.
+- **Thêm nhân viên**: email, họ tên, mật khẩu tạm (≥ 8 ký tự), ít nhất một vai trò nhân viên. Super Admin phải bật 2FA ở
+  lần đăng nhập đầu, nhân viên khác tự chọn; Super Admin tự báo mật khẩu tạm. Email trùng (`EMAIL_TAKEN`) hiện ngay ở ô email.
 - **Chỉ thao tác tài khoản dưới cấp** (`canManage`): Đổi vai trò, Đặt mật khẩu, Vô hiệu hóa, Đăng nhập hộ không hiện với
   chính mình và Super Admin khác (Super Admin chỉ có 1–2 tài khoản, quản lý ngoài giao diện); backend vẫn kiểm tra và trả
   `CANNOT_MANAGE_USER`. "Đăng xuất hộ" không hiện với chính mình.

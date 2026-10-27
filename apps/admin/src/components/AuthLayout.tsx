@@ -9,7 +9,7 @@ export interface AuthLayoutProps {
 }
 
 const SECURITY_NOTES = [
-  { icon: ShieldCheck, text: "Bắt buộc xác thực 2 lớp bằng ứng dụng trên điện thoại." },
+  { icon: ShieldCheck, text: "Xác thực 2 lớp bằng ứng dụng trên điện thoại, bắt buộc với Super Admin." },
   { icon: Clock, text: "Phiên đăng nhập 12 giờ, không ghi nhớ trên máy dùng chung." },
   { icon: KeyRound, text: "Chỉ dành cho tài khoản nhân viên do Super Admin cấp." },
 ] as const;

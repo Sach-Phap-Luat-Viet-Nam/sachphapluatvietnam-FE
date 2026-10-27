@@ -2,7 +2,10 @@ import type { ImpersonationEnd, SessionState, SessionUser } from "@slvn/auth";
 import { isStaff } from "./roles";
 import { HOME_PATH, TWO_FACTOR_SETUP_PATH } from "./routes";
 
-/** `admin`: các trang quản trị; `two-factor-setup`: màn bật 2FA, chỉ cho nhân viên chưa bật. */
+/**
+ * `admin`: các trang quản trị; `two-factor-setup`: màn bật 2FA, cho nhân viên chưa bật (Super Admin bắt buộc, vai trò
+ * khác tự chọn).
+ */
 export type GateRequirement = "admin" | "two-factor-setup";
 
 export type GateDecision =
@@ -34,11 +37,11 @@ export function gateDecision(state: SessionState, requirement: GateRequirement):
   if (!isStaff(user.roles)) {
     return { kind: "forbidden", user };
   }
-  // Nhân viên chưa bật 2FA gọi API Admin sẽ bị 403 nên phải bật 2FA trước.
+  // Super Admin chưa bật 2FA gọi API Admin sẽ bị 403 nên phải bật 2FA trước.
   if (requirement === "admin" && user.requiresTwoFactorSetup && !impersonating) {
     return { kind: "redirect", to: TWO_FACTOR_SETUP_PATH };
   }
-  if (requirement === "two-factor-setup" && (!user.requiresTwoFactorSetup || impersonating)) {
+  if (requirement === "two-factor-setup" && (user.twoFactorEnabled === true || impersonating)) {
     return { kind: "redirect", to: HOME_PATH };
   }
   return { kind: "allow", user };
