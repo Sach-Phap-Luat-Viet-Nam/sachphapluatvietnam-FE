@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -14,6 +14,7 @@ function detail(
   status = "pending_confirm",
   nextStatuses = ["confirmed", "cancelled"],
   costOfGoods: number | null = null,
+  fastForward: { status: string; steps: string[] }[] = [],
 ) {
   return {
     order: {
@@ -53,8 +54,15 @@ function detail(
     userId: null,
     nextStatuses,
     costOfGoods,
+    fastForward,
   };
 }
+
+const PENDING_FAST_FORWARD = [
+  { status: "packing", steps: ["confirmed", "packing"] },
+  { status: "ready_to_ship", steps: ["confirmed", "packing", "ready_to_ship"] },
+  { status: "shipping", steps: ["confirmed", "packing", "ready_to_ship", "shipping"] },
+];
 
 function signIn(roles: string[]) {
   startSession({
@@ -113,6 +121,53 @@ describe("OrderDetail", () => {
     expect(await screen.findByText("Đã chuyển đơn sang “Chờ xử lý”.")).toBeVisible();
     expect(body).toEqual({ status: "confirmed", note: "Đã gọi xác nhận" });
     expect(screen.getByRole("button", { name: "Đang đóng gói" })).toBeVisible();
+  });
+
+  it("chuyển nhanh nhiều bước: hỏi xác nhận, liệt kê các bước và tác động", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/orders/${CODE}`, () =>
+        HttpResponse.json(detail("pending_confirm", ["confirmed", "cancelled"], null, PENDING_FAST_FORWARD)),
+      ),
+    );
+    signIn(["order_manager"]);
+    let body: unknown;
+    server.use(
+      http.post(`${ORIGIN}/api/v1/admin/orders/${CODE}/status`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json(detail("ready_to_ship", ["shipping"], 300000));
+      }),
+    );
+    const user = userEvent.setup();
+    renderDetail();
+
+    const group = await screen.findByRole("group", { name: /Hoặc chuyển nhanh tới/ });
+    await user.click(within(group).getByRole("button", { name: "Chờ lấy hàng" }));
+
+    expect(screen.getByText(`Chuyển nhanh đơn ${CODE} sang “Chờ lấy hàng”?`)).toBeVisible();
+    expect(screen.getByText("Đơn sẽ đi qua 3 bước: Chờ xử lý → Đang đóng gói → Chờ lấy hàng.")).toBeVisible();
+    expect(screen.getByText(/Trừ tồn kho thật theo lô in/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Xác nhận chuyển nhanh: Chờ lấy hàng" }));
+
+    expect(await screen.findByText("Đã chuyển nhanh đơn sang “Chờ lấy hàng” (3 bước).")).toBeVisible();
+    expect(body).toEqual({ status: "ready_to_ship", note: null });
+    expect(screen.queryByRole("group", { name: /Hoặc chuyển nhanh tới/ })).not.toBeInTheDocument();
+  });
+
+  it("quay lại từ form chuyển nhanh thì không gọi API", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/orders/${CODE}`, () =>
+        HttpResponse.json(detail("pending_confirm", ["confirmed", "cancelled"], null, PENDING_FAST_FORWARD)),
+      ),
+    );
+    signIn(["order_manager"]);
+    const user = userEvent.setup();
+    renderDetail();
+
+    const group = await screen.findByRole("group", { name: /Hoặc chuyển nhanh tới/ });
+    await user.click(within(group).getByRole("button", { name: "Đang giao" }));
+    await user.click(screen.getByRole("button", { name: "Quay lại" }));
+
+    expect(screen.getByRole("group", { name: /Hoặc chuyển nhanh tới/ })).toBeVisible();
   });
 
   it("hủy đơn dùng nút đỏ, nêu tác động hoàn tồn; ghi chú trống gửi null", async () => {

@@ -60,6 +60,11 @@ export const adminOrderSchema = z.object({
   nextStatuses: z.array(z.string()),
   /** Tổng giá vốn theo lô đã xuất, có từ khi đóng gói. */
   costOfGoods: z.number().nullable(),
+  /**
+   * Trạng thái chuyển nhanh được (cách từ hai bước trên luồng chính) kèm các bước sẽ đi qua; gửi `status` đó là backend
+   * đi đủ các bước. Backend bản cũ chưa có thì coi như rỗng.
+   */
+  fastForward: z.array(z.object({ status: z.string(), steps: z.array(z.string()) })).default([]),
 });
 export type AdminOrder = z.infer<typeof adminOrderSchema>;
 

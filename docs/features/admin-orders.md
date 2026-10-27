@@ -34,6 +34,13 @@ App **admin**, phần "Đơn hàng" (`lib/modules.ts`). Xem đơn: `super_admin`
   ghi thu tiền…) và ô ghi chú (không bắt buộc, ≤ 1000 ký tự, trống gửi `null`). Hủy đơn và hoàn tiền dùng nút đỏ. Thành
   công: thay cache đơn bằng response, làm mới danh sách, báo "Đã chuyển đơn sang …". Hết trạng thái kế tiếp thì báo "Đơn đã
   ở trạng thái cuối".
+- **Chuyển nhanh nhiều bước**: dưới các nút bước kế tiếp có nhóm "Hoặc chuyển nhanh tới" (nút viền, dựng **từ
+  `fastForward`** của backend), ví dụ từ "Chờ xác nhận" tới thẳng "Đang đóng gói", "Chờ lấy hàng", "Đang giao", "Đã giao".
+  Chọn thì mở cùng form xác nhận nhưng ghi "Chuyển nhanh đơn … sang …?", liệt kê các bước sẽ đi qua ("Đơn sẽ đi qua 3
+  bước: Chờ xử lý → Đang đóng gói → Chờ lấy hàng") và tác động của từng bước; nút "Xác nhận chuyển nhanh: …". Gửi một
+  request duy nhất với `status` đích; backend đi đủ các bước trong một transaction. Thành công báo "Đã chuyển nhanh đơn
+  sang … (N bước)". Không chuyển nhanh được hủy, hoàn, xác nhận thanh toán và "Hoàn tất" (backend không trả các trạng
+  thái này trong `fastForward`).
 - **Xung đột**: người khác vừa đổi trạng thái (`ORDER_INVALID_TRANSITION`) thì đóng form, báo lỗi ở khung "Xử lý đơn" (vẫn
   còn sau khi tải lại) và tải lại đơn để dựng lại nút.
 - Vai trò chỉ xem (CSKH, Kế toán) thấy câu "chỉ xem đơn", không có nút.

@@ -17,16 +17,23 @@ import { ORDER_STATUS_LABELS, isDestructiveTransition, transitionEffect } from "
 import { statusChangeFormSchema } from "./schemas";
 import type { AdminOrder, StatusChangeFormValues } from "./schemas";
 
+/** Trạng thái đích và các bước sẽ đi qua (một phần tử khi chuyển một bước). */
+interface StatusTarget {
+  status: string;
+  steps: string[];
+}
+
 /**
- * Nút chuyển trạng thái dựng từ `nextStatuses` (danh sách duy nhất backend chấp nhận). Chọn trạng thái thì mở form ghi
- * chú và nút xác nhận; hủy đơn, hoàn tiền dùng nút đỏ. Vai trò chỉ xem (CSKH, Kế toán) không thấy nút.
+ * Nút chuyển trạng thái dựng từ `nextStatuses` (bước kế tiếp) và `fastForward` (chuyển nhanh nhiều bước), đều là danh
+ * sách backend chấp nhận. Chọn trạng thái thì mở form ghi chú và nút xác nhận, chuyển nhanh thì liệt kê các bước sẽ đi
+ * qua; hủy đơn, hoàn tiền dùng nút đỏ. Vai trò chỉ xem (CSKH, Kế toán) không thấy nút.
  */
 export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
   const user = useSessionUser();
-  const [target, setTarget] = useState<string | null>(null);
+  const [target, setTarget] = useState<StatusTarget | null>(null);
   // Thông báo nằm ở khung ngoài để còn hiện sau khi đơn tải lại (form có thể biến mất nếu hết trạng thái kế tiếp).
   const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
-  const { order, nextStatuses } = detail;
+  const { order, nextStatuses, fastForward } = detail;
 
   if (!user) {
     return null;
@@ -57,12 +64,19 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
       ) : target ? (
         <StatusChangeForm
           orderCode={order.orderCode}
-          status={target}
-          effect={transitionEffect(target, order.paymentMethod)}
+          status={target.status}
+          steps={target.steps}
+          effects={target.steps.flatMap((step) => transitionEffect(step, order.paymentMethod) ?? [])}
           onCancel={() => setTarget(null)}
           onChanged={(label) => {
             setTarget(null);
-            setNotice({ kind: "success", text: `Đã chuyển đơn sang “${label}”.` });
+            setNotice({
+              kind: "success",
+              text:
+                target.steps.length > 1
+                  ? `Đã chuyển nhanh đơn sang “${label}” (${target.steps.length} bước).`
+                  : `Đã chuyển đơn sang “${label}”.`,
+            });
           }}
           onConflict={(text) => {
             setTarget(null);
@@ -79,13 +93,34 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
                 variant={isDestructiveTransition(status) ? "danger-outline" : "primary"}
                 onClick={() => {
                   setNotice(null);
-                  setTarget(status);
+                  setTarget({ status, steps: [status] });
                 }}
               >
                 {enumLabel(ORDER_STATUS_LABELS, status)}
               </Button>
             ))}
           </div>
+          {fastForward.length > 0 && (
+            <div role="group" aria-labelledby="order-fast-forward" className="flex flex-col gap-3">
+              <p id="order-fast-forward" className={HINT}>
+                Hoặc chuyển nhanh tới (đi qua các bước ở giữa, sẽ hỏi xác nhận):
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {fastForward.map((option) => (
+                  <Button
+                    key={option.status}
+                    variant="outline"
+                    onClick={() => {
+                      setNotice(null);
+                      setTarget(option);
+                    }}
+                  >
+                    {enumLabel(ORDER_STATUS_LABELS, option.status)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </section>
@@ -95,16 +130,28 @@ export function OrderStatusActions({ detail }: { detail: AdminOrder }) {
 interface StatusChangeFormProps {
   orderCode: string;
   status: string;
-  effect: string | null;
+  /** Các bước sẽ đi qua, phần tử cuối là `status`; nhiều hơn một là chuyển nhanh. */
+  steps: string[];
+  /** Tác động kèm theo của các bước (trừ kho, ghi nhận thu tiền...). */
+  effects: string[];
   onCancel: () => void;
   onChanged: (label: string) => void;
   /** Đơn vừa được đổi ở nơi khác: đóng form, báo lỗi ở khung ngoài và tải lại đơn. */
   onConflict: (message: string) => void;
 }
 
-function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged, onConflict }: StatusChangeFormProps) {
+function StatusChangeForm({
+  orderCode,
+  status,
+  steps,
+  effects,
+  onCancel,
+  onChanged,
+  onConflict,
+}: StatusChangeFormProps) {
   const queryClient = useQueryClient();
   const label = enumLabel(ORDER_STATUS_LABELS, status);
+  const fastForward = steps.length > 1;
   const destructive = isDestructiveTransition(status);
   const {
     register,
@@ -135,10 +182,27 @@ function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged, onCo
       aria-label={`Chuyển đơn ${orderCode} sang ${label}`}
       className="flex flex-col gap-4"
     >
-      <p className="font-medium">
-        Chuyển đơn {orderCode} sang “{label}”?
-      </p>
-      {effect && <p className={HINT}>{effect}</p>}
+      {fastForward ? (
+        <>
+          <p className="font-medium">
+            Chuyển nhanh đơn {orderCode} sang “{label}”?
+          </p>
+          <p className={HINT}>
+            Đơn sẽ đi qua {steps.length} bước: {steps.map((step) => enumLabel(ORDER_STATUS_LABELS, step)).join(" → ")}.
+          </p>
+        </>
+      ) : (
+        <p className="font-medium">
+          Chuyển đơn {orderCode} sang “{label}”?
+        </p>
+      )}
+      {effects.length > 0 && (
+        <ul className={`${HINT} flex list-disc flex-col gap-1 pl-5`}>
+          {effects.map((effect) => (
+            <li key={effect}>{effect}</li>
+          ))}
+        </ul>
+      )}
       <Field id="status-note" label="Ghi chú" optional error={errors.note?.message}>
         <textarea
           {...register("note")}
@@ -152,7 +216,7 @@ function StatusChangeForm({ orderCode, status, effect, onCancel, onChanged, onCo
       </Field>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" variant={destructive ? "danger" : "primary"} disabled={change.isPending}>
-          {change.isPending ? "Đang lưu…" : `Xác nhận: ${label}`}
+          {change.isPending ? "Đang lưu…" : fastForward ? `Xác nhận chuyển nhanh: ${label}` : `Xác nhận: ${label}`}
         </Button>
         <Button variant="ghost" onClick={onCancel} disabled={change.isPending}>
           Quay lại

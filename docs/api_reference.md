@@ -783,7 +783,7 @@ Quyền: `super_admin`, `warehouse_keeper`; riêng duyệt/từ chối phiếu n
 
 ## Admin — Đơn hàng
 
-Admin xem và đổi trạng thái đơn thủ công (chưa tích hợp vận chuyển/thanh toán). Nút đổi trạng thái trên FE nên dựng **từ `nextStatuses`** trong response: đó là danh sách duy nhất backend chấp nhận.
+Admin xem và đổi trạng thái đơn thủ công (chưa tích hợp vận chuyển/thanh toán). Nút đổi trạng thái trên FE nên dựng **từ `nextStatuses`** (bước kế tiếp) và **`fastForward`** (chuyển nhanh nhiều bước) trong response: đó là các trạng thái duy nhất backend chấp nhận.
 
 | Method | Route                                | Quyền           | Request                                                              | Response                                          |
 | ------ | ------------------------------------ | --------------- | -------------------------------------------------------------------- | ------------------------------------------------- |
@@ -805,6 +805,11 @@ Admin xem và đổi trạng thái đơn thủ công (chưa tích hợp vận ch
   "order": {/* OrderResponse như mục Đặt hàng, có history */},
   "userId": 12,
   "nextStatuses": ["packing", "cancelled"],
+  "fastForward": [
+    { "status": "ready_to_ship", "steps": ["packing", "ready_to_ship"] },
+    { "status": "shipping", "steps": ["packing", "ready_to_ship", "shipping"] },
+    { "status": "delivered", "steps": ["packing", "ready_to_ship", "shipping", "delivered"] }
+  ],
   "costOfGoods": null,
   "customerRisk": {
     "totalOrders": 4, "deliveredCount": 2, "cancelledCount": 1, "failedCodCount": 0, "openCodCount": 1,
@@ -817,7 +822,9 @@ Admin xem và đổi trạng thái đơn thủ công (chưa tích hợp vận ch
 
 &#91;embedded content: trạng thái đơn hàng · 15 trạng thái theo mục 16.1\]
 
-Chuyển trạng thái sai bảng trả 409 `ORDER_INVALID_TRANSITION`. Tác động đi kèm mỗi lần chuyển:
+`fastForward` = trạng thái cách từ hai bước trở lên trên luồng chính (`pending_confirm`/`preorder_waiting`/`paid` → `confirmed` → `packing` → `ready_to_ship` → `shipping` → `delivered`), kèm `steps` sẽ đi qua (phần tử cuối là `status`). Gửi `status` đó vào `POST .../status` là backend đi lần lượt các bước trong một transaction, mỗi bước có đủ tác động và một dòng lịch sử (bước trung gian ghi chú "Chuyển nhanh nhiều bước", `note` gắn vào bước cuối); lỗi ở bước nào thì đơn giữ nguyên. Hủy, hoàn, xác nhận thanh toán và `completed` không chuyển nhanh được.
+
+Chuyển trạng thái sai bảng (và không nằm trong `fastForward`) trả 409 `ORDER_INVALID_TRANSITION`. Tác động đi kèm mỗi lần chuyển:
 
 | Chuyển sang           | Tác động                                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------------------- |
