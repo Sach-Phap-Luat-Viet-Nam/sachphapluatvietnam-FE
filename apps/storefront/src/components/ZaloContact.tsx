@@ -2,8 +2,8 @@ import { tourAnchor } from "@/lib/tour-anchor";
 
 /** Hai đầu mối Zalo. Đổi số ở đây là đổi cho cả nút và link. */
 const ZALO_CONTACTS = [
-  { label: "Tư vấn mua bán", phone: "0984739739" },
-  { label: "Kỹ thuật, sự cố, hỏi đáp về đơn", phone: "0932000035" },
+  { label: "Tư vấn chọn sách", phone: "0984739739" },
+  { label: "Đồng hành cùng đơn hàng", phone: "0932000035" },
 ] as const;
 
 /**
@@ -38,10 +38,9 @@ export function ZaloContact() {
               href={`https://zalo.me/${phone}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:bg-zalo/15 flex flex-col px-4 py-3 text-right"
+              className="hover:bg-zalo/15 text-ivory block px-4 py-3 text-right text-sm font-semibold"
             >
-              <span className="text-ivory text-sm font-semibold">{label}</span>
-              <span className="text-sand text-sm">{phone}</span>
+              {label}
             </a>
           </li>
         ))}
