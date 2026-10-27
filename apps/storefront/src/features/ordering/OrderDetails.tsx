@@ -50,7 +50,7 @@ export function OrderDetails({ order }: { order: Order }) {
               <div className="min-w-0">
                 <p className="font-medium">{item.bookTitle}</p>
                 <p className="text-mist text-sm">
-                  {[item.editionName, coverTypeLabel(item.coverType), `ISBN ${item.isbn}`].filter(Boolean).join(" · ")}
+                  {[item.editionName, coverTypeLabel(item.coverType), item.skuCode].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <p className="text-sand text-right">

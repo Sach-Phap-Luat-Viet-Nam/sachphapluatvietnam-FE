@@ -71,7 +71,7 @@ describe("OrderLookup", () => {
 
     expect(await screen.findByRole("heading", { name: "Đơn hàng SLVN2610230001" })).toBeVisible();
     expect(screen.getByText("Đang giao", { selector: "dd" })).toBeVisible();
-    expect(screen.getByText("Tái bản lần 3 · Bìa cứng · ISBN 9780306406157")).toBeVisible();
+    expect(screen.getByText("Tái bản lần 3 · Bìa cứng · SLVN-BLDS-2026-BM")).toBeVisible();
     expect(screen.getByText("180.000 ₫")).toBeVisible();
     expect(screen.getByText(/Đã giao cho đơn vị vận chuyển/)).toBeVisible();
     expect(body).toEqual({ orderCode: "SLVN2610230001", phone: "0901234567" });
