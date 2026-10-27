@@ -179,7 +179,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
     side: "top",
     align: "end",
     title: "Tư vấn qua Zalo",
-    description: "Cần hỏi sách nào phù hợp, phí giao hàng hay tình trạng đơn? Nhắn Zalo để được tư vấn trực tiếp.",
+    description:
+      "Cần hỏi sách nào phù hợp, phí giao hàng hay tình trạng đơn? Bấm nút Zalo, chọn người hỗ trợ rồi nhắn để được tư vấn trực tiếp.",
   },
   {
     target: "order-lookup",
