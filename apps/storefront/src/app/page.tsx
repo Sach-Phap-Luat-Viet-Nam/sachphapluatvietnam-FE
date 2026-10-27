@@ -96,10 +96,7 @@ export default async function HomePage() {
             {/* Hai cuốn xòe phía sau là sách mới thứ 2 và 3; cuốn 3D ở giữa là sách mới nhất. */}
             <HeroFanBook book={books[1]} className="book-fan-left bg-cover-wine top-24 left-[6%] h-85 w-60" />
             <HeroFanBook book={books[2]} className="book-fan-right bg-cover-green top-36 right-[4%] h-77.5 w-55" />
-            <span
-              aria-hidden="true"
-              className="book-floor absolute bottom-16 h-10 w-80 rounded-full bg-radial-[closest-side] from-black/85 to-transparent"
-            />
+            <span aria-hidden="true" className="book-floor absolute bottom-16 h-10 w-80 rounded-full" />
             <Book3D title={featured?.title ?? "Tủ sách pháp luật"} coverImageUrl={featured?.coverImageUrl ?? null} />
             {featured && (
               <>

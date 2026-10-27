@@ -140,10 +140,7 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
         {/* Mô hình sách 3D nghiêng theo chuột (như hero); dính theo khi cuộn đọc mô tả trên desktop. */}
         <HeroSpotlight className="flex flex-col items-center gap-2 lg:sticky lg:top-6 lg:self-start">
           <div className="relative flex h-115 w-full items-center justify-center sm:h-145">
-            <span
-              aria-hidden="true"
-              className="book-floor absolute bottom-6 h-10 w-72 rounded-full bg-radial-[closest-side] from-black/85 to-transparent sm:bottom-4"
-            />
+            <span aria-hidden="true" className="book-floor absolute bottom-6 h-10 w-72 rounded-full sm:bottom-4" />
             <Book3D title={book.title} coverImageUrl={edition.coverImageUrl} size="detail" />
           </div>
           {preview && (

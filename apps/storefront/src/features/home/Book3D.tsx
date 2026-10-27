@@ -54,7 +54,7 @@ export function Book3D({ title, coverImageUrl, size = "hero" }: Book3DProps) {
                 fill
                 sizes="56px"
                 unoptimized
-                className="scale-150 object-cover blur-md brightness-60"
+                className="scale-150 object-cover blur-md brightness-(--book-spine-brightness)"
               />
             )}
             <span aria-hidden="true" className="book-spine-shade absolute inset-0" />

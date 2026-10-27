@@ -21,10 +21,7 @@ export function ComboBooks3D({ items }: ComboBooks3DProps) {
   const size = items.length > 1 ? "combo" : "detail";
   return (
     <div className="relative flex h-80 w-full items-center justify-center gap-4 sm:h-104 sm:gap-8 lg:h-96 lg:gap-5">
-      <span
-        aria-hidden="true"
-        className="book-floor absolute bottom-6 h-10 w-full max-w-sm rounded-full bg-radial-[closest-side] from-black/85 to-transparent sm:bottom-4"
-      />
+      <span aria-hidden="true" className="book-floor absolute bottom-6 h-10 w-full max-w-sm rounded-full sm:bottom-4" />
       {items.map((item) => (
         <Book3D key={item.skuId} title={item.bookTitle} coverImageUrl={item.coverImageUrl} size={size} />
       ))}

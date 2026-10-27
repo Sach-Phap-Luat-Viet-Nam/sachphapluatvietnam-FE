@@ -56,6 +56,16 @@
 
 :root {
   color-scheme: dark;
+  /* Sách 3D ở hero/chi tiết/combo: bóng, lớp phủ và độ tối gáy đổi theo chế độ (đen đậm chỉ hợp nền tối). */
+  --book-fan-shadow:
+    0 45px 70px -18px rgb(0 0 0 / 0.95), 0 14px 26px -8px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.07);
+  --book-fan-dim: rgb(0 0 0 / 0.25);
+  --book-floor: rgb(0 0 0 / 0.85);
+  --book-hinge: rgb(0 0 0 / 0.45);
+  --book-hinge-soft: rgb(0 0 0 / 0.28);
+  --book-spine-edge: rgb(0 0 0 / 0.55);
+  --book-spine-edge-soft: rgb(0 0 0 / 0.15);
+  --book-spine-brightness: 0.6;
 }
 
 /*
@@ -87,6 +97,16 @@
   --color-primary-foreground: #f7f3ea;
   --color-danger: #b42318;
   color-scheme: light;
+  /* Nền kem: bóng nâu ấm và mềm thay cho đen đậm, không phủ tối hai cuốn xòe, rãnh bản lề nhạt để bìa sáng không bị vệt xám. */
+  --book-fan-shadow:
+    0 34px 48px -22px rgb(74 52 20 / 0.42), 0 10px 18px -8px rgb(74 52 20 / 0.28), 0 0 0 1px rgb(26 34 54 / 0.1);
+  --book-fan-dim: rgb(247 243 234 / 0.1);
+  --book-floor: rgb(74 52 20 / 0.34);
+  --book-hinge: rgb(26 34 54 / 0.2);
+  --book-hinge-soft: rgb(26 34 54 / 0.1);
+  --book-spine-edge: rgb(26 34 54 / 0.4);
+  --book-spine-edge-soft: rgb(26 34 54 / 0.08);
+  --book-spine-brightness: 0.8;
 }
 
 @layer base {
@@ -188,9 +208,9 @@
     background:
       linear-gradient(
         90deg,
-        rgb(0 0 0 / 0.45) 0,
+        var(--book-hinge) 0,
         rgb(255 255 255 / 0.14) 2.5%,
-        rgb(0 0 0 / 0.28) 4.5%,
+        var(--book-hinge-soft) 4.5%,
         rgb(255 255 255 / 0.06) 6%,
         transparent 10%
       ),
@@ -200,10 +220,10 @@
   .book-spine-shade {
     background: linear-gradient(
       90deg,
-      rgb(0 0 0 / 0.55),
+      var(--book-spine-edge),
       rgb(255 255 255 / 0.1) 45%,
-      rgb(0 0 0 / 0.15) 60%,
-      rgb(0 0 0 / 0.6)
+      var(--book-spine-edge-soft) 60%,
+      var(--book-spine-edge)
     );
   }
   /* Các mặt của sách 3D, dày `--book-depth`; gáy bên trái, mép giấy bên phải và phía trên. */
@@ -251,6 +271,7 @@
     background: repeating-linear-gradient(0deg, var(--color-page-edge) 0 2px, var(--color-page-line) 2px 3px);
   }
   .book-floor {
+    background: radial-gradient(closest-side, var(--book-floor), transparent);
     animation: floor-breathe 6s ease-in-out 2s infinite;
   }
   .book-fan-left {
