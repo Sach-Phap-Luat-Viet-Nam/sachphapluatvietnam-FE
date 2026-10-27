@@ -13,8 +13,9 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
 - **Header**: logo, ô tìm kiếm (form GET tới `/sach`), icon giỏ hàng kèm số cuốn (`storefront-ordering.md`), link Đăng
   nhập (đã đăng nhập thì hiện tên và nút Đăng xuất).
 - **Tư vấn qua Zalo** (`components/ZaloContact.tsx`, đặt trong `layout.tsx`): nút tròn màu Zalo nổi góc phải dưới mọi
-  trang, link `https://zalo.me/0984739739` (Nguyễn Tài Thành) mở tab mới; từ tablet hiện thêm nhãn tên và số điện thoại. Đổi số
-  ở hằng `ZALO_PHONE` trong file này.
+  trang. Bấm vào mở danh sách hai đầu mối (`<details>`, không cần JS), mỗi số mở `https://zalo.me/<số>` ở tab mới:
+  **tư vấn mua bán** `0984739739`, **kỹ thuật, sự cố, hỏi đáp về đơn** `0932000035`. Từ tablet hiện thêm nhãn khi đang
+  đóng. Đổi số ở hằng `ZALO_CONTACTS` trong file này.
 - **Footer**: chỉ link tới trang đã có và thông tin giao hàng/thanh toán có thật (BR-14); chưa có hotline, địa chỉ.
   Link "Đăng nhập" (`FooterLoginLink`) ẩn khi khách đã đăng nhập; trong lúc đang kiểm tra phiên vẫn hiện.
   Có link "Tra cứu đơn hàng" (`/don-hang/tra-cuu`, cho khách đặt không cần tài khoản) và nút "Xem hướng dẫn sử dụng"
