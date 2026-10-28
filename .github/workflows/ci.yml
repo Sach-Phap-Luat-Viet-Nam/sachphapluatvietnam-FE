@@ -50,8 +50,9 @@ jobs:
 
   # Chạy trên self-hosted runner đặt tại máy production (docs/deploy-linux.md của repo backend, mục CI/CD):
   # runner không checkout code, chỉ gọi update.sh có sẵn trên máy (pull cả 2 repo, build API rồi FE).
+  # Bật bằng biến organization DEPLOY_ENABLED=true sau khi cài runner: thiếu runner thì job nằm chờ trong hàng đợi.
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     needs: [check]
     runs-on: [self-hosted, sachluat-prod]
     timeout-minutes: 60
