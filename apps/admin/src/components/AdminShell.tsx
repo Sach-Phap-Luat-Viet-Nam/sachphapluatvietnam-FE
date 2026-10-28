@@ -80,9 +80,11 @@ function ShellLayout({ user, children }: { user: SessionUser; children: ReactNod
 
           <div
             id="admin-menu"
-            className={cn("flex-1 flex-col gap-6 px-3 pb-4 lg:flex lg:px-3", menuOpen ? "flex" : "hidden")}
+            className={cn("min-h-0 flex-1 flex-col gap-6 px-3 pb-4 lg:flex lg:px-3", menuOpen ? "flex" : "hidden")}
           >
-            <nav aria-label="Quản trị">
+            {/* Sidebar cao cố định trên desktop: menu tự cuộn để khối người dùng/đăng xuất luôn hiện ở đáy.
+                Padding bù để viền focus (outline-offset) không bị cắt bởi vùng cuộn. */}
+            <nav aria-label="Quản trị" className="lg:-m-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:p-1">
               <ul className="flex flex-col gap-1">
                 {modulesForRoles(user.roles).map((module) => {
                   const Icon = MODULE_ICONS[module.id];
@@ -120,7 +122,7 @@ function ShellLayout({ user, children }: { user: SessionUser; children: ReactNod
               </ul>
             </nav>
 
-            <div className="border-primary-foreground/20 mt-auto flex flex-col gap-2 border-t px-3 pt-4">
+            <div className="border-primary-foreground/20 mt-auto flex shrink-0 flex-col gap-2 border-t px-3 pt-4">
               <p className="flex items-center gap-2 font-medium">
                 <UserRound size={18} aria-hidden="true" className="shrink-0" />
                 <span className="truncate">{user.fullName}</span>
