@@ -40,10 +40,11 @@ describe("backendProxyTarget", () => {
   });
 
   it("không gắn IP khi request thiếu clientIpHeader", () => {
-    const { headers } = backendProxyTarget(
-      browserRequest("/api/v1/auth/login", { "x-forwarded-for": "1.1.1.1" }),
-      { apiBaseUrl: API, proxySecret: "s3cret", clientIpHeader: "cf-connecting-ip" },
-    );
+    const { headers } = backendProxyTarget(browserRequest("/api/v1/auth/login", { "x-forwarded-for": "1.1.1.1" }), {
+      apiBaseUrl: API,
+      proxySecret: "s3cret",
+      clientIpHeader: "cf-connecting-ip",
+    });
 
     expect(headers.has("x-client-ip")).toBe(false);
     expect(headers.has("x-proxy-secret")).toBe(false);
