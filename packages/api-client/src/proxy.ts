@@ -7,6 +7,11 @@ export interface BackendProxyOptions {
   apiBaseUrl: string;
   /** Secret dùng chung với backend để backend tin header `x-client-ip`. Bỏ trống thì không gắn IP. */
   proxySecret?: string;
+  /**
+   * Header chứa IP thật của khách (lấy phần tử đầu). Mặc định `x-forwarded-for`, do Vercel ghi đè. Sau Cloudflare dùng
+   * `cf-connecting-ip`: Cloudflare chỉ nối thêm vào `x-forwarded-for` khách tự gửi nên phần tử đầu giả được.
+   */
+  clientIpHeader?: string;
 }
 
 /**
@@ -19,7 +24,7 @@ export interface BackendProxyOptions {
  */
 export function backendProxyTarget(
   request: Request,
-  { apiBaseUrl, proxySecret }: BackendProxyOptions,
+  { apiBaseUrl, proxySecret, clientIpHeader = "x-forwarded-for" }: BackendProxyOptions,
 ): { url: URL; headers: Headers } {
   const source = new URL(request.url);
   const url = new URL(source.pathname + source.search, apiBaseUrl);
@@ -27,8 +32,7 @@ export function backendProxyTarget(
   headers.delete(CLIENT_IP_HEADER);
   headers.delete(PROXY_SECRET_HEADER);
 
-  // Trên Vercel, x-forwarded-for do Vercel ghi đè nên phần tử đầu là IP thật của khách.
-  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const clientIp = request.headers.get(clientIpHeader)?.split(",")[0]?.trim();
   if (clientIp && proxySecret) {
     headers.set(CLIENT_IP_HEADER, clientIp);
     headers.set(PROXY_SECRET_HEADER, proxySecret);

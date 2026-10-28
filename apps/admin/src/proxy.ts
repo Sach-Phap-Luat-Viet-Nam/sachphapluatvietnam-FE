@@ -9,7 +9,11 @@ export function proxy(request: NextRequest) {
     throw new Error("API_BASE_URL is not configured");
   }
 
-  const { url, headers } = backendProxyTarget(request, { apiBaseUrl, proxySecret: process.env.PROXY_SECRET });
+  const { url, headers } = backendProxyTarget(request, {
+    apiBaseUrl,
+    proxySecret: process.env.PROXY_SECRET,
+    clientIpHeader: process.env.CLIENT_IP_HEADER || undefined,
+  });
   return NextResponse.rewrite(url, { request: { headers } });
 }
 

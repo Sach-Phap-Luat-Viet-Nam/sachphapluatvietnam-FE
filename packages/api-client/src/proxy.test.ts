@@ -27,6 +27,28 @@ describe("backendProxyTarget", () => {
     expect(headers.get("x-proxy-secret")).toBe("s3cret");
   });
 
+  it("lấy IP từ clientIpHeader, bỏ qua x-forwarded-for do khách tự gửi", () => {
+    const { headers } = backendProxyTarget(
+      browserRequest("/api/v1/auth/login", {
+        "x-forwarded-for": "1.1.1.1, 203.0.113.9",
+        "cf-connecting-ip": "203.0.113.9",
+      }),
+      { apiBaseUrl: API, proxySecret: "s3cret", clientIpHeader: "cf-connecting-ip" },
+    );
+
+    expect(headers.get("x-client-ip")).toBe("203.0.113.9");
+  });
+
+  it("không gắn IP khi request thiếu clientIpHeader", () => {
+    const { headers } = backendProxyTarget(
+      browserRequest("/api/v1/auth/login", { "x-forwarded-for": "1.1.1.1" }),
+      { apiBaseUrl: API, proxySecret: "s3cret", clientIpHeader: "cf-connecting-ip" },
+    );
+
+    expect(headers.has("x-client-ip")).toBe(false);
+    expect(headers.has("x-proxy-secret")).toBe(false);
+  });
+
   it("xóa header giả mạo do trình duyệt gửi", () => {
     const { headers } = backendProxyTarget(
       browserRequest("/api/v1/auth/login", { "x-client-ip": "1.1.1.1", "x-proxy-secret": "doan-mo" }),
