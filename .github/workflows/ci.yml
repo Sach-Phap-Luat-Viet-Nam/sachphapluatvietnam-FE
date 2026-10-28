@@ -1,0 +1,64 @@
+# Kiểm tra "định nghĩa xong việc" (SKILL.md) cho mỗi push lên main và mỗi pull request: format, lint, typecheck,
+# unit test. Push lên main pass hết thì deploy production (job deploy).
+# Không chạy pnpm build ở đây: lúc build Next.js render trước trang tĩnh/ISR bằng dữ liệu gọi từ backend, runner của
+# GitHub không gọi được backend. Bước build nằm trong job deploy (build lỗi thì bản đang chạy giữ nguyên).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Chỉ hủy run cũ của pull request; trên main hủy giữa chừng sẽ cắt ngang job deploy.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Bản pnpm lấy từ field packageManager trong package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check format
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+  # Chạy trên self-hosted runner đặt tại máy production (docs/deploy-linux.md của repo backend, mục CI/CD):
+  # runner không checkout code, chỉ gọi update.sh có sẵn trên máy (pull cả 2 repo, build API rồi FE).
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check]
+    runs-on: [self-hosted, sachluat-prod]
+    timeout-minutes: 60
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Deploy
+        run: bash "${{ vars.SACHLUAT_BE_DIR || '/opt/sachluat/sachphapluatvietnam-BE' }}/deploy/update.sh"
