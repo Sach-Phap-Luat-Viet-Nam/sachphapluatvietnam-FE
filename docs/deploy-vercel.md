@@ -40,6 +40,8 @@ từ trình duyệt gọi `/api/v1/*` trên chính domain storefront, được `
   này bằng IP thật của khách) cùng `PROXY_SECRET`. Backend chỉ tin `x-client-ip` khi secret khớp, nhờ đó giới hạn
   10 request/phút/IP của `/auth/*` và `/orders/lookup` tính theo từng khách, không theo IP của Vercel.
 - Thiếu `PROXY_SECRET` thì proxy không gắn hai header, backend dùng IP kết nối (là IP của Vercel khi deploy).
+- Header lấy IP chọn bằng `CLIENT_IP_HEADER` (trống là `x-forwarded-for`). Tự host sau Cloudflare đặt
+  `cf-connecting-ip`, xem `docs/deploy-self-host.md`.
 - Cookie HttpOnly của backend (`sl_refresh`, `sl_cart`) được đặt trên domain storefront. Backend không được đặt thuộc
   tính `Domain` cho cookie, nếu không trình duyệt sẽ bỏ cookie.
 
