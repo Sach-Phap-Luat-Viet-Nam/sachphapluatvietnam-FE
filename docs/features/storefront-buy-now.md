@@ -43,11 +43,11 @@ App **storefront**. Code: `features/ordering/buy-now.ts` (đọc/tạo link, d�
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
-| Method | Route                    | Xác thực | Request                                                | Response            |
-| ------ | ------------------------ | -------- | ------------------------------------------------------ | ------------------- |
-| POST   | `/api/v1/orders/buy-now` | Tùy chọn | `BuyNowOrderRequest` + header `Idempotency-Key` (≤ 64) | 201 `OrderResponse` |
-| GET    | `/api/v1/books/{slug}`   | Không    | —                                                      | Chi tiết sách + SKU |
-| POST   | `/api/v1/checkout/preview` | Không  | `{ "source": "buy_now", "skuId": 100, "quantity": 2, ... }` | Tổng tiền xem trước |
+| Method | Route                      | Xác thực | Request                                                     | Response            |
+| ------ | -------------------------- | -------- | ----------------------------------------------------------- | ------------------- |
+| POST   | `/api/v1/orders/buy-now`   | Tùy chọn | `BuyNowOrderRequest` + header `Idempotency-Key` (≤ 64)      | 201 `OrderResponse` |
+| GET    | `/api/v1/books/{slug}`     | Không    | —                                                           | Chi tiết sách + SKU |
+| POST   | `/api/v1/checkout/preview` | Không    | `{ "source": "buy_now", "skuId": 100, "quantity": 2, ... }` | Tổng tiền xem trước |
 
 Gọi từ trình duyệt qua `browserApi()` như `POST /orders`, để đơn của thành viên gắn với tài khoản (Bearer).
 
