@@ -154,20 +154,20 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 Trang chi tiết gọi từ server qua `serverApi` (cache 60 giây). Các API còn lại gọi từ trình duyệt qua proxy `/api/v1`
 bằng `browserApi()` của `@slvn/auth` (gửi cookie `sl_cart`, gắn Bearer khi đã đăng nhập).
 
-| Method | Route                          | Dùng cho                 | Mã lỗi xử lý riêng                                                   |
-| ------ | ------------------------------ | ------------------------ | -------------------------------------------------------------------- |
-| GET    | `/api/v1/books/{slug}`         | Trang chi tiết           | 404 → trang không tìm thấy                                           |
-| GET    | `/api/v1/cart`                 | Header, giỏ, thanh toán  | —                                                                    |
-| POST   | `/api/v1/cart/items`           | Thêm vào giỏ (cộng thêm) | `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `CART_FULL` |
-| PATCH  | `/api/v1/cart/items/{skuId}`   | Đổi số lượng             | như trên                                                             |
-| DELETE | `/api/v1/cart/items/{skuId}`   | Xóa dòng                 | —                                                                    |
-| POST   | `/api/v1/checkout/preview`     | Tổng tiền giỏ/thanh toán | lỗi → chỉ hiện tạm tính (`storefront-checkout-promotion.md`)         |
-| POST   | `/api/v1/shipping/quote`       | Ngưỡng miễn ship ở Header, Footer, thanh ưu đãi (server) | lỗi → ẩn câu miễn ship              |
-| POST   | `/api/v1/orders`               | Đặt hàng                 | `VALIDATION_ERROR` theo field, `IDEMPOTENCY_KEY_REUSED`, lỗi giỏ     |
-| POST   | `/api/v1/orders/lookup`        | Tra cứu đơn              | `NOT_FOUND`, `TOO_MANY_REQUESTS`                                     |
-| GET    | `/api/v1/orders`               | Đơn của tôi (Bearer)     | 401 → refresh một lần, hết phiên thì mời đăng nhập                   |
-| GET    | `/api/v1/orders/{code}`        | Chi tiết đơn (Bearer)    | `NOT_FOUND`                                                          |
-| POST   | `/api/v1/orders/{code}/cancel` | Hủy đơn (Bearer)         | `ORDER_NOT_CANCELLABLE`                                              |
+| Method | Route                          | Dùng cho                                                 | Mã lỗi xử lý riêng                                                   |
+| ------ | ------------------------------ | -------------------------------------------------------- | -------------------------------------------------------------------- |
+| GET    | `/api/v1/books/{slug}`         | Trang chi tiết                                           | 404 → trang không tìm thấy                                           |
+| GET    | `/api/v1/cart`                 | Header, giỏ, thanh toán                                  | —                                                                    |
+| POST   | `/api/v1/cart/items`           | Thêm vào giỏ (cộng thêm)                                 | `MAX_QTY_EXCEEDED`, `OUT_OF_STOCK`, `SKU_NOT_AVAILABLE`, `CART_FULL` |
+| PATCH  | `/api/v1/cart/items/{skuId}`   | Đổi số lượng                                             | như trên                                                             |
+| DELETE | `/api/v1/cart/items/{skuId}`   | Xóa dòng                                                 | —                                                                    |
+| POST   | `/api/v1/checkout/preview`     | Tổng tiền giỏ/thanh toán                                 | lỗi → chỉ hiện tạm tính (`storefront-checkout-promotion.md`)         |
+| POST   | `/api/v1/shipping/quote`       | Ngưỡng miễn ship ở Header, Footer, thanh ưu đãi (server) | lỗi → ẩn câu miễn ship                                               |
+| POST   | `/api/v1/orders`               | Đặt hàng                                                 | `VALIDATION_ERROR` theo field, `IDEMPOTENCY_KEY_REUSED`, lỗi giỏ     |
+| POST   | `/api/v1/orders/lookup`        | Tra cứu đơn                                              | `NOT_FOUND`, `TOO_MANY_REQUESTS`                                     |
+| GET    | `/api/v1/orders`               | Đơn của tôi (Bearer)                                     | 401 → refresh một lần, hết phiên thì mời đăng nhập                   |
+| GET    | `/api/v1/orders/{code}`        | Chi tiết đơn (Bearer)                                    | `NOT_FOUND`                                                          |
+| POST   | `/api/v1/orders/{code}/cancel` | Hủy đơn (Bearer)                                         | `ORDER_NOT_CANCELLABLE`                                              |
 
 - Response parse bằng Zod (`features/catalog/schemas.ts`, `features/ordering/schemas.ts`) vì OpenAPI sinh enum thành
   `number`, số thành `number | string`.
