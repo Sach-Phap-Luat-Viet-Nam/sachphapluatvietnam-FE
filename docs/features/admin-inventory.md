@@ -11,15 +11,15 @@ xem `docs/features/inventory.md`.
 App **admin**, phần "Kho" (`lib/modules.ts`, vai trò `super_admin`, `warehouse_keeper`). Gõ thẳng URL khi không có vai trò
 thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend vẫn kiểm tra quyền ở từng API.
 
-| Route                     | Màn hình                                         | Component (`features/inventory/`) |
-| ------------------------- | ------------------------------------------------ | --------------------------------- |
-| `/kho`                    | Danh sách phiếu nhập, lọc trạng thái, phân trang | `ReceiptList`                     |
-| `/kho/phieu-nhap/tao-moi` | Lập phiếu nhập nhiều dòng                        | `ReceiptCreate`, `SkuPicker`      |
-| `/kho/phieu-nhap/<id>`    | Chi tiết phiếu, duyệt / từ chối / sửa / xóa      | `ReceiptDetail`                   |
-| `/kho/phieu-nhap/<id>/sua` | Sửa phiếu nháp (cùng form với lập phiếu)        | `ReceiptEdit`, `ReceiptForm`      |
-| `/kho/ton-thap`           | SKU có tồn khả dụng ≤ ngưỡng                     | `LowStockList`                    |
-| `/kho/the-kho`            | Chọn SKU để mở thẻ kho                           | `StockCardLookup`                 |
-| `/kho/the-kho/<skuId>`    | Thẻ kho, đặt ngưỡng, xuất thủ công               | `StockCardView`                   |
+| Route                      | Màn hình                                         | Component (`features/inventory/`) |
+| -------------------------- | ------------------------------------------------ | --------------------------------- |
+| `/kho`                     | Danh sách phiếu nhập, lọc trạng thái, phân trang | `ReceiptList`                     |
+| `/kho/phieu-nhap/tao-moi`  | Lập phiếu nhập nhiều dòng                        | `ReceiptCreate`, `SkuPicker`      |
+| `/kho/phieu-nhap/<id>`     | Chi tiết phiếu, duyệt / từ chối / sửa / xóa      | `ReceiptDetail`                   |
+| `/kho/phieu-nhap/<id>/sua` | Sửa phiếu nháp (cùng form với lập phiếu)         | `ReceiptEdit`, `ReceiptForm`      |
+| `/kho/ton-thap`            | SKU có tồn khả dụng ≤ ngưỡng                     | `LowStockList`                    |
+| `/kho/the-kho`             | Chọn SKU để mở thẻ kho                           | `StockCardLookup`                 |
+| `/kho/the-kho/<skuId>`     | Thẻ kho, đặt ngưỡng, xuất thủ công               | `StockCardView`                   |
 
 - **Lập phiếu** (`ReceiptForm`, dùng chung cho lập mới và sửa nháp): mỗi dòng là một lô in gồm SKU, mã lô, xưởng in
   (không bắt buộc), số lượng, giá vốn/cuốn, ngày nhập (`dd/mm/yyyy`, mặc định hôm nay theo giờ Việt Nam, ô
@@ -60,17 +60,17 @@ thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend
 Gọi qua `browserApi()` (Bearer, tự refresh khi 401) và proxy `/api/v1`. Response parse bằng Zod (`schemas.ts`) vì OpenAPI
 sinh số thành `number | string`, enum thành `number`; body `issues` có `@ts-expect-error` cho field `type` (`api.ts`).
 
-| Method   | Route                                                      | Dùng cho                    |
-| -------- | ---------------------------------------------------------- | --------------------------- |
-| GET      | `/api/v1/admin/inventory/receipts?Status=&Page=&Limit=`    | Danh sách phiếu             |
-| GET/POST | `/api/v1/admin/inventory/receipts`                         | Danh sách, lập phiếu        |
-| GET/PUT/DELETE | `/api/v1/admin/inventory/receipts/{id}`              | Xem, sửa, xóa phiếu nháp    |
-| GET      | `/api/v1/admin/inventory/sku-search?Q=&Limit=`             | Tìm SKU (thủ kho dùng được) |
-| POST     | `/api/v1/admin/inventory/receipts/{id}/approve`, `/reject` | Duyệt, từ chối (`{reason}`) |
-| GET      | `/api/v1/admin/inventory/skus/{skuId}`                     | Thẻ kho                     |
-| PUT      | `/api/v1/admin/inventory/skus/{skuId}/threshold`           | Đặt ngưỡng                  |
-| GET      | `/api/v1/admin/inventory/low-stock?Page=&Limit=`           | Tồn thấp                    |
-| POST     | `/api/v1/admin/inventory/issues`                           | Xuất hủy / biếu tặng        |
+| Method         | Route                                                      | Dùng cho                    |
+| -------------- | ---------------------------------------------------------- | --------------------------- |
+| GET            | `/api/v1/admin/inventory/receipts?Status=&Page=&Limit=`    | Danh sách phiếu             |
+| GET/POST       | `/api/v1/admin/inventory/receipts`                         | Danh sách, lập phiếu        |
+| GET/PUT/DELETE | `/api/v1/admin/inventory/receipts/{id}`                    | Xem, sửa, xóa phiếu nháp    |
+| GET            | `/api/v1/admin/inventory/sku-search?Q=&Limit=`             | Tìm SKU (thủ kho dùng được) |
+| POST           | `/api/v1/admin/inventory/receipts/{id}/approve`, `/reject` | Duyệt, từ chối (`{reason}`) |
+| GET            | `/api/v1/admin/inventory/skus/{skuId}`                     | Thẻ kho                     |
+| PUT            | `/api/v1/admin/inventory/skus/{skuId}/threshold`           | Đặt ngưỡng                  |
+| GET            | `/api/v1/admin/inventory/low-stock?Page=&Limit=`           | Tồn thấp                    |
+| POST           | `/api/v1/admin/inventory/issues`                           | Xuất hủy / biếu tặng        |
 
 Mã lỗi có câu chữ riêng (`lib/admin-errors.ts`): `RECEIPT_NOT_DRAFT`, `RECEIPT_FORBIDDEN`, `BATCH_CODE_DUPLICATE`,
 `RECEIPT_EMPTY`, `OUT_OF_STOCK`; theo màn: `NOT_FOUND` (phiếu/SKU), `REFERENCE_NOT_FOUND` (SKU không còn), `FORBIDDEN` khi
