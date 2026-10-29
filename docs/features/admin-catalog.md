@@ -10,15 +10,15 @@ văn bản pháp luật, để đưa sách lên bán trên website. Nghiệp v�
 App **admin**, phần "Sách" (`lib/modules.ts`, vai trò `super_admin`, `product_manager`). Gõ thẳng URL khi không có
 vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"; backend vẫn kiểm tra quyền ở từng API.
 
-| Route                     | Màn hình                                       | Component (`features/catalog/`) |
-| ------------------------- | ---------------------------------------------- | ------------------------------- |
-| `/sach`                   | Danh sách đầu sách: tìm, lọc trạng thái, trang | `BookList`                      |
+| Route                     | Màn hình                                         | Component (`features/catalog/`) |
+| ------------------------- | ------------------------------------------------ | ------------------------------- |
+| `/sach`                   | Danh sách đầu sách: tìm, lọc trạng thái, trang   | `BookList`                      |
 | `/sach/tao-nhanh`         | **Tạo nhanh**: sách + ấn bản + SKU trong một màn | `QuickBookCreate`               |
-| `/sach/tao-moi`           | Tạo đầu sách, xong chuyển sang màn chi tiết    | `BookCreate`, `BookForm`        |
-| `/sach/<id>`              | Thông tin chung, ấn bản, SKU                   | `BookEditor`, `EditionCard`     |
-| `/sach/danh-muc`          | Cây danh mục                                   | `CategoryManager`               |
-| `/sach/tac-gia`           | Tác giả                                        | `AuthorManager`                 |
-| `/sach/van-ban-phap-luat` | Văn bản pháp luật                              | `LegalDocumentManager`          |
+| `/sach/tao-moi`           | Tạo đầu sách, xong chuyển sang màn chi tiết      | `BookCreate`, `BookForm`        |
+| `/sach/<id>`              | Thông tin chung, ấn bản, SKU                     | `BookEditor`, `EditionCard`     |
+| `/sach/danh-muc`          | Cây danh mục                                     | `CategoryManager`               |
+| `/sach/tac-gia`           | Tác giả                                          | `AuthorManager`                 |
+| `/sach/van-ban-phap-luat` | Văn bản pháp luật                                | `LegalDocumentManager`          |
 
 - **Tạo nhanh sách** (`/sach/tao-nhanh`, nút "Tạo nhanh sách" ở danh sách): một màn gồm 3 phần: (1) tên sách (con trỏ
   vào đây ngay, slug tự sinh), loại sách, tác giả, danh mục; (2) ấn bản: ISBN, số QĐXB, nhà xuất bản (điền sẵn lần nhập
@@ -55,16 +55,16 @@ vai trò thì `components/ModuleGate.tsx` hiện "Không có quyền truy cập"
 Gọi qua `browserApi()` (Bearer, tự refresh khi 401) và proxy `/api/v1`. Response parse bằng Zod (`schemas.ts`) vì
 OpenAPI sinh enum thành `number`; body có enum dùng `@ts-expect-error` kèm lý do (`api.ts`).
 
-| Method              | Route                                                                   | Dùng cho                     |
-| ------------------- | ----------------------------------------------------------------------- | ---------------------------- |
-| GET                 | `/api/v1/admin/books?Q=&Status=&Page=&Limit=`                           | Danh sách đầu sách           |
-| GET / POST / PUT    | `/api/v1/admin/books`, `/api/v1/admin/books/{id}`                       | Xem, tạo, sửa đầu sách       |
+| Method              | Route                                                                   | Dùng cho                      |
+| ------------------- | ----------------------------------------------------------------------- | ----------------------------- |
+| GET                 | `/api/v1/admin/books?Q=&Status=&Page=&Limit=`                           | Danh sách đầu sách            |
+| GET / POST / PUT    | `/api/v1/admin/books`, `/api/v1/admin/books/{id}`                       | Xem, tạo, sửa đầu sách        |
 | POST                | `/api/v1/admin/books/quick` (khai báo ở `pending-paths.ts`)             | Tạo nhanh sách + ấn bản + SKU |
-| POST / PUT          | `/api/v1/admin/books/{id}/editions`, `/api/v1/admin/editions/{id}`      | Thêm, sửa ấn bản             |
-| POST                | `/api/v1/admin/editions/{id}/set-latest`                                | Đổi ấn bản mới nhất          |
-| POST / PUT          | `/api/v1/admin/editions/{id}/skus`, `/api/v1/admin/skus/{id}`           | Thêm SKU, sửa giá            |
-| GET/POST/PUT/DELETE | `/api/v1/admin/categories`, `/authors`, `/legal-documents`              | Danh mục, tác giả, văn bản   |
-| POST                | `/api/v1/admin/uploads/cover-signature` (khai báo ở `pending-paths.ts`) | Chữ ký upload ảnh Cloudinary |
+| POST / PUT          | `/api/v1/admin/books/{id}/editions`, `/api/v1/admin/editions/{id}`      | Thêm, sửa ấn bản              |
+| POST                | `/api/v1/admin/editions/{id}/set-latest`                                | Đổi ấn bản mới nhất           |
+| POST / PUT          | `/api/v1/admin/editions/{id}/skus`, `/api/v1/admin/skus/{id}`           | Thêm SKU, sửa giá             |
+| GET/POST/PUT/DELETE | `/api/v1/admin/categories`, `/authors`, `/legal-documents`              | Danh mục, tác giả, văn bản    |
+| POST                | `/api/v1/admin/uploads/cover-signature` (khai báo ở `pending-paths.ts`) | Chữ ký upload ảnh Cloudinary  |
 
 Mã lỗi xử lý riêng (`lib/admin-errors.ts`): `SLUG_DUPLICATE`/`SLUG_INVALID` → ô slug; `ISBN_DUPLICATE`/`ISBN_INVALID`
 → ô ISBN; `SKU_CODE_DUPLICATE`/`SKU_CODE_INVALID` → ô mã SKU; `SKU_COVER_DUPLICATE` → ô loại bìa; `PRICE_INVALID` → ô
