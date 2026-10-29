@@ -150,6 +150,8 @@ describe("OrderList", () => {
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
     expect(await screen.findByRole("link", { name: "SLVN2610230001" })).toBeVisible();
     expect(screen.getByLabelText("Mã đơn hoặc số điện thoại")).toHaveValue("");
+    // Danh sách hiện ngay từ cache rồi refetch nền; chờ request đó tới, nếu không nó rơi vào `requests` của test sau.
+    await vi.waitFor(() => expect(requests.at(-1)?.has("Q")).toBe(false));
   });
 
   it("làm mới gọi lại API", async () => {
