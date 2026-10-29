@@ -33,6 +33,7 @@ beforeEach(() =>
 afterEach(() => {
   server.resetHandlers();
   clearSession();
+  vi.restoreAllMocks();
 });
 afterAll(() => server.close());
 
@@ -51,19 +52,22 @@ describe("cloudinaryFormData", () => {
 
 describe("uploadImage", () => {
   it("lấy chữ ký theo loại ảnh rồi trả secure_url", async () => {
-    const sent: { form?: FormData } = {};
+    // Không đọc body trong handler MSW: dưới jsdom, FormData là của jsdom còn fetch là của Node (undici), đọc lại body
+    // lỗi UND_ERR_REQ_CONTENT_LENGTH_MISMATCH. Kiểm tra form qua đối số truyền cho fetch.
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
     server.use(
       http.post(`${ORIGIN}/api/v1/admin/uploads/cover-signature`, () => HttpResponse.json(SIGNATURE)),
-      http.post(UPLOAD_URL, async ({ request }) => {
-        sent.form = await request.formData();
-        return HttpResponse.json({ secure_url: "https://res.cloudinary.com/demo/image/upload/v1/a.jpg" });
-      }),
+      http.post(UPLOAD_URL, () =>
+        HttpResponse.json({ secure_url: "https://res.cloudinary.com/demo/image/upload/v1/a.jpg" }),
+      ),
     );
 
     const url = await uploadImage(new File(["x"], "bia.jpg", { type: "image/jpeg" }), "cover");
 
     expect(url).toBe("https://res.cloudinary.com/demo/image/upload/v1/a.jpg");
-    expect(sent.form?.get("timestamp")).toBe("1761200000");
+    const body = fetchSpy.mock.calls.find(([input]) => String(input) === UPLOAD_URL)?.[1]?.body;
+    expect(body).toBeInstanceOf(FormData);
+    expect(body instanceof FormData ? body.get("timestamp") : undefined).toBe("1761200000");
   });
 
   it("chặn file không phải ảnh trước khi gọi API", async () => {
