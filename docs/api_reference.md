@@ -37,11 +37,11 @@ FE cần nắm 6 quy ước dưới đây; mọi endpoint ở các mục sau đ�
 
 ### Cookie do backend đặt
 
-| Cookie       | Nội dung                  | Path           | Thuộc tính                                                                          |
-| ------------ | ------------------------- | -------------- | ----------------------------------------------------------------------------------- |
-| `sl_refresh` | Refresh token             | `/api/v1/auth` | HttpOnly, Secure, SameSite=Strict; 30 ngày nếu `rememberMe`, ngược lại cookie phiên |
-| `sl_2fa_trust` | Thiết bị tin cậy 2FA    | `/api/v1/auth` | HttpOnly, Secure, SameSite=Strict; `Auth:TrustedDeviceDays` (mặc định 30 ngày), chỉ đặt khi `/auth/login/2fa` có `trustDevice = true` được chấp nhận |
-| `sl_cart`    | Mã giỏ của khách vãng lai | `/api/v1`      | HttpOnly, Secure, SameSite=Lax; 30 ngày                                             |
+| Cookie         | Nội dung                  | Path           | Thuộc tính                                                                                                                                           |
+| -------------- | ------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sl_refresh`   | Refresh token             | `/api/v1/auth` | HttpOnly, Secure, SameSite=Strict; 30 ngày nếu `rememberMe`, ngược lại cookie phiên                                                                  |
+| `sl_2fa_trust` | Thiết bị tin cậy 2FA      | `/api/v1/auth` | HttpOnly, Secure, SameSite=Strict; `Auth:TrustedDeviceDays` (mặc định 30 ngày), chỉ đặt khi `/auth/login/2fa` có `trustDevice = true` được chấp nhận |
+| `sl_cart`      | Mã giỏ của khách vãng lai | `/api/v1`      | HttpOnly, Secure, SameSite=Lax; 30 ngày                                                                                                              |
 
 FE không tự đọc/ghi các cookie này, chỉ cần `credentials: 'include'`.
 
@@ -100,43 +100,43 @@ Số trang = `ceil(total / limit)`.
 
 Khách đăng ký/đăng nhập bằng email + mật khẩu; nhân viên có thêm bước mã 6 số từ ứng dụng authenticator. Mọi endpoint `/auth/*` bị giới hạn 10 request/phút/IP.
 
-| Method | Route                          | Xác thực | Request body                       | Response                                         |
-| ------ | ------------------------------ | -------- | ---------------------------------- | ------------------------------------------------ |
-| POST   | `/api/v1/auth/register`        | Không    | `RegisterRequest`                  | 201 `AuthResponse` + cookie                      |
-| POST   | `/api/v1/auth/login`           | Không (gửi kèm cookie `sl_2fa_trust` nếu có) | `LoginRequest` | 200 `LoginResponse` (+ cookie nếu không cần 2FA hoặc thiết bị tin cậy) |
-| POST   | `/api/v1/auth/login/2fa`       | Không    | `{ twoFactorToken, code, trustDevice? }` | 200 `AuthResponse` + cookie (+ `sl_2fa_trust` khi `trustDevice` được chấp nhận) |
-| POST   | `/api/v1/auth/refresh`         | Cookie   | không có                           | 200 `AuthResponse` + cookie mới                  |
-| POST   | `/api/v1/auth/logout`          | Cookie   | không có                           | 204, xóa cookie                                  |
-| POST   | `/api/v1/auth/password/change` | Bearer   | `{ currentPassword, newPassword }` | 204, thu hồi mọi phiên và thiết bị tin cậy, xóa cookie `sl_refresh`, `sl_2fa_trust` |
-| POST   | `/api/v1/auth/2fa/setup`       | Bearer   | không có                           | 200 `{ sharedKey, authenticatorUri }`            |
-| POST   | `/api/v1/auth/2fa/enable`      | Bearer   | `{ code }`                         | 200 `AuthResponse` (phiên đã qua 2FA)            |
-| GET    | `/api/v1/me`                   | Bearer   | —                                  | 200 `MeResponse`                                 |
-| PATCH  | `/api/v1/me`                   | Bearer   | `UpdateProfileRequest`             | 200 `MeResponse`                                 |
-| PUT    | `/api/v1/me/preferences`       | Bearer   | `{ theme: "dark" \| "light" }`     | 200 `{ theme }` (`docs/features/storefront-theme.md`) |
-| POST / PUT / DELETE | `/api/v1/me/avatar/upload-signature`, `/api/v1/me/avatar` | Bearer | xem `docs/features/user-avatar.md` | chữ ký upload / `{ avatarUrl }` / 204 |
-| GET / POST / PUT / DELETE | `/api/v1/me/addresses`, `/{id}`, `POST /{id}/default` | Bearer | `UpsertAddressRequest` | `AddressResponse[]` (cả sổ; POST 201, DELETE 204), xem `docs/features/storefront-account.md` |
-| PUT / DELETE | `/api/v1/me/invoice-info` | Bearer | `{ companyName, taxCode, address, email }` | `InvoiceInfoResponse` / 204 |
-| POST   | `/api/v1/realtime/auth`        | Bearer   | `{ socketId, channelName }`        | 200 `{ auth }` cho pusher-js; kênh người khác 403; chưa cấu hình Pusher 503 `REALTIME_UNAVAILABLE` |
+| Method                    | Route                                                     | Xác thực                                     | Request body                               | Response                                                                                           |
+| ------------------------- | --------------------------------------------------------- | -------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| POST                      | `/api/v1/auth/register`                                   | Không                                        | `RegisterRequest`                          | 201 `AuthResponse` + cookie                                                                        |
+| POST                      | `/api/v1/auth/login`                                      | Không (gửi kèm cookie `sl_2fa_trust` nếu có) | `LoginRequest`                             | 200 `LoginResponse` (+ cookie nếu không cần 2FA hoặc thiết bị tin cậy)                             |
+| POST                      | `/api/v1/auth/login/2fa`                                  | Không                                        | `{ twoFactorToken, code, trustDevice? }`   | 200 `AuthResponse` + cookie (+ `sl_2fa_trust` khi `trustDevice` được chấp nhận)                    |
+| POST                      | `/api/v1/auth/refresh`                                    | Cookie                                       | không có                                   | 200 `AuthResponse` + cookie mới                                                                    |
+| POST                      | `/api/v1/auth/logout`                                     | Cookie                                       | không có                                   | 204, xóa cookie                                                                                    |
+| POST                      | `/api/v1/auth/password/change`                            | Bearer                                       | `{ currentPassword, newPassword }`         | 204, thu hồi mọi phiên và thiết bị tin cậy, xóa cookie `sl_refresh`, `sl_2fa_trust`                |
+| POST                      | `/api/v1/auth/2fa/setup`                                  | Bearer                                       | không có                                   | 200 `{ sharedKey, authenticatorUri }`                                                              |
+| POST                      | `/api/v1/auth/2fa/enable`                                 | Bearer                                       | `{ code }`                                 | 200 `AuthResponse` (phiên đã qua 2FA)                                                              |
+| GET                       | `/api/v1/me`                                              | Bearer                                       | —                                          | 200 `MeResponse`                                                                                   |
+| PATCH                     | `/api/v1/me`                                              | Bearer                                       | `UpdateProfileRequest`                     | 200 `MeResponse`                                                                                   |
+| PUT                       | `/api/v1/me/preferences`                                  | Bearer                                       | `{ theme: "dark" \| "light" }`             | 200 `{ theme }` (`docs/features/storefront-theme.md`)                                              |
+| POST / PUT / DELETE       | `/api/v1/me/avatar/upload-signature`, `/api/v1/me/avatar` | Bearer                                       | xem `docs/features/user-avatar.md`         | chữ ký upload / `{ avatarUrl }` / 204                                                              |
+| GET / POST / PUT / DELETE | `/api/v1/me/addresses`, `/{id}`, `POST /{id}/default`     | Bearer                                       | `UpsertAddressRequest`                     | `AddressResponse[]` (cả sổ; POST 201, DELETE 204), xem `docs/features/storefront-account.md`       |
+| PUT / DELETE              | `/api/v1/me/invoice-info`                                 | Bearer                                       | `{ companyName, taxCode, address, email }` | `InvoiceInfoResponse` / 204                                                                        |
+| POST                      | `/api/v1/realtime/auth`                                   | Bearer                                       | `{ socketId, channelName }`                | 200 `{ auth }` cho pusher-js; kênh người khác 403; chưa cấu hình Pusher 503 `REALTIME_UNAVAILABLE` |
 
 ### Request
 
-| Kiểu                   | Field                            | Kiểu dữ liệu | Ràng buộc                                                                |
-| ---------------------- | -------------------------------- | ------------ | ------------------------------------------------------------------------ |
-| `RegisterRequest`      | `email`                          | string       | email hợp lệ, ≤ 256                                                      |
-|                        | `password`                       | string       | 8–128 ký tự                                                              |
-|                        | `fullName`                       | string       | bắt buộc, ≤ 255                                                          |
-|                        | `phoneNumber?`                   | string       | `0xxxxxxxxx` hoặc `+84xxxxxxxxx` (9 số sau tiền tố)                      |
-| `LoginRequest`         | `email`, `password`              | string       | bắt buộc                                                                 |
-|                        | `rememberMe?`                    | boolean      | mặc định `false`; `true` = giữ đăng nhập 30 ngày, `false` = phiên 12 giờ |
-|                        | `portal?`                        | enum         | `storefront` (mặc định) hoặc `admin`; Super Admin chỉ đăng nhập được với `admin` |
-| 2FA                    | `twoFactorToken`                 | string       | lấy từ `LoginResponse`, hạn 5 phút                                       |
-|                        | `code`                           | string       | đúng 6 chữ số                                                            |
+| Kiểu                   | Field                            | Kiểu dữ liệu | Ràng buộc                                                                                                                                           |
+| ---------------------- | -------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RegisterRequest`      | `email`                          | string       | email hợp lệ, ≤ 256                                                                                                                                 |
+|                        | `password`                       | string       | 8–128 ký tự                                                                                                                                         |
+|                        | `fullName`                       | string       | bắt buộc, ≤ 255                                                                                                                                     |
+|                        | `phoneNumber?`                   | string       | `0xxxxxxxxx` hoặc `+84xxxxxxxxx` (9 số sau tiền tố)                                                                                                 |
+| `LoginRequest`         | `email`, `password`              | string       | bắt buộc                                                                                                                                            |
+|                        | `rememberMe?`                    | boolean      | mặc định `false`; `true` = giữ đăng nhập 30 ngày, `false` = phiên 12 giờ                                                                            |
+|                        | `portal?`                        | enum         | `storefront` (mặc định) hoặc `admin`; Super Admin chỉ đăng nhập được với `admin`                                                                    |
+| 2FA                    | `twoFactorToken`                 | string       | lấy từ `LoginResponse`, hạn 5 phút                                                                                                                  |
+|                        | `code`                           | string       | đúng 6 chữ số                                                                                                                                       |
 |                        | `trustDevice?`                   | boolean      | mặc định `false`; `true` = nhớ thiết bị `Auth:TrustedDeviceDays` ngày (bỏ qua với Super Admin không nằm trong `Auth:TrustedDeviceSuperAdminEmails`) |
-| Đổi mật khẩu           | `currentPassword`, `newPassword` | string       | mật khẩu mới 8–128 ký tự                                                 |
-| `UpdateProfileRequest` | `fullName`                       | string       | **bắt buộc** (PATCH gửi đủ cả 4 field), ≤ 255                            |
-|                        | `phoneNumber?`                   | string       | như trên; `null` = xóa                                                   |
-|                        | `birthDate?`                     | DateOnly     | `"1995-05-20"`                                                           |
-|                        | `occupation?`                    | enum         | `student`, `lawyer`, `accountant`, `other`                               |
+| Đổi mật khẩu           | `currentPassword`, `newPassword` | string       | mật khẩu mới 8–128 ký tự                                                                                                                            |
+| `UpdateProfileRequest` | `fullName`                       | string       | **bắt buộc** (PATCH gửi đủ cả 4 field), ≤ 255                                                                                                       |
+|                        | `phoneNumber?`                   | string       | như trên; `null` = xóa                                                                                                                              |
+|                        | `birthDate?`                     | DateOnly     | `"1995-05-20"`                                                                                                                                      |
+|                        | `occupation?`                    | enum         | `student`, `lawyer`, `accountant`, `other`                                                                                                          |
 
 ### Response
 
@@ -186,20 +186,20 @@ Khách đăng ký/đăng nhập bằng email + mật khẩu; nhân viên có th�
 
 ### Lỗi thường gặp
 
-| HTTP | `code`                       | Khi nào                                                       |
-| ---- | ---------------------------- | ------------------------------------------------------------- |
-| 401  | `INVALID_CREDENTIALS`        | Sai email/mật khẩu (kể cả mật khẩu hiện tại khi đổi mật khẩu) |
-| 423  | `ACCOUNT_LOCKED`             | Sai 5 lần liên tiếp → khóa 15 phút                            |
-| 409  | `EMAIL_TAKEN`                | Email đã đăng ký                                              |
-| 401  | `INVALID_REFRESH_TOKEN`      | Cookie thiếu/hết hạn/đã thu hồi → đăng nhập lại               |
-| 401  | `TWO_FACTOR_TOKEN_INVALID`   | `twoFactorToken` quá 5 phút → đăng nhập lại từ đầu            |
-| 400  | `OTP_INVALID`                | Mã 6 số sai (tính vào 5 lần sai)                              |
-| 409  | `TWO_FACTOR_ALREADY_ENABLED` | Gọi setup/enable khi đã bật                                   |
-| 403  | `ACCOUNT_DISABLED`           | Tài khoản bị Super Admin vô hiệu hóa (kiểm tra sau mật khẩu)  |
-| 403  | `SUPER_ADMIN_PORTAL_FORBIDDEN` | Super Admin đăng nhập với `portal = storefront`             |
-| 404 / 422 | `ADDRESS_NOT_FOUND` / `ADDRESS_LIMIT_REACHED` | Sổ địa chỉ: không thấy địa chỉ (kể cả của người khác) / đã đủ 10 địa chỉ |
-| 422 / 503 | `AVATAR_URL_INVALID` / `UPLOAD_NOT_CONFIGURED` | Avatar, xem `docs/features/user-avatar.md`     |
-| 429  | `TOO_MANY_REQUESTS`          | Quá 10 request/phút                                           |
+| HTTP      | `code`                                         | Khi nào                                                                  |
+| --------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| 401       | `INVALID_CREDENTIALS`                          | Sai email/mật khẩu (kể cả mật khẩu hiện tại khi đổi mật khẩu)            |
+| 423       | `ACCOUNT_LOCKED`                               | Sai 5 lần liên tiếp → khóa 15 phút                                       |
+| 409       | `EMAIL_TAKEN`                                  | Email đã đăng ký                                                         |
+| 401       | `INVALID_REFRESH_TOKEN`                        | Cookie thiếu/hết hạn/đã thu hồi → đăng nhập lại                          |
+| 401       | `TWO_FACTOR_TOKEN_INVALID`                     | `twoFactorToken` quá 5 phút → đăng nhập lại từ đầu                       |
+| 400       | `OTP_INVALID`                                  | Mã 6 số sai (tính vào 5 lần sai)                                         |
+| 409       | `TWO_FACTOR_ALREADY_ENABLED`                   | Gọi setup/enable khi đã bật                                              |
+| 403       | `ACCOUNT_DISABLED`                             | Tài khoản bị Super Admin vô hiệu hóa (kiểm tra sau mật khẩu)             |
+| 403       | `SUPER_ADMIN_PORTAL_FORBIDDEN`                 | Super Admin đăng nhập với `portal = storefront`                          |
+| 404 / 422 | `ADDRESS_NOT_FOUND` / `ADDRESS_LIMIT_REACHED`  | Sổ địa chỉ: không thấy địa chỉ (kể cả của người khác) / đã đủ 10 địa chỉ |
+| 422 / 503 | `AVATAR_URL_INVALID` / `UPLOAD_NOT_CONFIGURED` | Avatar, xem `docs/features/user-avatar.md`                               |
+| 429       | `TOO_MANY_REQUESTS`                            | Quá 10 request/phút                                                      |
 
 Chưa có: xác thực email/OTP SMS, quên mật khẩu (Super Admin đặt mật khẩu mới hộ), đăng nhập Google/Facebook/Zalo.
 
@@ -209,18 +209,18 @@ Ba endpoint công khai, không cần đăng nhập. Chỉ trả đầu sách `ac
 
 ### GET /api/v1/books — danh sách, lọc, sắp xếp
 
-| Query param            | Kiểu             | Mặc định | Ý nghĩa                                                                                       |
-| ---------------------- | ---------------- | -------- | --------------------------------------------------------------------------------------------- |
+| Query param            | Kiểu             | Mặc định | Ý nghĩa                                                                                                                                                                        |
+| ---------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `q`                    | string ≤ 200     | —        | Tên sách chứa chuỗi (không phân biệt hoa thường, **có phân biệt dấu**), hoặc đúng ISBN 13 số, hoặc đúng mã SKU (`skuCode`, không phân biệt hoa thường; một phần mã không khớp) |
-| `category`             | slug             | —        | Danh mục, gồm cả danh mục con. Slug không tồn tại → danh sách rỗng                            |
-| `type`                 | `BookType`       | —        | `code`, `consolidated`, `commentary`, `qna`, `textbook`, `monograph`                          |
-| `audience`             | `TargetAudience` | —        | `student`, `lawyer`, `business`, `citizen`                                                    |
-| `cover`                | `CoverType`      | —        | `paperback`, `hardcover` (theo SKU của ấn bản mới nhất)                                       |
-| `minPrice`, `maxPrice` | số ≥ 0           | —        | Khoảng giá bán của ấn bản mới nhất; `maxPrice` ≥ `minPrice`                                   |
-| `legalDocument`        | string ≤ 50      | —        | Số hiệu văn bản, ví dụ `91/2015/QH13` (encode `/` thành `%2F` nếu thư viện HTTP không tự làm); khớp văn bản gắn với ấn bản hoặc chuỗi trong nhãn "Cập nhật đến" |
-| `onSale`               | boolean          | `false`  | `true`: chỉ sách có SKU (ấn bản mới nhất) đang bán thấp hơn giá bìa hoặc đang chạy lịch giá   |
-| `sort`                 | string           | `newest` | `newest` (ngày phát hành ấn bản mới nhất), `price_asc`, `price_desc`                          |
-| `page`, `limit`        | số               | 1, 24    | `limit` tối đa 100                                                                            |
+| `category`             | slug             | —        | Danh mục, gồm cả danh mục con. Slug không tồn tại → danh sách rỗng                                                                                                             |
+| `type`                 | `BookType`       | —        | `code`, `consolidated`, `commentary`, `qna`, `textbook`, `monograph`                                                                                                           |
+| `audience`             | `TargetAudience` | —        | `student`, `lawyer`, `business`, `citizen`                                                                                                                                     |
+| `cover`                | `CoverType`      | —        | `paperback`, `hardcover` (theo SKU của ấn bản mới nhất)                                                                                                                        |
+| `minPrice`, `maxPrice` | số ≥ 0           | —        | Khoảng giá bán của ấn bản mới nhất; `maxPrice` ≥ `minPrice`                                                                                                                    |
+| `legalDocument`        | string ≤ 50      | —        | Số hiệu văn bản, ví dụ `91/2015/QH13` (encode `/` thành `%2F` nếu thư viện HTTP không tự làm); khớp văn bản gắn với ấn bản hoặc chuỗi trong nhãn "Cập nhật đến"                |
+| `onSale`               | boolean          | `false`  | `true`: chỉ sách có SKU (ấn bản mới nhất) đang bán thấp hơn giá bìa hoặc đang chạy lịch giá                                                                                    |
+| `sort`                 | string           | `newest` | `newest` (ngày phát hành ấn bản mới nhất), `price_asc`, `price_desc`                                                                                                           |
+| `page`, `limit`        | số               | 1, 24    | `limit` tối đa 100                                                                                                                                                             |
 
 ```json
 {
@@ -405,18 +405,18 @@ Giỏ **không** lưu mã giảm giá và không có `/cart/apply-coupon`: FE gi
 
 Đơn được tạo từ **giỏ hiện tại** (không gửi danh sách sách trong body) hoặc "Mua ngay" một SKU (giỏ giữ nguyên), đăng nhập là tùy chọn. Giai đoạn này chỉ có COD và chuyển khoản. Xem trước tiền, mã giảm giá, phí ship theo tỉnh: `docs/features/checkout-promotion-shipping.md`.
 
-| Method | Route                          | Xác thực | Request                                                    | Response                                                        |
-| ------ | ------------------------------ | -------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
-| POST   | `/api/v1/orders`               | Tùy chọn | `CreateOrderRequest` + header `Idempotency-Key`            | 201 `OrderResponse`                                             |
-| POST   | `/api/v1/orders/buy-now`       | Tùy chọn | `{ skuId, quantity, ...CreateOrderRequest }` + header `Idempotency-Key` | 201 `OrderResponse` (giỏ giữ nguyên, `docs/features/storefront-buy-now.md`) |
-| POST   | `/api/v1/checkout/preview`     | Tùy chọn | `{ source: cart \| buy_now, skuId?, quantity?, province?, couponCode?, phone? }` | 200 `CheckoutPreviewResponse` (60 request/phút/IP) |
-| GET    | `/api/v1/orders?page=&limit=`  | Bearer   | —                                                          | 200 phân trang `OrderSummaryResponse` (mới nhất trước)          |
-| GET    | `/api/v1/orders/{code}`        | Bearer   | —                                                          | 200 `OrderResponse` (chỉ đơn của mình, khác → 404)              |
-| POST   | `/api/v1/orders/lookup`        | Không    | `{ "orderCode": "SLVN2610230001", "phone": "0901234567" }` | 200 `OrderResponse` (10 request/phút/IP)                        |
-| POST   | `/api/v1/orders/{code}/cancel` | Bearer   | `{ "reason": "Đặt nhầm" }` (tùy chọn, ≤ 1000)              | 200 `OrderResponse`                                             |
-| GET    | `/api/v1/orders/guest/{token}` | Không    | —                                                          | 200 `OrderResponse` của khách vãng lai (10 request/phút/IP)     |
-| POST   | `/api/v1/orders/guest/{token}/cancel` | Không | `{ "reason": "..." }` (tùy chọn, ≤ 1000)               | 200 `OrderResponse` (10 request/phút/IP)                        |
-| POST   | `/api/v1/shipping/quote`       | Không    | `{ subtotal, province?, items?: [{ skuId, quantity }] }`   | 200 `{ shippingFee, freeShippingThreshold, amountToFreeShipping, eta, zoneName }` |
+| Method | Route                                 | Xác thực | Request                                                                          | Response                                                                          |
+| ------ | ------------------------------------- | -------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| POST   | `/api/v1/orders`                      | Tùy chọn | `CreateOrderRequest` + header `Idempotency-Key`                                  | 201 `OrderResponse`                                                               |
+| POST   | `/api/v1/orders/buy-now`              | Tùy chọn | `{ skuId, quantity, ...CreateOrderRequest }` + header `Idempotency-Key`          | 201 `OrderResponse` (giỏ giữ nguyên, `docs/features/storefront-buy-now.md`)       |
+| POST   | `/api/v1/checkout/preview`            | Tùy chọn | `{ source: cart \| buy_now, skuId?, quantity?, province?, couponCode?, phone? }` | 200 `CheckoutPreviewResponse` (60 request/phút/IP)                                |
+| GET    | `/api/v1/orders?page=&limit=`         | Bearer   | —                                                                                | 200 phân trang `OrderSummaryResponse` (mới nhất trước)                            |
+| GET    | `/api/v1/orders/{code}`               | Bearer   | —                                                                                | 200 `OrderResponse` (chỉ đơn của mình, khác → 404)                                |
+| POST   | `/api/v1/orders/lookup`               | Không    | `{ "orderCode": "SLVN2610230001", "phone": "0901234567" }`                       | 200 `OrderResponse` (10 request/phút/IP)                                          |
+| POST   | `/api/v1/orders/{code}/cancel`        | Bearer   | `{ "reason": "Đặt nhầm" }` (tùy chọn, ≤ 1000)                                    | 200 `OrderResponse`                                                               |
+| GET    | `/api/v1/orders/guest/{token}`        | Không    | —                                                                                | 200 `OrderResponse` của khách vãng lai (10 request/phút/IP)                       |
+| POST   | `/api/v1/orders/guest/{token}/cancel` | Không    | `{ "reason": "..." }` (tùy chọn, ≤ 1000)                                         | 200 `OrderResponse` (10 request/phút/IP)                                          |
+| POST   | `/api/v1/shipping/quote`              | Không    | `{ subtotal, province?, items?: [{ skuId, quantity }] }`                         | 200 `{ shippingFee, freeShippingThreshold, amountToFreeShipping, eta, zoneName }` |
 
 ### CreateOrderRequest
 
@@ -510,52 +510,52 @@ Giỏ **không** lưu mã giảm giá và không có `/cart/apply-coupon`: FE gi
 
 ### Lỗi
 
-| HTTP | `code`                         | Khi nào                                                                                             |
-| ---- | ------------------------------ | --------------------------------------------------------------------------------------------------- |
-| 422  | `CART_EMPTY`                   | Giỏ trống (đặt từ giỏ, hoặc preview `source = cart`)                                               |
-| 422  | `SKU_NOT_AVAILABLE`            | Giỏ có dòng `isSellable = false`                                                                    |
-| 422  | `MAX_QTY_EXCEEDED`             | Một SKU > 20 cuốn                                                                                   |
-| 409  | `OUT_OF_STOCK`                 | Không đủ tồn lúc đặt; chưa tạo đơn, giỏ giữ nguyên → gọi lại `GET /cart` để xem `availableQuantity` |
-| 422  | `PAYMENT_METHOD_NOT_SUPPORTED` | Phương thức ngoài COD/chuyển khoản                                                                  |
-| 409  | `IDEMPOTENCY_KEY_REUSED`       | Key đã dùng cho đơn của người khác/số điện thoại khác → tạo key mới                                 |
-| 422  | `ORDER_NOT_CANCELLABLE`        | Trạng thái không còn hủy được (đã `paid` chờ xác nhận, hoặc từ đóng gói trở đi)                     |
-| 404  | `NOT_FOUND`                    | Sai mã đơn, sai số điện thoại, sai `guestAccessToken`, hoặc đơn không phải của mình                 |
-| 409  | `CHECKOUT_TOTAL_CHANGED`       | `expectedTotal` khác tổng tính lại → gọi lại preview cho khách xem số mới                           |
-| 422  | `ADDRESS_NOT_SUPPORTED`        | Tỉnh nằm ngoài vùng giao hàng                                                                       |
-| 422  | `TOO_MANY_OPEN_ORDERS` / `COD_NOT_ALLOWED` | Chống bom hàng COD theo số điện thoại → gợi ý chuyển khoản                              |
-| 422  | `COUPON_*`, `PROMOTION_UNAVAILABLE` | Mã giảm giá / khuyến mãi, xem `docs/features/checkout-promotion-shipping.md`                   |
+| HTTP | `code`                                     | Khi nào                                                                                             |
+| ---- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 422  | `CART_EMPTY`                               | Giỏ trống (đặt từ giỏ, hoặc preview `source = cart`)                                                |
+| 422  | `SKU_NOT_AVAILABLE`                        | Giỏ có dòng `isSellable = false`                                                                    |
+| 422  | `MAX_QTY_EXCEEDED`                         | Một SKU > 20 cuốn                                                                                   |
+| 409  | `OUT_OF_STOCK`                             | Không đủ tồn lúc đặt; chưa tạo đơn, giỏ giữ nguyên → gọi lại `GET /cart` để xem `availableQuantity` |
+| 422  | `PAYMENT_METHOD_NOT_SUPPORTED`             | Phương thức ngoài COD/chuyển khoản                                                                  |
+| 409  | `IDEMPOTENCY_KEY_REUSED`                   | Key đã dùng cho đơn của người khác/số điện thoại khác → tạo key mới                                 |
+| 422  | `ORDER_NOT_CANCELLABLE`                    | Trạng thái không còn hủy được (đã `paid` chờ xác nhận, hoặc từ đóng gói trở đi)                     |
+| 404  | `NOT_FOUND`                                | Sai mã đơn, sai số điện thoại, sai `guestAccessToken`, hoặc đơn không phải của mình                 |
+| 409  | `CHECKOUT_TOTAL_CHANGED`                   | `expectedTotal` khác tổng tính lại → gọi lại preview cho khách xem số mới                           |
+| 422  | `ADDRESS_NOT_SUPPORTED`                    | Tỉnh nằm ngoài vùng giao hàng                                                                       |
+| 422  | `TOO_MANY_OPEN_ORDERS` / `COD_NOT_ALLOWED` | Chống bom hàng COD theo số điện thoại → gợi ý chuyển khoản                                          |
+| 422  | `COUPON_*`, `PROMOTION_UNAVAILABLE`        | Mã giảm giá / khuyến mãi, xem `docs/features/checkout-promotion-shipping.md`                        |
 
 ## Admin — người dùng và phân quyền
 
 Mọi API dưới `/api/v1/admin` yêu cầu Bearer token của nhân viên đúng vai trò trong bảng dưới (Super Admin phải **đã qua 2FA**, vai trò khác không bắt buộc); thiếu token → 401, sai vai trò hoặc Super Admin chưa 2FA → 403 `FORBIDDEN`. FE nên ẩn menu theo `user.roles`.
 
-| Nhóm API                                                                                      | super\_admin | product\_manager | warehouse\_keeper | order\_manager | customer\_service | accountant | marketing |
-| --------------------------------------------------------------------------------------------- | ------------ | ---------------- | ----------------- | -------------- | ----------------- | ---------- | --------- |
-| Catalog (`/admin/books`, `/editions`, `/skus`, `/categories`, `/authors`, `/legal-documents`, `/uploads/cover-signature`) | Có | Có | — | — | — | — | — |
-| Lịch giá, khuyến mãi (`/admin/skus/{skuId}/price-schedules`, `/admin/price-schedules`, `/admin/promotions`, `/admin/coupons`) | Có | Có | — | — | — | — | Có |
-| Nội dung (`/admin/popups`, `/admin/uploads/popup-signature`)                                  | Có           | —                | —                 | —              | —                 | —          | Có        |
-| Kho (`/admin/inventory/...`)                                                                  | Có           | —                | Có                | —              | —                 | —          | —         |
-| Duyệt/từ chối phiếu nhập                                                                      | Có           | —                | —                 | —              | —                 | —          | —         |
-| Xem đơn (`GET /admin/orders`)                                                                 | Có           | —                | —                 | Có             | Có                | Có         | —         |
-| Đổi trạng thái đơn                                                                            | Có           | —                | —                 | Có             | —                 | —          | —         |
-| Vận chuyển (`/admin/shipping/...`)                                                            | Có           | —                | —                 | Có             | —                 | —          | —         |
-| Người dùng (`/admin/users`, `/admin/customers`)                                               | Có           | —                | —                 | —              | —                 | —          | —         |
+| Nhóm API                                                                                                                      | super\_admin | product\_manager | warehouse\_keeper | order\_manager | customer\_service | accountant | marketing |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------- | ----------------- | -------------- | ----------------- | ---------- | --------- |
+| Catalog (`/admin/books`, `/editions`, `/skus`, `/categories`, `/authors`, `/legal-documents`, `/uploads/cover-signature`)     | Có           | Có               | —                 | —              | —                 | —          | —         |
+| Lịch giá, khuyến mãi (`/admin/skus/{skuId}/price-schedules`, `/admin/price-schedules`, `/admin/promotions`, `/admin/coupons`) | Có           | Có               | —                 | —              | —                 | —          | Có        |
+| Nội dung (`/admin/popups`, `/admin/uploads/popup-signature`)                                                                  | Có           | —                | —                 | —              | —                 | —          | Có        |
+| Kho (`/admin/inventory/...`)                                                                                                  | Có           | —                | Có                | —              | —                 | —          | —         |
+| Duyệt/từ chối phiếu nhập                                                                                                      | Có           | —                | —                 | —              | —                 | —          | —         |
+| Xem đơn (`GET /admin/orders`)                                                                                                 | Có           | —                | —                 | Có             | Có                | Có         | —         |
+| Đổi trạng thái đơn                                                                                                            | Có           | —                | —                 | Có             | —                 | —          | —         |
+| Vận chuyển (`/admin/shipping/...`)                                                                                            | Có           | —                | —                 | Có             | —                 | —          | —         |
+| Người dùng (`/admin/users`, `/admin/customers`)                                                                               | Có           | —                | —                 | —              | —                 | —          | —         |
 
 Khách hàng có vai trò `customer`. Tên policy tương ứng: `catalog_admin`, `pricing_admin`, `content_admin`, `inventory_admin`, `inventory_approve`, `orders_read`, `orders_manage`, `shipping_admin`, `users_admin` (`docs/features/auth.md`).
 
 ### Endpoint
 
-| Method | Route                              | Request                                               | Response                                      |
-| ------ | ---------------------------------- | ----------------------------------------------------- | --------------------------------------------- |
-| GET    | `/api/v1/admin/users?q=&page=&limit=` | `q` tìm trong email, họ tên, SĐT (≤ 200)           | 200 phân trang `UserResponse` (chỉ nhân viên, theo id) |
-| POST   | `/api/v1/admin/users`              | `{ email, fullName, password, roles[] }`              | 201 `UserResponse`                            |
-| PUT    | `/api/v1/admin/users/{id}/roles`   | `{ roles[] }` — danh sách đầy đủ, thay thế vai trò cũ | 200 `UserResponse`                            |
-| PUT    | `/api/v1/admin/users/{id}/password` | `{ newPassword }` (8–128)                            | 204; mở khóa, thu hồi mọi phiên               |
-| POST   | `/api/v1/admin/users/{id}/deactivate`, `/activate` | —                                      | 200 `UserResponse` (`isActive`)               |
-| POST   | `/api/v1/admin/users/{id}/logout`  | —                                                     | 200 `{ revokedSessions }` (đăng xuất hộ ngay) |
-| POST   | `/api/v1/admin/users/{id}/impersonate` | —                                                 | 200 `AuthResponse` (`docs/features/fast-login-super-admin.md`) |
-| GET    | `/api/v1/admin/customers?q=&page=&limit=` | như `/admin/users`                             | 200 phân trang `UserResponse` (chỉ khách hàng, mới đăng ký trước) |
-| GET    | `/api/v1/admin/customers/{id}`     | —                                                     | 200 `{ account, addresses[], invoiceInfo }`   |
+| Method | Route                                              | Request                                               | Response                                                          |
+| ------ | -------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+| GET    | `/api/v1/admin/users?q=&page=&limit=`              | `q` tìm trong email, họ tên, SĐT (≤ 200)              | 200 phân trang `UserResponse` (chỉ nhân viên, theo id)            |
+| POST   | `/api/v1/admin/users`                              | `{ email, fullName, password, roles[] }`              | 201 `UserResponse`                                                |
+| PUT    | `/api/v1/admin/users/{id}/roles`                   | `{ roles[] }` — danh sách đầy đủ, thay thế vai trò cũ | 200 `UserResponse`                                                |
+| PUT    | `/api/v1/admin/users/{id}/password`                | `{ newPassword }` (8–128)                             | 204; mở khóa, thu hồi mọi phiên                                   |
+| POST   | `/api/v1/admin/users/{id}/deactivate`, `/activate` | —                                                     | 200 `UserResponse` (`isActive`)                                   |
+| POST   | `/api/v1/admin/users/{id}/logout`                  | —                                                     | 200 `{ revokedSessions }` (đăng xuất hộ ngay)                     |
+| POST   | `/api/v1/admin/users/{id}/impersonate`             | —                                                     | 200 `AuthResponse` (`docs/features/fast-login-super-admin.md`)    |
+| GET    | `/api/v1/admin/customers?q=&page=&limit=`          | như `/admin/users`                                    | 200 phân trang `UserResponse` (chỉ khách hàng, mới đăng ký trước) |
+| GET    | `/api/v1/admin/customers/{id}`                     | —                                                     | 200 `{ account, addresses[], invoiceInfo }`                       |
 
 ```json
 {
@@ -576,26 +576,26 @@ Lỗi: `EMAIL_TAKEN` (409), `USER_NOT_FOUND` (404), `CANNOT_MANAGE_USER` (422), 
 
 Quyền: `super_admin`, `product_manager`. Mọi API sửa đầu sách, ấn bản, SKU đều trả lại **toàn bộ đầu sách** (`AdminBookResponse`), FE thay state màn chi tiết bằng response. `PUT` là **thay thế toàn bộ**: field danh sách bỏ trống (`categoryIds`, `authorIds`, `legalDocumentIds`) sẽ bị xóa hết.
 
-| Method                            | Route                                           | Request                                                      | Response                                                                 |
-| --------------------------------- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| GET                               | `/api/v1/admin/books?q=&status=&page=&limit=`   | —                                                            | Phân trang `AdminBookSummaryResponse`, mới sửa trước                     |
-| GET                               | `/api/v1/admin/books/{id}`                      | —                                                            | `AdminBookResponse`                                                      |
-| POST                              | `/api/v1/admin/books`                           | `UpsertBookRequest`                                          | 201 `AdminBookResponse`                                                  |
-| PUT                               | `/api/v1/admin/books/{id}`                      | `UpsertBookRequest`                                          | `AdminBookResponse`                                                      |
-| POST                              | `/api/v1/admin/books/{id}/editions`             | `UpsertEditionRequest`                                       | 201 `AdminBookResponse`                                                  |
-| PUT                               | `/api/v1/admin/editions/{id}`                   | `UpsertEditionRequest`                                       | `AdminBookResponse`                                                      |
-| POST                              | `/api/v1/admin/editions/{id}/set-latest`        | —                                                            | `AdminBookResponse`                                                      |
-| POST                              | `/api/v1/admin/editions/{id}/skus`              | `CreateSkuRequest`                                           | 201 `AdminBookResponse`                                                  |
-| PUT                               | `/api/v1/admin/skus/{id}`                       | `{ listPrice, salePrice, allowPreorder }` (`salePrice` = giá bán thường, điền form từ `regularSalePrice`) | `AdminBookResponse`                                     |
-| GET / POST                        | `/api/v1/admin/skus/{skuId}/price-schedules`    | `{ salePrice, startsAt, endsAt, note? }` (policy `pricing_admin`) | `PriceScheduleResponse[]` (mới nhất trước) / 201 `PriceScheduleResponse` |
-| PUT / DELETE                      | `/api/v1/admin/price-schedules/{id}`            | như trên                                                     | `PriceScheduleResponse` / 204                                            |
-| POST                              | `/api/v1/admin/uploads/cover-signature`         | —                                                            | `{ uploadUrl, apiKey, timestamp, folder, allowedFormats, signature }`   |
-| GET                               | `/api/v1/admin/categories`                      | —                                                            | Mảng phẳng `CategoryResponse` (FE tự dựng cây theo `parentId`)           |
-| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/categories`                      | `{ name, slug, parentId?, sortOrder }`                       | 201 / 200 `CategoryResponse` / 204                                       |
-| GET                               | `/api/v1/admin/authors?q=&page=&limit=`         | —                                                            | Phân trang `AuthorResponse`                                              |
-| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/authors`                         | `{ name, slug, biography?, sortOrder }`                      | 201 / 200 `AuthorResponse` / 204                                         |
-| GET                               | `/api/v1/admin/legal-documents?q=&page=&limit=` | —                                                            | Phân trang `LegalDocumentResponse` (`q` tìm theo số hiệu hoặc trích yếu) |
-| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/legal-documents`                 | `{ docNumber, docType, title, issuedDate?, effectiveDate? }` | 201 / 200 `LegalDocumentResponse` / 204                                  |
+| Method                            | Route                                           | Request                                                                                                   | Response                                                                 |
+| --------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| GET                               | `/api/v1/admin/books?q=&status=&page=&limit=`   | —                                                                                                         | Phân trang `AdminBookSummaryResponse`, mới sửa trước                     |
+| GET                               | `/api/v1/admin/books/{id}`                      | —                                                                                                         | `AdminBookResponse`                                                      |
+| POST                              | `/api/v1/admin/books`                           | `UpsertBookRequest`                                                                                       | 201 `AdminBookResponse`                                                  |
+| PUT                               | `/api/v1/admin/books/{id}`                      | `UpsertBookRequest`                                                                                       | `AdminBookResponse`                                                      |
+| POST                              | `/api/v1/admin/books/{id}/editions`             | `UpsertEditionRequest`                                                                                    | 201 `AdminBookResponse`                                                  |
+| PUT                               | `/api/v1/admin/editions/{id}`                   | `UpsertEditionRequest`                                                                                    | `AdminBookResponse`                                                      |
+| POST                              | `/api/v1/admin/editions/{id}/set-latest`        | —                                                                                                         | `AdminBookResponse`                                                      |
+| POST                              | `/api/v1/admin/editions/{id}/skus`              | `CreateSkuRequest`                                                                                        | 201 `AdminBookResponse`                                                  |
+| PUT                               | `/api/v1/admin/skus/{id}`                       | `{ listPrice, salePrice, allowPreorder }` (`salePrice` = giá bán thường, điền form từ `regularSalePrice`) | `AdminBookResponse`                                                      |
+| GET / POST                        | `/api/v1/admin/skus/{skuId}/price-schedules`    | `{ salePrice, startsAt, endsAt, note? }` (policy `pricing_admin`)                                         | `PriceScheduleResponse[]` (mới nhất trước) / 201 `PriceScheduleResponse` |
+| PUT / DELETE                      | `/api/v1/admin/price-schedules/{id}`            | như trên                                                                                                  | `PriceScheduleResponse` / 204                                            |
+| POST                              | `/api/v1/admin/uploads/cover-signature`         | —                                                                                                         | `{ uploadUrl, apiKey, timestamp, folder, allowedFormats, signature }`    |
+| GET                               | `/api/v1/admin/categories`                      | —                                                                                                         | Mảng phẳng `CategoryResponse` (FE tự dựng cây theo `parentId`)           |
+| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/categories`                      | `{ name, slug, parentId?, sortOrder }`                                                                    | 201 / 200 `CategoryResponse` / 204                                       |
+| GET                               | `/api/v1/admin/authors?q=&page=&limit=`         | —                                                                                                         | Phân trang `AuthorResponse`                                              |
+| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/authors`                         | `{ name, slug, biography?, sortOrder }`                                                                   | 201 / 200 `AuthorResponse` / 204                                         |
+| GET                               | `/api/v1/admin/legal-documents?q=&page=&limit=` | —                                                                                                         | Phân trang `LegalDocumentResponse` (`q` tìm theo số hiệu hoặc trích yếu) |
+| POST / PUT `{id}` / DELETE `{id}` | `/api/v1/admin/legal-documents`                 | `{ docNumber, docType, title, issuedDate?, effectiveDate? }`                                              | 201 / 200 `LegalDocumentResponse` / 204                                  |
 
 `q` của `/admin/books` khớp tên chứa chuỗi, đúng slug, đúng ISBN hoặc đúng mã SKU (không phân biệt hoa thường); `status` = `draft`, `active`, `hidden`. Xóa danh mục/tác giả/văn bản là **xóa mềm** (ẩn khỏi mọi danh sách, slug dùng lại được). Đầu sách, ấn bản, SKU không có API xóa: ẩn bằng trạng thái `hidden` / `discontinued`.
 
@@ -614,21 +614,21 @@ Quyền: `super_admin`, `product_manager`. Mọi API sửa đầu sách, ấn b�
 
 ### UpsertEditionRequest
 
-| Field                                | Kiểu                 | Ràng buộc                                                                                                                      |
-| ------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `isbn`                               | string               | ISBN-13: 13 số (cho phép gạch nối/khoảng trắng), bắt đầu `978`/`979`, đúng số kiểm tra; duy nhất toàn hệ thống; lưu dạng 13 số |
-| `publisher`                          | string               | bắt buộc, ≤ 255                                                                                                                |
-| `publishingDecisionNo`               | string               | bắt buộc, ≤ 100 (số QĐXB, BR-04)                                                                                               |
-| `status`                             | enum `EditionStatus` | bắt buộc; mua được khi `on_sale` hoặc `clearance`                                                                              |
-| `registrationNo?` / `editionName?`   | string               | ≤ 100 / ≤ 100                                                                                                                  |
-| `publishYear?`                       | số                   | 1900–2100                                                                                                                      |
-| `updatedToText?` / `updatedToDate?`  | string / DateOnly    | nhãn “Cập nhật đến”, ≤ 500                                                                                                     |
-| `pages?` / `weightGram?`             | số                   | > 0                                                                                                                            |
-| `size?`                              | string               | ≤ 50, ví dụ `16x24 cm`                                                                                                         |
+| Field                                | Kiểu                 | Ràng buộc                                                                                                                                                                                                                                      |
+| ------------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isbn`                               | string               | ISBN-13: 13 số (cho phép gạch nối/khoảng trắng), bắt đầu `978`/`979`, đúng số kiểm tra; duy nhất toàn hệ thống; lưu dạng 13 số                                                                                                                 |
+| `publisher`                          | string               | bắt buộc, ≤ 255                                                                                                                                                                                                                                |
+| `publishingDecisionNo`               | string               | bắt buộc, ≤ 100 (số QĐXB, BR-04)                                                                                                                                                                                                               |
+| `status`                             | enum `EditionStatus` | bắt buộc; mua được khi `on_sale` hoặc `clearance`                                                                                                                                                                                              |
+| `registrationNo?` / `editionName?`   | string               | ≤ 100 / ≤ 100                                                                                                                                                                                                                                  |
+| `publishYear?`                       | số                   | 1900–2100                                                                                                                                                                                                                                      |
+| `updatedToText?` / `updatedToDate?`  | string / DateOnly    | nhãn “Cập nhật đến”, ≤ 500                                                                                                                                                                                                                     |
+| `pages?` / `weightGram?`             | số                   | > 0                                                                                                                                                                                                                                            |
+| `size?`                              | string               | ≤ 50, ví dụ `16x24 cm`                                                                                                                                                                                                                         |
 | `coverImageUrl?` / `previewFileUrl?` | string               | URL ≤ 500. Ảnh bìa upload lên Cloudinary bằng `cover-signature`; khi backend đã cấu hình Cloudinary, `coverImageUrl` phải bắt đầu bằng `https://res.cloudinary.com/{CloudName}/image/upload/` (không thì 400). File đọc thử chưa có API upload |
-| `tableOfContents?`                   | string               | mục lục                                                                                                                        |
-| `releaseDate?`                       | DateOnly             | ngày phát hành / dự kiến                                                                                                       |
-| `legalDocumentIds?`                  | `long[]`             | văn bản được cập nhật trong ấn bản                                                                                             |
+| `tableOfContents?`                   | string               | mục lục                                                                                                                                                                                                                                        |
+| `releaseDate?`                       | DateOnly             | ngày phát hành / dự kiến                                                                                                                                                                                                                       |
+| `legalDocumentIds?`                  | `long[]`             | văn bản được cập nhật trong ấn bản                                                                                                                                                                                                             |
 
 Ấn bản đầu tiên của đầu sách **tự thành ấn bản mới nhất**; các lần sau dùng `set-latest` (mỗi đầu sách đúng một ấn bản mới nhất, BR-02).
 
@@ -812,8 +812,14 @@ Admin xem và đổi trạng thái đơn thủ công (chưa tích hợp vận ch
   ],
   "costOfGoods": null,
   "customerRisk": {
-    "totalOrders": 4, "deliveredCount": 2, "cancelledCount": 1, "failedCodCount": 0, "openCodCount": 1,
-    "codBlocked": false, "openCodLimitReached": false, "codAllowed": true
+    "totalOrders": 4,
+    "deliveredCount": 2,
+    "cancelledCount": 1,
+    "failedCodCount": 0,
+    "openCodCount": 1,
+    "codBlocked": false,
+    "openCodLimitReached": false,
+    "codAllowed": true
   }
 }
 ```
@@ -828,7 +834,7 @@ Chuyển trạng thái sai bảng (và không nằm trong `fastForward`) trả 4
 
 | Chuyển sang           | Tác động                                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------------------- |
-| `paid`                | `paymentStatus = paid` (tự động qua webhook SePay khi đủ tiền, hoặc đối soát thủ công)                                           |
+| `paid`                | `paymentStatus = paid` (tự động qua webhook SePay khi đủ tiền, hoặc đối soát thủ công)            |
 | `packing`             | Trừ tồn thật theo FIFO lô in, ghi giá vốn từng dòng                                               |
 | `cancelled`           | Hoàn tồn tạm giữ và trả lượt dùng khuyến mãi/mã giảm giá                                          |
 | `delivered` (đơn COD) | `paymentStatus = paid`                                                                            |
@@ -874,64 +880,64 @@ Mọi enum gửi và nhận dạng chuỗi snake\_case đúng như cột Giá tr
 
 FE rẽ nhánh theo `code` (ổn định), không theo `title` (có thể đổi câu chữ). Lỗi nghiệp vụ có `title` tiếng Việt hiển thị được cho khách; lỗi chung (nhóm đầu) nên dùng câu chữ của FE.
 
-| `code`                                    | HTTP      | Nhóm          | FE xử lý                                                                              |
-| ----------------------------------------- | --------- | ------------- | ------------------------------------------------------------------------------------- |
-| `VALIDATION_ERROR`                        | 400       | Chung         | Hiển thị lỗi theo từng field trong `errors`                                           |
-| `UNAUTHORIZED`                            | 401       | Chung         | Thử `/auth/refresh` một lần, thất bại thì về màn đăng nhập                            |
-| `FORBIDDEN`                               | 403       | Chung         | Không đủ quyền hoặc nhân viên chưa bật 2FA → màn bật 2FA nếu `requiresTwoFactorSetup` |
-| `NOT_FOUND`                               | 404       | Chung         | Trang 404 / thông báo không tìm thấy                                                  |
-| `METHOD_NOT_ALLOWED`                      | 405       | Chung         | Lỗi tích hợp (sai method)                                                             |
-| `CONFLICT`                                | 409       | Chung         | Hiển thị `title`                                                                      |
-| `TOO_MANY_REQUESTS`                       | 429       | Chung         | Báo “thao tác quá nhanh”, chờ rồi thử lại                                             |
-| `INTERNAL_ERROR`                          | 500       | Chung         | Thông báo chung, hiển thị `traceId` để khách báo CSKH                                 |
-| `INVALID_CREDENTIALS`                     | 401       | Auth          | Sai email/mật khẩu; **không** gọi refresh                                             |
-| `ACCOUNT_LOCKED`                          | 423       | Auth          | Khóa 15 phút                                                                          |
-| `EMAIL_TAKEN`                             | 409       | Auth          | Gợi ý đăng nhập                                                                       |
-| `INVALID_REFRESH_TOKEN`                   | 401       | Auth          | Xóa phiên, về màn đăng nhập                                                           |
-| `TWO_FACTOR_TOKEN_INVALID`                | 401       | Auth          | Quay lại bước nhập mật khẩu                                                           |
-| `OTP_INVALID`                             | 400       | Auth          | Mã 6 số sai, cho nhập lại                                                             |
-| `TWO_FACTOR_ALREADY_ENABLED`              | 409       | Auth          | Đã bật 2FA                                                                            |
-| `USER_NOT_FOUND`                          | 404       | Auth          | —                                                                                     |
-| `ROLE_INVALID` / `CANNOT_MANAGE_USER`     | 422       | Auth          | Hiển thị `title` (`ROLE_INVALID` có khai báo nhưng hiện backend không trả; vai trò sai là 400 `VALIDATION_ERROR`) |
-| `CANNOT_IMPERSONATE`                      | 422       | Auth          | Không đăng nhập hộ chính mình / Super Admin khác                                      |
-| `ACCOUNT_DISABLED`                        | 403       | Auth          | Tài khoản đã bị vô hiệu hóa, liên hệ quản trị viên                                    |
-| `SUPER_ADMIN_PORTAL_FORBIDDEN`            | 403       | Auth          | Super Admin đăng nhập ở storefront → dùng app Admin                                   |
-| `ADDRESS_NOT_FOUND` / `ADDRESS_LIMIT_REACHED` | 404 / 422 | Auth (sổ địa chỉ) | Tải lại sổ / đã đủ 10 địa chỉ                                                  |
-| `AVATAR_URL_INVALID`                      | 422       | Auth (avatar) | Upload lại ảnh                                                                        |
-| `REALTIME_UNAVAILABLE`                    | 503       | Auth          | Backend chưa cấu hình Pusher, bỏ qua realtime                                         |
-| `IDENTITY_ERROR`                          | 422       | Auth          | Lỗi Identity hiếm gặp, hiển thị `title`                                               |
-| `UPLOAD_NOT_CONFIGURED`                   | 503       | Upload        | Chưa cấu hình Cloudinary: gợi ý dán link ảnh                                          |
-| `SLUG_DUPLICATE` / `SLUG_INVALID`         | 409 / 422 | Catalog       | Báo ở field `slug`                                                                    |
-| `ISBN_DUPLICATE` / `ISBN_INVALID`         | 409 / 422 | Catalog       | Báo ở field `isbn`                                                                    |
-| `SKU_CODE_DUPLICATE` / `SKU_CODE_INVALID` | 409 / 422 | Catalog       | Báo ở field `skuCode`                                                                 |
-| `SKU_COVER_DUPLICATE`                     | 409       | Catalog       | Ấn bản đã có SKU loại bìa này                                                         |
-| `PRICE_INVALID`                           | 422       | Catalog       | Báo ở field giá                                                                       |
-| `EDITION_NOT_FOUND`                       | 404       | Catalog       | —                                                                                     |
-| `CATEGORY_PARENT_INVALID`                 | 422       | Catalog       | Danh mục cha không hợp lệ                                                             |
-| `CATEGORY_HAS_CHILDREN`                   | 409       | Catalog       | Chuyển/xóa danh mục con trước                                                         |
-| `PRICE_SCHEDULE_OVERLAP` / `PRICE_SCHEDULE_ENDED` | 409 / 422 | Catalog (lịch giá) | Chọn khoảng thời gian khác / lịch đã kết thúc                             |
-| `REFERENCE_NOT_FOUND`                     | 422       | Catalog, Kho  | Tải lại danh sách chọn (id đã bị xóa)                                                 |
-| `OUT_OF_STOCK`                            | 409       | Kho, Giỏ, Đơn | Báo hết hàng, tải lại giỏ                                                             |
-| `RECEIPT_NOT_DRAFT`                       | 409       | Kho           | Tải lại phiếu                                                                         |
-| `RECEIPT_SELF_APPROVAL`                   | 403       | Kho           | Cần người khác duyệt                                                                  |
-| `BATCH_CODE_DUPLICATE`                    | 409       | Kho           | Báo ở dòng có mã lô trùng                                                             |
-| `RECEIPT_EMPTY`                           | 422       | Kho           | Thêm dòng                                                                             |
-| `MAX_QTY_EXCEEDED`                        | 422       | Giỏ, Đơn      | > 20 cuốn/SKU → gợi ý báo giá sỉ                                                      |
-| `SKU_NOT_AVAILABLE`                       | 422       | Giỏ, Đơn      | Sách ngừng bán, xóa khỏi giỏ                                                          |
-| `CART_FULL`                               | 422       | Giỏ           | Đã 50 loại sách                                                                       |
-| `CART_EMPTY`                              | 422       | Đơn           | Về trang giỏ                                                                          |
-| `PAYMENT_METHOD_NOT_SUPPORTED`            | 422       | Đơn           | Chỉ cho chọn COD / chuyển khoản                                                       |
-| `IDEMPOTENCY_KEY_REUSED`                  | 409       | Đơn           | Sinh key mới rồi gửi lại                                                              |
-| `ORDER_NOT_CANCELLABLE`                   | 422       | Đơn           | Ẩn nút hủy, hướng dẫn liên hệ CSKH                                                    |
-| `CHECKOUT_TOTAL_CHANGED`                  | 409       | Đơn           | Gọi lại `/checkout/preview`, cho khách xác nhận số mới                                |
-| `TOO_MANY_OPEN_ORDERS` / `COD_NOT_ALLOWED` | 422      | Đơn           | Không cho COD với số điện thoại này, gợi ý chuyển khoản                               |
-| `ADDRESS_NOT_SUPPORTED`                   | 422       | Vận chuyển    | Chưa hỗ trợ giao đến tỉnh này, chặn đặt hàng                                          |
-| `SHIPPING_PROVINCE_DUPLICATE`             | 409       | Admin vận chuyển | Tỉnh đã thuộc vùng giao hàng khác                                                  |
-| `COUPON_INVALID` / `COUPON_EXPIRED` / `COUPON_MIN_ORDER` / `COUPON_NOT_APPLICABLE` / `COUPON_LOGIN_REQUIRED` | 422 | Khuyến mãi | Hiển thị `title` dưới ô mã (`docs/features/checkout-promotion-shipping.md`) |
-| `PROMOTION_UNAVAILABLE`                   | 422       | Khuyến mãi    | Ưu đãi tự áp vừa hết lượt/hết hạn lúc đặt: preview lại                               |
-| `COUPON_CODE_DUPLICATE` / `PROMOTION_NOT_COUPON` | 409 / 422 | Admin khuyến mãi | Mã trùng / chương trình tự áp không thêm mã được                          |
-| `ORDER_INVALID_TRANSITION`                | 409       | Admin đơn     | Tải lại đơn (người khác vừa đổi), dựng lại nút từ `nextStatuses`                      |
-| `ORDER_NOT_PAID`                          | 422       | Admin đơn     | Không hoàn tiền đơn chưa thanh toán                                                   |
+| `code`                                                                                                       | HTTP      | Nhóm               | FE xử lý                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------ | --------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `VALIDATION_ERROR`                                                                                           | 400       | Chung              | Hiển thị lỗi theo từng field trong `errors`                                                                       |
+| `UNAUTHORIZED`                                                                                               | 401       | Chung              | Thử `/auth/refresh` một lần, thất bại thì về màn đăng nhập                                                        |
+| `FORBIDDEN`                                                                                                  | 403       | Chung              | Không đủ quyền hoặc nhân viên chưa bật 2FA → màn bật 2FA nếu `requiresTwoFactorSetup`                             |
+| `NOT_FOUND`                                                                                                  | 404       | Chung              | Trang 404 / thông báo không tìm thấy                                                                              |
+| `METHOD_NOT_ALLOWED`                                                                                         | 405       | Chung              | Lỗi tích hợp (sai method)                                                                                         |
+| `CONFLICT`                                                                                                   | 409       | Chung              | Hiển thị `title`                                                                                                  |
+| `TOO_MANY_REQUESTS`                                                                                          | 429       | Chung              | Báo “thao tác quá nhanh”, chờ rồi thử lại                                                                         |
+| `INTERNAL_ERROR`                                                                                             | 500       | Chung              | Thông báo chung, hiển thị `traceId` để khách báo CSKH                                                             |
+| `INVALID_CREDENTIALS`                                                                                        | 401       | Auth               | Sai email/mật khẩu; **không** gọi refresh                                                                         |
+| `ACCOUNT_LOCKED`                                                                                             | 423       | Auth               | Khóa 15 phút                                                                                                      |
+| `EMAIL_TAKEN`                                                                                                | 409       | Auth               | Gợi ý đăng nhập                                                                                                   |
+| `INVALID_REFRESH_TOKEN`                                                                                      | 401       | Auth               | Xóa phiên, về màn đăng nhập                                                                                       |
+| `TWO_FACTOR_TOKEN_INVALID`                                                                                   | 401       | Auth               | Quay lại bước nhập mật khẩu                                                                                       |
+| `OTP_INVALID`                                                                                                | 400       | Auth               | Mã 6 số sai, cho nhập lại                                                                                         |
+| `TWO_FACTOR_ALREADY_ENABLED`                                                                                 | 409       | Auth               | Đã bật 2FA                                                                                                        |
+| `USER_NOT_FOUND`                                                                                             | 404       | Auth               | —                                                                                                                 |
+| `ROLE_INVALID` / `CANNOT_MANAGE_USER`                                                                        | 422       | Auth               | Hiển thị `title` (`ROLE_INVALID` có khai báo nhưng hiện backend không trả; vai trò sai là 400 `VALIDATION_ERROR`) |
+| `CANNOT_IMPERSONATE`                                                                                         | 422       | Auth               | Không đăng nhập hộ chính mình / Super Admin khác                                                                  |
+| `ACCOUNT_DISABLED`                                                                                           | 403       | Auth               | Tài khoản đã bị vô hiệu hóa, liên hệ quản trị viên                                                                |
+| `SUPER_ADMIN_PORTAL_FORBIDDEN`                                                                               | 403       | Auth               | Super Admin đăng nhập ở storefront → dùng app Admin                                                               |
+| `ADDRESS_NOT_FOUND` / `ADDRESS_LIMIT_REACHED`                                                                | 404 / 422 | Auth (sổ địa chỉ)  | Tải lại sổ / đã đủ 10 địa chỉ                                                                                     |
+| `AVATAR_URL_INVALID`                                                                                         | 422       | Auth (avatar)      | Upload lại ảnh                                                                                                    |
+| `REALTIME_UNAVAILABLE`                                                                                       | 503       | Auth               | Backend chưa cấu hình Pusher, bỏ qua realtime                                                                     |
+| `IDENTITY_ERROR`                                                                                             | 422       | Auth               | Lỗi Identity hiếm gặp, hiển thị `title`                                                                           |
+| `UPLOAD_NOT_CONFIGURED`                                                                                      | 503       | Upload             | Chưa cấu hình Cloudinary: gợi ý dán link ảnh                                                                      |
+| `SLUG_DUPLICATE` / `SLUG_INVALID`                                                                            | 409 / 422 | Catalog            | Báo ở field `slug`                                                                                                |
+| `ISBN_DUPLICATE` / `ISBN_INVALID`                                                                            | 409 / 422 | Catalog            | Báo ở field `isbn`                                                                                                |
+| `SKU_CODE_DUPLICATE` / `SKU_CODE_INVALID`                                                                    | 409 / 422 | Catalog            | Báo ở field `skuCode`                                                                                             |
+| `SKU_COVER_DUPLICATE`                                                                                        | 409       | Catalog            | Ấn bản đã có SKU loại bìa này                                                                                     |
+| `PRICE_INVALID`                                                                                              | 422       | Catalog            | Báo ở field giá                                                                                                   |
+| `EDITION_NOT_FOUND`                                                                                          | 404       | Catalog            | —                                                                                                                 |
+| `CATEGORY_PARENT_INVALID`                                                                                    | 422       | Catalog            | Danh mục cha không hợp lệ                                                                                         |
+| `CATEGORY_HAS_CHILDREN`                                                                                      | 409       | Catalog            | Chuyển/xóa danh mục con trước                                                                                     |
+| `PRICE_SCHEDULE_OVERLAP` / `PRICE_SCHEDULE_ENDED`                                                            | 409 / 422 | Catalog (lịch giá) | Chọn khoảng thời gian khác / lịch đã kết thúc                                                                     |
+| `REFERENCE_NOT_FOUND`                                                                                        | 422       | Catalog, Kho       | Tải lại danh sách chọn (id đã bị xóa)                                                                             |
+| `OUT_OF_STOCK`                                                                                               | 409       | Kho, Giỏ, Đơn      | Báo hết hàng, tải lại giỏ                                                                                         |
+| `RECEIPT_NOT_DRAFT`                                                                                          | 409       | Kho                | Tải lại phiếu                                                                                                     |
+| `RECEIPT_SELF_APPROVAL`                                                                                      | 403       | Kho                | Cần người khác duyệt                                                                                              |
+| `BATCH_CODE_DUPLICATE`                                                                                       | 409       | Kho                | Báo ở dòng có mã lô trùng                                                                                         |
+| `RECEIPT_EMPTY`                                                                                              | 422       | Kho                | Thêm dòng                                                                                                         |
+| `MAX_QTY_EXCEEDED`                                                                                           | 422       | Giỏ, Đơn           | > 20 cuốn/SKU → gợi ý báo giá sỉ                                                                                  |
+| `SKU_NOT_AVAILABLE`                                                                                          | 422       | Giỏ, Đơn           | Sách ngừng bán, xóa khỏi giỏ                                                                                      |
+| `CART_FULL`                                                                                                  | 422       | Giỏ                | Đã 50 loại sách                                                                                                   |
+| `CART_EMPTY`                                                                                                 | 422       | Đơn                | Về trang giỏ                                                                                                      |
+| `PAYMENT_METHOD_NOT_SUPPORTED`                                                                               | 422       | Đơn                | Chỉ cho chọn COD / chuyển khoản                                                                                   |
+| `IDEMPOTENCY_KEY_REUSED`                                                                                     | 409       | Đơn                | Sinh key mới rồi gửi lại                                                                                          |
+| `ORDER_NOT_CANCELLABLE`                                                                                      | 422       | Đơn                | Ẩn nút hủy, hướng dẫn liên hệ CSKH                                                                                |
+| `CHECKOUT_TOTAL_CHANGED`                                                                                     | 409       | Đơn                | Gọi lại `/checkout/preview`, cho khách xác nhận số mới                                                            |
+| `TOO_MANY_OPEN_ORDERS` / `COD_NOT_ALLOWED`                                                                   | 422       | Đơn                | Không cho COD với số điện thoại này, gợi ý chuyển khoản                                                           |
+| `ADDRESS_NOT_SUPPORTED`                                                                                      | 422       | Vận chuyển         | Chưa hỗ trợ giao đến tỉnh này, chặn đặt hàng                                                                      |
+| `SHIPPING_PROVINCE_DUPLICATE`                                                                                | 409       | Admin vận chuyển   | Tỉnh đã thuộc vùng giao hàng khác                                                                                 |
+| `COUPON_INVALID` / `COUPON_EXPIRED` / `COUPON_MIN_ORDER` / `COUPON_NOT_APPLICABLE` / `COUPON_LOGIN_REQUIRED` | 422       | Khuyến mãi         | Hiển thị `title` dưới ô mã (`docs/features/checkout-promotion-shipping.md`)                                       |
+| `PROMOTION_UNAVAILABLE`                                                                                      | 422       | Khuyến mãi         | Ưu đãi tự áp vừa hết lượt/hết hạn lúc đặt: preview lại                                                            |
+| `COUPON_CODE_DUPLICATE` / `PROMOTION_NOT_COUPON`                                                             | 409 / 422 | Admin khuyến mãi   | Mã trùng / chương trình tự áp không thêm mã được                                                                  |
+| `ORDER_INVALID_TRANSITION`                                                                                   | 409       | Admin đơn          | Tải lại đơn (người khác vừa đổi), dựng lại nút từ `nextStatuses`                                                  |
+| `ORDER_NOT_PAID`                                                                                             | 422       | Admin đơn          | Không hoàn tiền đơn chưa thanh toán                                                                               |
 
 ## Luồng gợi ý và việc chưa có
 
@@ -992,20 +998,20 @@ export async function api(path: string, init: RequestInit = {}, retry = true): P
 
 ### Chưa có trong API (giai đoạn 1)
 
-| Hạng mục                                                                      | Hiện trạng                              | FE tạm làm gì                                                                |
-| ----------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
-| CORS cho trình duyệt gọi thẳng khác site                                      | Đã bật theo `Cors:AllowedOrigins`, nhưng cookie `sl_refresh` là `SameSite=Strict` | Proxy `/api/v1` qua Next.js (`proxy.ts`)                 |
-| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                     | Chưa có                                 | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền và QR lấy từ `paymentInstructions` của backend |
-| Phí ship theo đơn vị vận chuyển (GHN/GHTK...)                                 | Biểu phí tự quản lý theo vùng tỉnh + trọng lượng, có thời gian giao dự kiến | Dùng `/checkout/preview` hoặc `/shipping/quote` |
-| Combo, giá sỉ                                                                 | Chưa có (đã có mã giảm giá và khuyến mãi tự áp) | —                                                                    |
-| Đặt trước (pre-order)                                                         | Chưa có                                 | Ấn bản `upcoming` chỉ hiển thị                                               |
-| Tìm kiếm không dấu, theo tác giả, gợi ý khi gõ (`/search`)                    | Chỉ có `q` theo tên/ISBN/mã SKU, phân biệt dấu | Dùng `GET /books?q=`                                                         |
-| Lọc còn hàng, sắp bán chạy / đánh giá cao                                     | Chưa có (đã có `onSale`)                | Ẩn các lựa chọn này                                                          |
-| Xác thực email/OTP, quên mật khẩu, đăng nhập mạng xã hội                      | Chưa có                                 | Ẩn link “Quên mật khẩu”                                                      |
-| Yêu thích, đánh giá, đăng ký nhận tin ấn bản mới                              | Chưa có (sổ địa chỉ đã có: `/me/addresses`) | —                                                                        |
-| Yêu cầu đổi trả phía khách, hóa đơn điện tử                                   | Chưa có                                 | Hướng dẫn liên hệ CSKH                                                       |
-| Upload file đọc thử                                                           | Chỉ lưu URL (ảnh bìa, popup, avatar đã upload được qua Cloudinary) | Dán URL đã upload nơi khác                        |
-| Nội dung (bài viết, banner, trang tĩnh), dashboard, báo cáo, nhật ký thao tác | Chưa có (đã có popup)                   | —                                                                            |
-| Tên người thao tác trong thẻ kho / phiếu nhập                                 | Chỉ có user id                          | Hiển thị id                                                                  |
+| Hạng mục                                                                      | Hiện trạng                                                                        | FE tạm làm gì                                                                                              |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| CORS cho trình duyệt gọi thẳng khác site                                      | Đã bật theo `Cors:AllowedOrigins`, nhưng cookie `sl_refresh` là `SameSite=Strict` | Proxy `/api/v1` qua Next.js (`proxy.ts`)                                                                   |
+| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                     | Chưa có                                                                           | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền và QR lấy từ `paymentInstructions` của backend |
+| Phí ship theo đơn vị vận chuyển (GHN/GHTK...)                                 | Biểu phí tự quản lý theo vùng tỉnh + trọng lượng, có thời gian giao dự kiến       | Dùng `/checkout/preview` hoặc `/shipping/quote`                                                            |
+| Combo, giá sỉ                                                                 | Chưa có (đã có mã giảm giá và khuyến mãi tự áp)                                   | —                                                                                                          |
+| Đặt trước (pre-order)                                                         | Chưa có                                                                           | Ấn bản `upcoming` chỉ hiển thị                                                                             |
+| Tìm kiếm không dấu, theo tác giả, gợi ý khi gõ (`/search`)                    | Chỉ có `q` theo tên/ISBN/mã SKU, phân biệt dấu                                    | Dùng `GET /books?q=`                                                                                       |
+| Lọc còn hàng, sắp bán chạy / đánh giá cao                                     | Chưa có (đã có `onSale`)                                                          | Ẩn các lựa chọn này                                                                                        |
+| Xác thực email/OTP, quên mật khẩu, đăng nhập mạng xã hội                      | Chưa có                                                                           | Ẩn link “Quên mật khẩu”                                                                                    |
+| Yêu thích, đánh giá, đăng ký nhận tin ấn bản mới                              | Chưa có (sổ địa chỉ đã có: `/me/addresses`)                                       | —                                                                                                          |
+| Yêu cầu đổi trả phía khách, hóa đơn điện tử                                   | Chưa có                                                                           | Hướng dẫn liên hệ CSKH                                                                                     |
+| Upload file đọc thử                                                           | Chỉ lưu URL (ảnh bìa, popup, avatar đã upload được qua Cloudinary)                | Dán URL đã upload nơi khác                                                                                 |
+| Nội dung (bài viết, banner, trang tĩnh), dashboard, báo cáo, nhật ký thao tác | Chưa có (đã có popup)                                                             | —                                                                                                          |
+| Tên người thao tác trong thẻ kho / phiếu nhập                                 | Chỉ có user id                                                                    | Hiển thị id                                                                                                |
 
 Lỗi đã biết: `sort=newest` hiện để sách **chưa có `releaseDate`** lên đầu danh sách (PostgreSQL xếp `NULL` trước khi sắp giảm dần); backend sẽ sửa. Admin nên nhập `releaseDate` cho mọi ấn bản.
