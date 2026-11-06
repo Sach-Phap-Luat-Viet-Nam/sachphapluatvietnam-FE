@@ -13,7 +13,13 @@ Hợp đồng API: `docs/features/checkout-promotion-shipping.md`. File này mô
 - `/thanh-toan` (cả đặt từ giỏ và "Mua ngay"): `Checkout.tsx` gọi `useCheckoutPreview` mỗi khi đổi giỏ, tỉnh/thành,
   số điện thoại hoặc mã. Tỉnh và số điện thoại debounce 400 ms; mã giảm giá và giỏ áp dụng ngay.
   - `CheckoutSummary`: tạm tính, giảm giá, phí ship ("Miễn phí" khi `shippingFee − shippingDiscount = 0`), tổng,
-    ưu đãi đã áp, gợi ý miễn ship, thời gian giao dự kiến.
+    ưu đãi đã áp, thời gian giao dự kiến.
+  - Khối **miễn phí vận chuyển** ngay dưới tiêu đề tóm tắt (`freeShippingProgress` trong `checkout-preview.ts`, chỉ dùng
+    `freeShippingThreshold` và `amountToFreeShipping` của preview, FE không tự cộng tạm tính):
+    - Chưa đủ ngưỡng: "Mua thêm … để được miễn phí vận chuyển." kèm thanh tiến độ (`aria-hidden`, câu chữ đã đủ ý).
+    - Đủ ngưỡng (`amountToFreeShipping = 0` và `shippingFee = 0`): "Đơn hàng được miễn phí vận chuyển."
+    - Ẩn khi shop không có ngưỡng (`freeShippingThreshold = null`), hoặc phí ship đã về 0 nhờ khuyến mãi khác dù chưa
+      đủ ngưỡng (lúc đó nhắc "mua thêm" là sai).
   - `CouponBox`: mã chỉ được giữ sau khi preview thành công; lỗi hiện `title` của backend dưới ô nhập và không giữ mã.
     `couponApplied === false` hiện "Đã áp ưu đãi tốt nhất cho đơn của bạn". Mã bị từ chối ở lần tính lại (hết lượt…)
     cũng bị bỏ và báo dưới ô nhập.
