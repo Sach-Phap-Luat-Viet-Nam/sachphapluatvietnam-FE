@@ -16,7 +16,11 @@ chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm �
 - **Đăng ký** (`features/auth/RegisterForm.tsx`, route `/dang-ky`, `noindex`): họ tên, email, số điện thoại (không bắt
   buộc), mật khẩu 8–128 ký tự và ô nhập lại mật khẩu (chỉ kiểm tra ở FE, không gửi lên). Validate bằng `registerSchema`
   (cùng quy tắc với backend: SĐT `0xxxxxxxxx`/`+84xxxxxxxxx`), gọi `register()` của `@slvn/auth`.
-  - Body: email bỏ khoảng trắng và đổi chữ thường, SĐT để trống thì gửi `null` (`toRegisterBody`).
+  - Ô tích **"Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật"** là bắt buộc: chưa tích thì `registerSchema`
+    báo lỗi ngay dưới ô và không gọi API. Backend cũng kiểm tra (`acceptTerms` thiếu/`false` → 400 `VALIDATION_ERROR`) và
+    lưu `terms_accepted_at`, `terms_version` làm bằng chứng đồng ý (xem `docs/features/auth.md`).
+  - Body: email bỏ khoảng trắng và đổi chữ thường, SĐT để trống thì gửi `null`, kèm `acceptTerms: true`
+    (`toRegisterBody`).
   - Backend trả `201` kèm phiên (access token + cookie `sl_refresh`, phiên 12 giờ như không tích "giữ đăng nhập"):
     `register()` gọi `startSession`, form chuyển tới `?next=` (mặc định `/`). Không cần đăng nhập lại, chưa xác thực
     email/SĐT (chờ module Notification phía backend).
@@ -78,3 +82,8 @@ Không thêm biến mới. Dùng `API_BASE_URL` (và `PROXY_SECRET` trên Vercel
 - Chưa có quên mật khẩu; chưa xác thực email/SĐT sau khi đăng ký (backend chưa có). Đăng nhập hộ xem `admin-users.md`.
 - `/auth/*` giới hạn 10 request/phút/IP: nhiều người đăng ký cùng lúc sau một IP (văn phòng, wifi chung) có thể bị 429.
 - Trang `/dang-nhap` chưa tự chuyển đi khi khách đã đăng nhập.
+- **Điều khoản**: storefront chưa có trang Điều khoản sử dụng / Chính sách bảo mật nên chữ trong ô tích chưa là link;
+  khi có trang thì biến hai cụm từ thành link mở tab mới. Backend chưa có API trả `Auth:TermsVersion` và chưa bắt
+  khách cũ đồng ý lại khi đổi phiên bản.
+- `packages/api-client/openapi/v1.json` mới được thêm tay field `acceptTerms` vào `RegisterRequest` (backend local chưa
+  chạy để `pnpm --filter @slvn/api-client api:fetch`); cần fetch lại từ backend để đồng bộ.
