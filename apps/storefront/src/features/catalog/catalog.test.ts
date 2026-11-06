@@ -8,6 +8,7 @@ import {
   currentPage,
   flattenCategories,
   isPriceRangeActive,
+  isUnaccentedQuery,
   pageCount,
   pageWindow,
   priceRangeHref,
@@ -193,5 +194,20 @@ describe("category tree helpers", () => {
     expect(rootCategorySlug(tree, "thua-ke")).toBe("dan-su");
     expect(rootCategorySlug(tree, "hinh-su")).toBe("hinh-su");
     expect(rootCategorySlug(tree, "khong-co")).toBeUndefined();
+  });
+});
+
+describe("isUnaccentedQuery", () => {
+  it("flags Vietnamese words typed without diacritics", () => {
+    expect(isUnaccentedQuery("bo luat dan su")).toBe(true);
+    expect(isUnaccentedQuery("  hinh su 2015 ")).toBe(true);
+    expect(isUnaccentedQuery("luat")).toBe(true);
+  });
+  it("ignores accented words, codes and ISBNs", () => {
+    expect(isUnaccentedQuery("bộ luật dân sự")).toBe(false);
+    expect(isUnaccentedQuery("Bo luật")).toBe(false);
+    expect(isUnaccentedQuery("SLVN-0012")).toBe(false);
+    expect(isUnaccentedQuery("9786045712345")).toBe(false);
+    expect(isUnaccentedQuery("")).toBe(false);
   });
 });
