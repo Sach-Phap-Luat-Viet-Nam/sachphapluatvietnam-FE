@@ -4953,6 +4953,7 @@ export interface components {
             password: string;
             fullName: string;
             phoneNumber: null | string;
+            acceptTerms: boolean;
         };
         RejectReceiptRequest: {
             reason: string;
