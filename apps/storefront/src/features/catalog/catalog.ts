@@ -225,3 +225,14 @@ export function rootCategorySlug(tree: readonly CategoryNode[], slug: string): s
     node.slug === slug || node.children.some((child) => contains(child));
   return tree.find((root) => contains(root))?.slug;
 }
+
+/**
+ * Từ khóa gõ không dấu (ví dụ "bo luat dan su"): backend đang tìm có phân biệt dấu nên trang không có kết quả nhắc
+ * khách gõ có dấu. Bỏ qua chuỗi giống mã (một cụm liền, có chữ số, như ISBN hoặc mã SKU) vì mã không có dấu.
+ */
+export function isUnaccentedQuery(query: string): boolean {
+  const text = query.trim();
+  if (!/[a-z]{2}/i.test(text) || /[^\x20-\x7e]/.test(text)) return false;
+  const looksLikeCode = !/\s/.test(text) && /\d/.test(text);
+  return !looksLikeCode;
+}
