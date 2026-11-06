@@ -33,6 +33,10 @@ export const registerSchema = z
       .min(PASSWORD_MIN, `Mật khẩu tối thiểu ${PASSWORD_MIN} ký tự.`)
       .max(PASSWORD_MAX, `Mật khẩu tối đa ${PASSWORD_MAX} ký tự.`),
     confirmPassword: z.string(),
+    // Backend bắt buộc `acceptTerms = true` (400 `VALIDATION_ERROR` nếu thiếu), nên chặn ngay ở form.
+    acceptTerms: z
+      .boolean()
+      .refine((value) => value, "Anh/chị cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật."),
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ["confirmPassword"],
