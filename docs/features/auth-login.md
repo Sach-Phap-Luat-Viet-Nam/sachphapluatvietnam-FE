@@ -17,7 +17,8 @@ chung với app admin (`docs/features/admin-shell.md`); form giao diện nằm �
   buộc), mật khẩu 8–128 ký tự và ô nhập lại mật khẩu (chỉ kiểm tra ở FE, không gửi lên). Validate bằng `registerSchema`
   (cùng quy tắc với backend: SĐT `0xxxxxxxxx`/`+84xxxxxxxxx`), gọi `register()` của `@slvn/auth`.
   - Ô tích **"Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật"** là bắt buộc: chưa tích thì `registerSchema`
-    báo lỗi ngay dưới ô và không gọi API. Backend cũng kiểm tra (`acceptTerms` thiếu/`false` → 400 `VALIDATION_ERROR`) và
+    báo lỗi ngay dưới ô và không gọi API. Backend cũng kiểm tra (`acceptTerms` thiếu/`false` → 400 `VALIDATION_ERROR`,
+    lỗi nằm ở `errors.acceptTerms` nên được đưa về đúng ô tích) và
     lưu `terms_accepted_at`, `terms_version` làm bằng chứng đồng ý (xem `docs/features/auth.md`).
   - Body: email bỏ khoảng trắng và đổi chữ thường, SĐT để trống thì gửi `null`, kèm `acceptTerms: true`
     (`toRegisterBody`).
