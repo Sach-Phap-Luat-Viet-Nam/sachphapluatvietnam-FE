@@ -834,8 +834,8 @@
   opacity: 0;
   translate: 0 16px;
   transition:
-    opacity 0.4s ease,
-    translate 0.55s var(--ease-out-soft);
+    opacity 0.7s ease,
+    translate 0.9s var(--ease-out-soft);
   filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.6));
   pointer-events: none;
 }
