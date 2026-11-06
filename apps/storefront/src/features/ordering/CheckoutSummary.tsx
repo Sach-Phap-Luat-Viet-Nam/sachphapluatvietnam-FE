@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
+import { Truck } from "lucide-react";
 import { cn } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { discountPercent } from "./cart";
-import { etaText, payableShipping } from "./checkout-preview";
-import type { CheckoutPreview } from "./checkout-preview";
+import { etaText, freeShippingProgress, payableShipping } from "./checkout-preview";
+import type { CheckoutPreview, FreeShippingProgress } from "./checkout-preview";
 
 export interface CheckoutSummaryProps {
   /** Số liệu tạm của giỏ/dòng Mua ngay, chỉ hiện khi chưa có preview (đang tải hoặc preview lỗi). */
@@ -30,6 +31,30 @@ function Row({ term, children, tone }: { term: string; children: ReactNode; tone
   );
 }
 
+/** Khối nhắc miễn phí vận chuyển đặt ngay dưới tiêu đề tóm tắt để khách thấy trước khi đọc các dòng tiền. */
+function FreeShippingNudge({ progress }: { progress: FreeShippingProgress }) {
+  if (progress.reached) {
+    return (
+      <p className="border-ok/50 bg-ok/10 text-ok flex items-center gap-2.5 border px-4 py-3 text-[15px] font-medium">
+        <Truck size={18} className="shrink-0" />
+        Đơn hàng được miễn phí vận chuyển.
+      </p>
+    );
+  }
+  return (
+    <div className="border-gold/30 bg-gold/8 flex flex-col gap-2.5 border px-4 py-3">
+      <p className="flex items-center gap-2.5 text-[15px] leading-6">
+        <Truck size={18} className="text-gold shrink-0" />
+        <span>Mua thêm {formatPrice(progress.remaining)} để được miễn phí vận chuyển.</span>
+      </p>
+      {/* Câu chữ đã đủ thông tin cho trình đọc màn hình; thanh chỉ để nhìn nhanh. */}
+      <div aria-hidden="true" className="bg-ivory/10 h-1.5 overflow-hidden">
+        <div className="bg-gold h-full transition-[width] duration-500" style={{ width: `${progress.percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 /**
  * Tóm tắt thanh toán theo `POST /checkout/preview`: mọi số tiền lấy nguyên từ backend, FE không cộng trừ lại (chỉ phí
  * ship thực trả = `shippingFee − shippingDiscount` để hiện "Miễn phí").
@@ -49,10 +74,12 @@ export function CheckoutSummary({
   const percent = discountPercent(listSubtotal, subtotal);
   const eta = preview ? etaText(preview.eta) : null;
   const shippingFree = preview !== undefined && payableShipping(preview) === 0;
+  const freeShipping = preview ? freeShippingProgress(preview) : null;
 
   return (
     <div className="border-gold/30 bg-panel flex flex-col gap-5 border px-6 py-7">
       <h2 className="font-editorial text-2xl font-bold">Tóm tắt đơn hàng</h2>
+      {freeShipping && <FreeShippingNudge progress={freeShipping} />}
       {coupon}
       <dl
         aria-busy={updating}
@@ -113,11 +140,6 @@ export function CheckoutSummary({
             </li>
           ))}
         </ul>
-      )}
-      {preview && preview.amountToFreeShipping > 0 && (
-        <p className="text-mist text-sm leading-6">
-          Mua thêm {formatPrice(preview.amountToFreeShipping)} để được miễn phí vận chuyển.
-        </p>
       )}
       {eta && <p className="text-mist text-sm">{eta}.</p>}
       {loadFailed && !preview && (
