@@ -148,6 +148,21 @@ describe("RegisterForm", () => {
     expect(await screen.findByText("Số điện thoại không hợp lệ.")).toBeVisible();
   });
 
+  it("đưa lỗi acceptTerms của backend vào ô đồng ý điều khoản", async () => {
+    server.use(
+      http.post(`${ORIGIN}/api/v1/auth/register`, () =>
+        problem(400, "VALIDATION_ERROR", { acceptTerms: ["Bạn cần đồng ý với điều khoản."] }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<RegisterForm />);
+
+    await fillForm(user);
+
+    expect(await screen.findByText("Bạn cần đồng ý với điều khoản.")).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: TERMS_LABEL })).toHaveAttribute("aria-invalid", "true");
+  });
+
   it("báo lỗi chung khi backend lỗi", async () => {
     server.use(http.post(`${ORIGIN}/api/v1/auth/register`, () => problem(500, "INTERNAL_ERROR")));
     const user = userEvent.setup();
