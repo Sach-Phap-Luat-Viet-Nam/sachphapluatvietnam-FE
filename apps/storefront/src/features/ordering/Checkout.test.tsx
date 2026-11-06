@@ -679,7 +679,7 @@ describe("Checkout (khuyến mãi và phí vận chuyển)", () => {
     expect(screen.getByRole("button", { name: "Đặt hàng" })).toBeDisabled();
   });
 
-  it("shows shipping discount, free shipping hint and delivery estimate", async () => {
+  it("shows shipping discount and delivery estimate without a buy-more hint once shipping is free", async () => {
     server.use(
       http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
       previewHandler(() =>
@@ -697,7 +697,20 @@ describe("Checkout (khuyến mãi và phí vận chuyển)", () => {
     renderCheckout();
 
     expect(await screen.findByText("Miễn phí")).toBeVisible();
-    expect(screen.getByText("Mua thêm 50.000 ₫ để được miễn phí vận chuyển.")).toBeVisible();
+    // Phí ship đã được khuyến mãi miễn hết: nhắc "mua thêm để được miễn phí" là sai.
+    expect(screen.queryByText(/Mua thêm .* để được miễn phí vận chuyển/)).not.toBeInTheDocument();
     expect(screen.getByText("Dự kiến giao 2–4 ngày.")).toBeVisible();
+  });
+
+  it("shows how much more to buy for free shipping while the fee is still charged", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/cart`, () => HttpResponse.json(CART)),
+      previewHandler(() =>
+        HttpResponse.json(preview({ shippingFee: 30000, total: 330000, amountToFreeShipping: 50000 })),
+      ),
+    );
+    renderCheckout();
+
+    expect(await screen.findByText("Mua thêm 50.000 ₫ để được miễn phí vận chuyển.")).toBeVisible();
   });
 });
