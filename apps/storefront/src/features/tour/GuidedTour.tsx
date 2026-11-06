@@ -238,6 +238,8 @@ export function GuidedTour() {
               const current = tour;
               tour = null;
               current?.destroy();
+              // Bước cuối ở sâu trong trang (chân trang, nút Zalo): đưa khách về đầu trang để bắt đầu duyệt web.
+              window.scrollTo({ top: 0, behavior: "smooth" });
             };
             tour = driver({
               steps: steps.map((step, index) => toDriveStep(step, index, steps.length, end)),
@@ -250,8 +252,9 @@ export function GuidedTour() {
               stagePadding: 6,
               stageRadius: 4,
               animate: true,
-              // Mặc định 400ms thì lỗ sáng và hộp chữ dịch chuyển quá nhanh, khách chưa kịp theo mắt.
-              duration: 800,
+              // Mặc định 400ms thì lỗ sáng dịch chuyển quá nhanh. Không tăng quá cao: driver chỉ dựng hộp chữ (và kéo theo
+              // ảnh nhân vật) khi animation đi được một nửa, nên 800ms làm nhân vật hiện trễ 400ms sau khi bấm Tiếp.
+              duration: 600,
               smoothScroll: true,
               showProgress: true,
               progressText: "{{current}}/{{total}}",
