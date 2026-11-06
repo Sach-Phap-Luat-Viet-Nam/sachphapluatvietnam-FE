@@ -28,6 +28,14 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
     nên chạy cả khi chưa tải JavaScript; mức giá chọn nhanh là link.
   - Dòng "Đang lọc": mỗi bộ lọc là link bỏ riêng bộ lọc đó; giá trị đã chuẩn hóa như khi gọi API.
   - Sắp xếp dùng form có nút áp dụng (đổi bằng bàn phím không tải lại trang sau mỗi phím mũi tên).
+  - **Không có kết quả** vì từ khóa/bộ lọc (`features/catalog/NoResults.tsx`); tủ sách chưa có sách nào thì vẫn là
+    "Tủ sách đang được cập nhật":
+    - Từ khóa gõ không dấu (`isUnaccentedQuery`, bỏ qua chuỗi giống mã ISBN/SKU) thì nhắc gõ tiếng Việt có dấu, vì
+      backend đang tìm có phân biệt dấu.
+    - Có từ khóa thì hiện mẹo (từ khóa ngắn hơn, tìm theo ISBN); có thêm bộ lọc khác thì có link "Bỏ bộ lọc, giữ từ
+      khóa" (`/sach?q=…`).
+    - Chip danh mục gốc (tối đa 8) và lưới **6 sách mới phát hành** (`sort=newest`). Danh sách này chỉ tải khi không có
+      kết quả; tải lỗi thì ghi log và bỏ khối gợi ý.
 - Query string (`q`, `category`, `type`, `minPrice`, `maxPrice`, `sort`, `page`) đi qua `toBooksQuery`: giá trị
   backend sẽ từ chối bị bỏ qua, khoảng giá ngược được đảo lại.
   Không có bộ lọc loại bìa (đã bỏ theo yêu cầu); loại bìa chỉ chọn ở trang chi tiết sách khi thêm vào giỏ.
