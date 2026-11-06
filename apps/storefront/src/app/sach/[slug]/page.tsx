@@ -249,23 +249,24 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
             </section>
           )}
 
-          {/* Gọn: lưới chữ nhỏ để phần giới thiệu sách nằm cao, khách đọc ngay dưới khối đặt mua. */}
+          {/* Lưới gọn để phần giới thiệu sách nằm cao, nhưng giữ chữ 16px: NXB, số QĐXB, văn bản được cập nhật là thông
+              tin khách sách luật đối chiếu kỹ nhất. */}
           <section aria-labelledby="thong-tin-xuat-ban" className="border-gold/20 border-y py-5">
-            <h2 id="thong-tin-xuat-ban" className="text-gold text-[11px] tracking-[0.26em] uppercase">
+            <h2 id="thong-tin-xuat-ban" className="text-gold text-xs tracking-[0.26em] uppercase">
               Thông tin xuất bản
             </h2>
-            <dl className="mt-3.5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-base sm:grid-cols-3">
               {facts.map((fact) => (
                 <div key={fact.label} className="min-w-0">
-                  <dt className="text-mist text-xs">{fact.label}</dt>
-                  <dd className="mt-0.5 break-words">{fact.value}</dd>
+                  <dt className="text-mist text-sm">{fact.label}</dt>
+                  <dd className="mt-1 break-words">{fact.value}</dd>
                 </div>
               ))}
             </dl>
             {edition.legalDocuments.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-mist text-xs">Văn bản pháp luật được cập nhật</h3>
-                <ul className="mt-1.5 flex flex-col gap-1 text-sm">
+              <div className="mt-5">
+                <h3 className="text-mist text-sm">Văn bản pháp luật được cập nhật</h3>
+                <ul className="mt-2 flex flex-col gap-1.5 text-base leading-7">
                   {edition.legalDocuments.map((document) => {
                     const effective = formatDate(document.effectiveDate);
                     return (
