@@ -53,3 +53,34 @@ describe("CheckoutSummary ưu đãi đã áp", () => {
     error.mockRestore();
   });
 });
+
+describe("CheckoutSummary miễn phí vận chuyển", () => {
+  it("nhắc số tiền còn thiếu khi chưa đủ ngưỡng", () => {
+    renderSummary({
+      ...preview([]),
+      shippingDiscount: 0,
+      freeShippingThreshold: 300000,
+      amountToFreeShipping: 200000,
+    });
+
+    expect(screen.getByText("Mua thêm 200.000 ₫ để được miễn phí vận chuyển.")).toBeVisible();
+  });
+
+  it("báo đơn đã được miễn phí khi đủ ngưỡng", () => {
+    renderSummary({
+      ...preview([]),
+      shippingFee: 0,
+      shippingDiscount: 0,
+      freeShippingThreshold: 300000,
+      amountToFreeShipping: 0,
+    });
+
+    expect(screen.getByText("Đơn hàng được miễn phí vận chuyển.")).toBeVisible();
+  });
+
+  it("không hiện khối này khi shop không có ngưỡng", () => {
+    renderSummary({ ...preview([]), shippingDiscount: 0, amountToFreeShipping: 0 });
+
+    expect(screen.queryByText(/miễn phí vận chuyển/)).not.toBeInTheDocument();
+  });
+});
