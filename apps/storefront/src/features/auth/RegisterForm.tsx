@@ -13,7 +13,7 @@ import { cn } from "@slvn/ui";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { TextField } from "@/components/TextField";
 
-const REGISTER_FIELDS = ["fullName", "email", "phoneNumber", "password"] as const;
+const REGISTER_FIELDS = ["fullName", "email", "phoneNumber", "password", "acceptTerms"] as const;
 
 /** Đăng ký tài khoản khách hàng. Backend trả luôn phiên đăng nhập nên đăng ký xong chuyển thẳng tới `?next=`. */
 export function RegisterForm() {
@@ -28,7 +28,7 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: "", email: "", phoneNumber: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", phoneNumber: "", password: "", confirmPassword: "", acceptTerms: false },
   });
 
   const onSubmit = async (values: RegisterValues) => {
@@ -120,6 +120,23 @@ export function RegisterForm() {
           registration={register("confirmPassword")}
           error={errors.confirmPassword?.message}
         />
+        <div className="flex flex-col gap-2">
+          <label className="text-sand flex w-fit items-start gap-3 text-[15px] leading-6">
+            <input
+              type="checkbox"
+              {...register("acceptTerms")}
+              aria-invalid={Boolean(errors.acceptTerms)}
+              aria-describedby={errors.acceptTerms ? "acceptTerms-error" : undefined}
+              className="accent-gold mt-1 size-4.5 shrink-0"
+            />
+            Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật
+          </label>
+          {errors.acceptTerms && (
+            <p id="acceptTerms-error" role="alert" className="text-danger text-sm">
+              {errors.acceptTerms.message}
+            </p>
+          )}
+        </div>
         <button type="submit" disabled={busy} className={SUBMIT}>
           {busy ? "Đang tạo tài khoản…" : "Tạo tài khoản"}
           <ArrowRight size={18} />
