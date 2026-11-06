@@ -45,6 +45,26 @@ export function payableShipping(preview: Pick<CheckoutPreview, "shippingFee" | "
   return Math.max(0, preview.shippingFee - preview.shippingDiscount);
 }
 
+export type FreeShippingProgress = { reached: true } | { reached: false; remaining: number; percent: number };
+
+/**
+ * Tiến độ tới ngưỡng miễn phí vận chuyển, chỉ từ `freeShippingThreshold` và `amountToFreeShipping` của backend (FE không
+ * tự cộng tạm tính). `null` khi shop không có ngưỡng, hoặc phí ship đã về 0 nhờ khuyến mãi khác dù chưa đủ ngưỡng (nhắc
+ * "mua thêm" lúc đó là sai).
+ */
+export function freeShippingProgress(
+  preview: Pick<CheckoutPreview, "freeShippingThreshold" | "amountToFreeShipping" | "shippingFee" | "shippingDiscount">,
+): FreeShippingProgress | null {
+  const threshold = preview.freeShippingThreshold;
+  if (threshold === null || threshold <= 0) return null;
+  // `shippingFee` đã trừ miễn phí theo ngưỡng: đủ ngưỡng mà phí còn > 0 là số liệu lệch, không báo "đã miễn phí".
+  if (preview.amountToFreeShipping <= 0) return preview.shippingFee === 0 ? { reached: true } : null;
+  if (payableShipping(preview) === 0) return null;
+  const remaining = preview.amountToFreeShipping;
+  const percent = Math.min(100, Math.max(0, Math.round(((threshold - remaining) / threshold) * 100)));
+  return { reached: false, remaining, percent };
+}
+
 /** Câu "Dự kiến giao 2–4 ngày". */
 export function etaText(eta: CheckoutPreview["eta"]): string | null {
   if (!eta) return null;
