@@ -3,13 +3,17 @@ import { authApi, authResponseSchema, startSession } from "./session";
 import type { SessionUser } from "./session";
 import type { RegisterValues } from "./schemas";
 
-/** Body `POST /auth/register`: họ tên, email chuẩn hóa; số điện thoại để trống thì gửi `null`. */
+/**
+ * Body `POST /auth/register`: họ tên, email chuẩn hóa; số điện thoại để trống thì gửi `null`.
+ * `acceptTerms` là giá trị khách đã tích (form chỉ cho gửi khi `true`).
+ */
 export function toRegisterBody(values: RegisterValues) {
   return {
     email: values.email.trim().toLowerCase(),
     password: values.password,
     fullName: values.fullName.trim(),
     phoneNumber: values.phoneNumber.trim() || null,
+    acceptTerms: values.acceptTerms,
   };
 }
 
