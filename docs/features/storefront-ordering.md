@@ -38,7 +38,8 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   (`HeroSpotlight`), dính theo khi cuộn trên desktop, kèm link "Đọc thử" (chỉ nhận `https://`). Cột phải theo thứ tự: tên
   sách, ấn bản, khối đặt mua, thông tin xuất bản thu gọn, giới thiệu sách, mục lục; giới thiệu nằm ngay dưới khối đặt
   mua để khách đọc được trong màn hình đầu.
-- **Thông tin xuất bản** (FR-21), dạng lưới chữ nhỏ 2–3 cột: ISBN, NXB, số QĐXB, số ĐKXB, năm, ngày phát hành, số
+- **Thông tin xuất bản** (FR-21), dạng lưới gọn 2–3 cột, giá trị chữ 16px, nhãn 14px (đây là thông tin khách đối chiếu
+  kỹ nên không để chữ nhỏ hơn): ISBN, NXB, số QĐXB, số ĐKXB, năm, ngày phát hành, số
   trang, khổ, trọng lượng, "cập nhật văn bản đến ngày"; bên dưới là danh sách văn bản pháp luật được cập nhật.
 - **Mô tả và mục lục** (`formatRichText`, `features/catalog/description.ts`, chạy trên server): Admin nhập **HTML hoặc
   chữ thuần** (dữ liệu thật hiện là chữ thuần có xuống dòng). Chữ thuần được chuyển thành HTML: dòng trống tách đoạn `<p>`,
@@ -86,7 +87,8 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   (gạch ngang), **Giảm giá (xx%)** (xanh, dấu −) trước tạm tính, và ô "Bạn tiết kiệm … so với giá bìa" dưới tổng tiền.
   Các số này chỉ tính từ giá bìa của các dòng, không gồm phí ship. Tạm tính, giảm giá, phí ship và **tổng** lấy từ
   `POST /checkout/preview` (`useCheckoutPreview`; ở giỏ là `source = cart`, chưa có tỉnh nên phí ship cố định; chi tiết ở
-  `storefront-checkout-promotion.md`), "Mua thêm … để được miễn phí vận chuyển". Preview lỗi thì chỉ hiện tạm tính, không chặn đặt hàng. Tạm
+  `storefront-checkout-promotion.md`). Ngay dưới tiêu đề tóm tắt là khối **miễn phí vận chuyển** (xem
+  `storefront-checkout-promotion.md`). Preview lỗi thì chỉ hiện tạm tính, không chặn đặt hàng. Tạm
   tính đổi thì giữ phí cũ (mờ) trong lúc chờ báo giá mới.
 - Nút "Đặt hàng" chỉ hiện khi giỏ không trống, không có dòng ngừng bán hoặc thiếu hàng (`checkoutBlocker`); ngược lại
   hiện lý do. Trong lúc giỏ đang lưu thì thay bằng nút khóa "Đang cập nhật giỏ…".
