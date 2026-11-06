@@ -243,13 +243,15 @@ export function GuidedTour() {
               steps: steps.map((step, index) => toDriveStep(step, index, steps.length, end)),
               popoverClass: "tour-popover",
               ...(scrim ? { overlayColor: scrim } : {}),
-              overlayOpacity: 0.9,
+              overlayOpacity: 0.95,
               // Bấm nhầm ra ngoài không làm mất hướng dẫn; muốn dừng thì bấm X, "Bỏ qua" hoặc Esc.
               overlayClickBehavior: "none",
               disableActiveInteraction: true,
               stagePadding: 6,
               stageRadius: 4,
               animate: true,
+              // Mặc định 400ms thì lỗ sáng và hộp chữ dịch chuyển quá nhanh, khách chưa kịp theo mắt.
+              duration: 800,
               smoothScroll: true,
               showProgress: true,
               progressText: "{{current}}/{{total}}",
