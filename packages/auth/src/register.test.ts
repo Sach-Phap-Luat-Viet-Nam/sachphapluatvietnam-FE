@@ -7,6 +7,7 @@ const VALID = {
   phoneNumber: "",
   password: "mat-khau-dung",
   confirmPassword: "mat-khau-dung",
+  acceptTerms: true,
 };
 
 function messages(values: Partial<typeof VALID>) {
@@ -33,6 +34,12 @@ describe("registerSchema", () => {
     ]);
   });
 
+  it("bắt buộc đồng ý điều khoản", () => {
+    expect(messages({ acceptTerms: false })).toEqual([
+      "acceptTerms: Anh/chị cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật.",
+    ]);
+  });
+
   it("báo khi nhập lại mật khẩu không khớp", () => {
     expect(messages({ confirmPassword: "mat-khau-khac" })).toEqual(["confirmPassword: Mật khẩu nhập lại chưa khớp."]);
   });
@@ -45,6 +52,7 @@ describe("toRegisterBody", () => {
       password: "mat-khau-dung",
       fullName: "Nguyễn Văn A",
       phoneNumber: null,
+      acceptTerms: true,
     });
   });
 
