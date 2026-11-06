@@ -7,8 +7,10 @@ import { BookCard } from "@/features/catalog/BookCard";
 import { CatalogFilters } from "@/features/catalog/CatalogFilters";
 import { CatalogPagination } from "@/features/catalog/CatalogPagination";
 import { MobileFilterSheet } from "@/features/catalog/MobileFilterSheet";
+import { NoResults } from "@/features/catalog/NoResults";
 import { SortForm } from "@/features/catalog/SortForm";
 import { getBooks, getCategoryTree } from "@/features/catalog/api";
+import type { BookSummary } from "@/features/catalog/schemas";
 import {
   activeFilters,
   catalogHref,
@@ -34,6 +36,22 @@ export function generateMetadata(): Metadata {
   };
 }
 
+/** Số sách mới gợi ý khi không có kết quả: chia hết cho 2 và 3 cột của lưới. */
+const SUGGESTION_LIMIT = 6;
+
+/**
+ * Sách mới để khách không rời trang khi tìm không ra. Chỉ là phần thêm: lỗi thì ghi log và bỏ khối gợi ý, không làm
+ * hỏng trang kết quả.
+ */
+async function loadSuggestions(): Promise<BookSummary[]> {
+  try {
+    return (await getBooks({ Page: 1, Limit: SUGGESTION_LIMIT, Sort: "newest" })).items;
+  } catch (error) {
+    console.error("Không tải được sách gợi ý cho trang không có kết quả", error);
+    return [];
+  }
+}
+
 export default async function BooksPage({ searchParams }: { searchParams: Promise<CatalogParams> }) {
   const params = await searchParams;
   const query = toBooksQuery(params);
@@ -48,6 +66,13 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const filters = activeFilters(params, flattenCategories(categoryTree));
   const filterCount = filters.filter((filter) => filter.key !== "q" && filter.key !== "category").length;
   const categoryHref = (slug: string) => catalogHref(params, { category: slug, page: "" });
+
+  // Không có kết quả vì từ khóa/bộ lọc (khác với tủ sách chưa có sách nào).
+  const noMatch = !books.items.length && (filters.length > 0 || page > 1);
+  const suggestions = noMatch ? await loadSuggestions() : [];
+  const keyword = query.Q ?? "";
+  const keepQueryHref =
+    keyword && filters.some((filter) => filter.key !== "q") ? catalogHref({ q: keyword }, {}) : null;
 
   return (
     <main id="noi-dung">
@@ -159,22 +184,35 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                 />
               ))}
             </div>
+          ) : noMatch ? (
+            <>
+              <NoResults
+                query={keyword}
+                keepQueryHref={keepQueryHref}
+                categories={categoryTree.map(({ slug, name }) => ({ slug, name }))}
+              />
+              {suggestions.length > 0 && (
+                <section aria-labelledby="goi-y-sach-moi" className="flex flex-col gap-6 pt-6">
+                  <h3 id="goi-y-sach-moi" className="font-editorial text-[28px] font-bold">
+                    Sách mới phát hành
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-8 sm:gap-y-14 xl:grid-cols-3">
+                    {suggestions.map((book) => (
+                      <BookCard
+                        key={book.id}
+                        book={book}
+                        cartAction={<QuickPurchase slug={book.slug} title={book.title} />}
+                        dialogCartAction={<QuickPurchase slug={book.slug} title={book.title} variant="full" />}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
           ) : (
             <div className="border-gold/25 flex min-h-80 flex-col items-center justify-center gap-4 border px-6 text-center">
-              {filters.length || page > 1 ? (
-                <>
-                  <h3 className="font-editorial text-3xl font-bold">Chưa tìm thấy sách phù hợp</h3>
-                  <p className="text-mist">Thử từ khóa khác hoặc bỏ bớt bộ lọc.</p>
-                  <Link href="/sach" className="link-underline text-gold mt-1">
-                    Xem tất cả sách
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <h3 className="font-editorial text-3xl font-bold">Tủ sách đang được cập nhật</h3>
-                  <p className="text-mist">Sách sẽ sớm lên kệ, mời bạn quay lại sau.</p>
-                </>
-              )}
+              <h3 className="font-editorial text-3xl font-bold">Tủ sách đang được cập nhật</h3>
+              <p className="text-mist">Sách sẽ sớm lên kệ, mời bạn quay lại sau.</p>
             </div>
           )}
 
