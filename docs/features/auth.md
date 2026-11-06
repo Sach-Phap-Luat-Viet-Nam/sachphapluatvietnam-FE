@@ -9,6 +9,10 @@ xác thực 2 bước (2FA): **bắt buộc với Super Admin**, các vai trò n
 ## Luồng xử lý
 
 - **Mật khẩu**: ASP.NET Core Identity, băm bằng **bcrypt** work factor 12 (NFR-11), tối thiểu 8 ký tự.
+- **Đồng ý điều khoản khi đăng ký**: `POST /auth/register` bắt buộc `acceptTerms = true` (ô "Tôi đồng ý với Điều khoản
+  sử dụng và Chính sách bảo mật" ở form). Thiếu hoặc `false` → 400 `VALIDATION_ERROR` (`errors.acceptTerms`),
+  chưa tạo tài khoản. Hợp lệ thì lưu `terms_accepted_at` (UTC) và `terms_version` (= `Auth:TermsVersion` lúc đăng ký)
+  vào `auth.users` làm bằng chứng đồng ý. Tài khoản nhân viên do Admin tạo và tài khoản có trước tính năng này để null.
 - **Đăng nhập theo app**: `POST /auth/login` nhận `portal` = `storefront` (mặc định) hoặc `admin`. Tài khoản có vai
   trò `super_admin` chỉ đăng nhập được với `portal = admin` (app Admin); ở Storefront trả `SUPER_ADMIN_PORTAL_FORBIDDEN`
   (403) sau khi kiểm tra đúng mật khẩu (không lộ email nào là Super Admin), không cấp cookie hay token 2FA. Các vai trò
@@ -130,7 +134,7 @@ Tiền tố `/api/v1`.
 
 | Method    | Route                           | Xác thực                       | Request → Response                                                                                                                                                                                 |
 | --------- | ------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| POST      | `/auth/register`                | Không                          | `{email, password, fullName, phoneNumber?}` → 201 `AuthResponse` + cookie                                                                                                                          |
+| POST      | `/auth/register`                | Không                          | `{email, password, fullName, phoneNumber?, acceptTerms}` (`acceptTerms` phải `true`) → 201 `AuthResponse` + cookie                                                                                 |
 | POST      | `/auth/login`                   | Cookie `sl_2fa_trust` (nếu có) | `{email, password, rememberMe, portal?}` → `{requiresTwoFactor, twoFactorToken?, session?}`; thiết bị tin cậy thì `requiresTwoFactor = false` kèm `session`                                        |
 | POST      | `/auth/login/2fa`               | Không                          | `{twoFactorToken, code, trustDevice?}` → `AuthResponse` + cookie (`sl_2fa_trust` khi `trustDevice` được chấp nhận)                                                                                 |
 | POST      | `/auth/refresh`                 | Cookie                         | → `AuthResponse` + cookie mới                                                                                                                                                                      |
@@ -252,19 +256,20 @@ Mã lỗi: `INVALID_CREDENTIALS` (401), `ACCOUNT_LOCKED` (423), `EMAIL_TAKEN` (4
 
 ## Cấu hình cần thiết
 
-| Key                                                                         | Ghi chú                                                                                                                                                                                 |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Jwt:SigningKey`                                                            | **Bí mật**, ≥ 32 ký tự, user-secrets / secret manager                                                                                                                                   |
-| `Jwt:Issuer`, `Jwt:Audience`, `Jwt:AccessTokenMinutes`                      | `appsettings.json`                                                                                                                                                                      |
-| `Auth:RefreshTokenDays`, `Auth:SessionRefreshTokenHours`, `Auth:TotpIssuer` | Mặc định 30 ngày / 12 giờ                                                                                                                                                               |
-| `Auth:TrustedDeviceDays`                                                    | Số ngày nhớ thiết bị sau khi nhập mã 2FA, 1–90, mặc định 30                                                                                                                             |
-| `Auth:TrustedDeviceSuperAdminEmails`                                        | Danh sách email Super Admin được nhớ thiết bị, mặc định rỗng. **Không commit email thật**: đặt qua biến môi trường (Render: `Auth__TrustedDeviceSuperAdminEmails__0`) hoặc user-secrets |
-| `Auth:BootstrapAdmin:Email`, `Auth:BootstrapAdmin:Password`                 | **Bí mật**, chỉ cần lần đầu                                                                                                                                                             |
-| `RateLimiting:AuthPermitPerMinute`                                          | Mặc định 10                                                                                                                                                                             |
-| `Pusher:AppId`, `Pusher:Key`, `Pusher:Secret`, `Pusher:Cluster`             | Tùy chọn; thiếu bất kỳ khóa nào thì tắt realtime. `Secret` là **bí mật** (Render: `Pusher__Secret`). FE cần `NEXT_PUBLIC_PUSHER_KEY` và `NEXT_PUBLIC_PUSHER_CLUSTER`                    |
-| `Cloudinary:CloudName`, `Cloudinary:ApiKey`, `Cloudinary:ApiSecret`         | Dùng chung với ảnh bìa/popup; `ApiSecret` là **bí mật**. Đổi `ApiSecret` thì `publicId` avatar đổi theo: avatar cũ vẫn hiển thị, lần upload sau sang ảnh mới                            |
-| `Cloudinary:AvatarFolder`                                                   | Mặc định `sachluat/avatars`                                                                                                                                                             |
-| `TrustedProxy:Secret`                                                       | **Bí mật**, trống hoặc ≥ 32 ký tự, phải trùng `PROXY_SECRET` bên FE. Render: `TrustedProxy__Secret`                                                                                     |
+| Key                                                                         | Ghi chú                                                                                                                                                                                                   |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Jwt:SigningKey`                                                            | **Bí mật**, ≥ 32 ký tự, user-secrets / secret manager                                                                                                                                                     |
+| `Jwt:Issuer`, `Jwt:Audience`, `Jwt:AccessTokenMinutes`                      | `appsettings.json`                                                                                                                                                                                        |
+| `Auth:RefreshTokenDays`, `Auth:SessionRefreshTokenHours`, `Auth:TotpIssuer` | Mặc định 30 ngày / 12 giờ                                                                                                                                                                                 |
+| `Auth:TrustedDeviceDays`                                                    | Số ngày nhớ thiết bị sau khi nhập mã 2FA, 1–90, mặc định 30                                                                                                                                               |
+| `Auth:TermsVersion`                                                         | **Bắt buộc** (thiếu thì app không khởi động), tối đa 32 ký tự. Phiên bản điều khoản đang hiển thị ở form đăng ký, hiện `2026-11-06` trong `appsettings.json`. Đổi nội dung điều khoản thì đổi giá trị này |
+| `Auth:TrustedDeviceSuperAdminEmails`                                        | Danh sách email Super Admin được nhớ thiết bị, mặc định rỗng. **Không commit email thật**: đặt qua biến môi trường (Render: `Auth__TrustedDeviceSuperAdminEmails__0`) hoặc user-secrets                   |
+| `Auth:BootstrapAdmin:Email`, `Auth:BootstrapAdmin:Password`                 | **Bí mật**, chỉ cần lần đầu                                                                                                                                                                               |
+| `RateLimiting:AuthPermitPerMinute`                                          | Mặc định 10                                                                                                                                                                                               |
+| `Pusher:AppId`, `Pusher:Key`, `Pusher:Secret`, `Pusher:Cluster`             | Tùy chọn; thiếu bất kỳ khóa nào thì tắt realtime. `Secret` là **bí mật** (Render: `Pusher__Secret`). FE cần `NEXT_PUBLIC_PUSHER_KEY` và `NEXT_PUBLIC_PUSHER_CLUSTER`                                      |
+| `Cloudinary:CloudName`, `Cloudinary:ApiKey`, `Cloudinary:ApiSecret`         | Dùng chung với ảnh bìa/popup; `ApiSecret` là **bí mật**. Đổi `ApiSecret` thì `publicId` avatar đổi theo: avatar cũ vẫn hiển thị, lần upload sau sang ảnh mới                                              |
+| `Cloudinary:AvatarFolder`                                                   | Mặc định `sachluat/avatars`                                                                                                                                                                               |
+| `TrustedProxy:Secret`                                                       | **Bí mật**, trống hoặc ≥ 32 ký tự, phải trùng `PROXY_SECRET` bên FE. Render: `TrustedProxy__Secret`                                                                                                       |
 
 ## Thay đổi CSDL (migration liên quan)
 
@@ -290,7 +295,15 @@ Chỉ thêm bảng, không đổi dữ liệu cũ.
 `user_id`), cascade khi xóa user. Chỉ thêm bảng, không đổi dữ liệu cũ. **Phải chạy migration lên CSDL production trước
 khi deploy bản này** (thiếu bảng thì `/auth/login` của tài khoản bật 2FA có gửi cookie `sl_2fa_trust` bị lỗi).
 
+`AddUserTermsAcceptance`: cột `auth.users.terms_accepted_at` (timestamptz, cho phép null) và `auth.users.terms_version`
+(varchar(32), cho phép null). Chỉ thêm cột, dữ liệu cũ giữ nguyên (null). **Phải chạy migration lên CSDL production
+trước khi deploy bản này** (thiếu cột thì đọc user bị lỗi).
+
 ## Hạn chế / việc còn lại
+
+- Điều khoản: tài khoản có trước tính năng này giữ `null` và không bị hỏi đồng ý (quyết định giữ nguyên, không điền
+  dữ liệu giả); chưa có API trả `Auth:TermsVersion` hay link điều khoản cho FE (FE tự hiển thị trang điều khoản); đổi
+  phiên bản chưa bắt khách cũ đồng ý lại; `terms_accepted_at`/`terms_version` chưa trả ra API (chỉ lưu trong CSDL).
 
 - Chưa xác thực email/OTP SMS–Zalo, quên mật khẩu (FR-01, FR-04): chờ module Notification.
 - Chưa có đăng nhập mạng xã hội (FR-02), tài khoản tổ chức (FR-09), xóa tài khoản (FR-08).
