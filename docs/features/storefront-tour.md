@@ -49,7 +49,7 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 ### Giao diện
 
 - Nền tối dùng token `--color-scrim` (`globals.css`), **luôn tối ở cả chế độ sáng**; cùng token với nền của popup và
-  các hộp thoại khác. Riêng hướng dẫn phủ đậm 90% (`overlayOpacity`) để chỉ phần được khoanh sáng nổi rõ.
+  các hộp thoại khác. Riêng hướng dẫn phủ đậm 95% (`overlayOpacity`) để chỉ phần được khoanh sáng nổi rõ.
 - Hộp text theo theme "Thư viện đêm" (`.tour-popover` trong `globals.css`, ngoài `@layer` để thắng `driver.css`):
   tiêu đề Lora màu vàng, nút chính nền vàng, cỡ chữ nội dung 16px, nút cao 44px. Không có mũi tên.
 - Nhân vật hướng dẫn **to và đứng sau hộp text** (rộng 240px, mobile 160px), thò ra phía ngoài; ảnh nằm dưới hộp một
@@ -61,13 +61,14 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 - Ảnh là thẻ `img` `position: fixed` gắn vào `body`, tự tính tọa độ theo hộp và theo dõi khi hộp dịch chuyển, cuộn,
   đổi cỡ màn hình (`positionGuide` ở `GuidedTour.tsx`). Không làm ảnh con của hộp vì driver.js chỉ giữ khung hộp trong
   màn hình chứ không biết phần ảnh thò ra, hộp mở sát mép trên sẽ cắt mất đầu nhân vật.
-- **Chuyển bước mượt**: dùng hai ảnh luân phiên (`createGuideLayer` ở `GuidedTour.tsx`). Ảnh của bước mới được tải và giải mã xong mới đặt vào chỗ của nó rồi hiện dần (0,4s) và trồi nhẹ từ dưới lên, cùng lúc ảnh của bước trước mờ dần và chìm xuống, nên tổng độ rõ luôn xấp xỉ 1, không có nhịp trống. Chỉ `opacity` và `translate` có chuyển động; vị trí đổi tức thì để ảnh bám theo hộp khi cuộn. Khi bấm Tiếp, driver.js ẩn hộp cũ (kích thước 0) rồi mới vẽ hộp mới: lúc đó bộ theo dõi bỏ qua, ảnh cũ ở lại tới khi ảnh mới sẵn sàng (không thì ảnh cũ tắt ngay còn ảnh mới hiện chậm ~250ms). Ảnh các tư thế được tải sẵn khi tour bắt đầu (`preloadGuides`). Tắt hiệu ứng khi bật giảm chuyển động.
+- **Chuyển bước mượt**: dùng hai ảnh luân phiên (`createGuideLayer` ở `GuidedTour.tsx`). Ảnh của bước mới được tải và giải mã xong mới đặt vào chỗ của nó rồi hiện dần (0,7s) và trồi nhẹ từ dưới lên (0,9s), cùng lúc ảnh của bước trước mờ dần và chìm xuống, nên tổng độ rõ luôn xấp xỉ 1, không có nhịp trống. Chỉ `opacity` và `translate` có chuyển động; vị trí đổi tức thì để ảnh bám theo hộp khi cuộn. Khi bấm Tiếp, driver.js ẩn hộp cũ (kích thước 0) rồi mới vẽ hộp mới: lúc đó bộ theo dõi bỏ qua, ảnh cũ ở lại tới khi ảnh mới sẵn sàng (không thì ảnh cũ tắt ngay còn ảnh mới hiện chậm ~250ms). Ảnh các tư thế được tải sẵn khi tour bắt đầu (`preloadGuides`). Tắt hiệu ứng khi bật giảm chuyển động.
 - **Đa dạng tư thế và đúng nội dung**: 12 ảnh, mỗi bước một ảnh hợp với điều đang nói (kính lúp chỉ tay ở bước tìm sách,
   nháy mắt qua kính lúp ở bước tra cứu đơn, kính râm ở bước sáng/tối, tai nghe ở bước Zalo, giơ sách ở bước khám phá tủ
   sách...). 13 bước dùng cả 12 tư thế, chỉ `point` xuất hiện hai lần và không liền nhau. Có bước bị bỏ (không có danh mục, chưa có ưu đãi...) làm hai bước cùng tư
   thế đứng cạnh nhau thì `varyPoses` (`steps.ts`) đổi bước sau sang tư thế khác.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
+- Lỗ sáng và hộp chữ chuyển bước trong 0,8s (`duration: 800` của driver.js, mặc định 400ms thấy quá nhanh).
 - Hiệu ứng và cuộn mượt luôn bật, không theo `prefers-reduced-motion`.
 
 ### Ảnh nhân vật
