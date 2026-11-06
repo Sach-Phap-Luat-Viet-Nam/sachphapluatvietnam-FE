@@ -8990,7 +8990,8 @@
           "email",
           "password",
           "fullName",
-          "phoneNumber"
+          "phoneNumber",
+          "acceptTerms"
         ],
         "type": "object",
         "properties": {
@@ -9008,6 +9009,9 @@
               "null",
               "string"
             ]
+          },
+          "acceptTerms": {
+            "type": "boolean"
           }
         }
       },
