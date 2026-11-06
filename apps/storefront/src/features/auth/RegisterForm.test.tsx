@@ -35,11 +35,19 @@ function problem(status: number, code: string, errors?: Record<string, string[]>
   return HttpResponse.json({ title: code, status, code, traceId: "00-trace", errors }, { status });
 }
 
-async function fillForm(user: ReturnType<typeof userEvent.setup>, overrides: { confirm?: string } = {}) {
+const TERMS_LABEL = "Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật";
+
+async function fillForm(
+  user: ReturnType<typeof userEvent.setup>,
+  overrides: { confirm?: string; acceptTerms?: boolean } = {},
+) {
   await user.type(screen.getByLabelText("Họ tên"), "Nguyễn Văn A");
   await user.type(screen.getByLabelText("Email"), "Khach@Example.com");
   await user.type(screen.getByLabelText("Mật khẩu"), "mat-khau-dung");
   await user.type(screen.getByLabelText("Nhập lại mật khẩu"), overrides.confirm ?? "mat-khau-dung");
+  if (overrides.acceptTerms ?? true) {
+    await user.click(screen.getByRole("checkbox", { name: TERMS_LABEL }));
+  }
   await user.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
 }
 
@@ -63,6 +71,18 @@ describe("RegisterForm", () => {
     expect(screen.getByText("Anh/chị vui lòng nhập email hợp lệ.")).toBeVisible();
     expect(screen.getByText("Mật khẩu tối thiểu 8 ký tự.")).toBeVisible();
     expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("Anh/chị cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật.")).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: TERMS_LABEL })).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("không gửi khi chưa tích đồng ý điều khoản", async () => {
+    const user = userEvent.setup();
+    render(<RegisterForm />);
+
+    await fillForm(user, { acceptTerms: false });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Anh/chị cần đồng ý với Điều khoản sử dụng");
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it("không gửi khi nhập lại mật khẩu không khớp", async () => {
@@ -95,6 +115,7 @@ describe("RegisterForm", () => {
       password: "mat-khau-dung",
       fullName: "Nguyễn Văn A",
       phoneNumber: null,
+      acceptTerms: true,
     });
     expect(getSessionState()).toMatchObject({ status: "authenticated", user: { fullName: "Nguyễn Văn A" } });
     expect(screen.getByRole("button", { name: "Đang tạo tài khoản…" })).toBeDisabled();
