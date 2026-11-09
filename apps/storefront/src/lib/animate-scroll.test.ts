@@ -1,4 +1,10 @@
-import { SLIDE_DURATION_MS, animateScrollLeft, easeInOutCubic } from "./animate-scroll";
+import {
+  SLIDE_DURATION_MS,
+  animateScrollLeft,
+  animateWindowScroll,
+  easeInOutCubic,
+  pageScrollDuration,
+} from "./animate-scroll";
 
 function track(scrollLeft = 0) {
   const element = document.createElement("ul");
@@ -63,6 +69,68 @@ describe("animateScrollLeft", () => {
 
     expect(element.scrollLeft).toBe(stoppedAt);
     expect(element.style.scrollSnapType).toBe("x mandatory");
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("pageScrollDuration", () => {
+  it("dài theo quãng đường, trong khoảng 0,6–1,6 giây", () => {
+    expect(pageScrollDuration(0)).toBe(600);
+    expect(pageScrollDuration(1200)).toBe(870);
+    expect(pageScrollDuration(-1200)).toBe(870);
+    expect(pageScrollDuration(20000)).toBe(1600);
+  });
+});
+
+describe("animateWindowScroll", () => {
+  function page(scrollY = 0) {
+    let value = scrollY;
+    vi.spyOn(window, "scrollY", "get").mockImplementation(() => value);
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(((options: ScrollToOptions) => {
+      value = options.top ?? value;
+    }) as typeof window.scrollTo);
+    return { current: () => value, scrollTo };
+  }
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("cuộn dần cả trang tới đích, mỗi khung đặt tức thì để không bị cuộn mượt của CSS làm trễ", () => {
+    const view = page(3000);
+    const onFinish = vi.fn();
+
+    animateWindowScroll(0, onFinish, 1000);
+    vi.advanceTimersByTime(500);
+    expect(view.current()).toBeGreaterThan(0);
+    expect(view.current()).toBeLessThan(3000);
+    expect(view.scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: "instant" }));
+    expect(onFinish).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(600);
+    expect(view.current()).toBe(0);
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
+  it("đã ở đích thì xong ngay, không chờ thời lượng tối thiểu", () => {
+    page(0);
+    const onFinish = vi.fn();
+
+    animateWindowScroll(0, onFinish);
+    vi.advanceTimersByTime(50);
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
+  it("khách lăn chuột thì dừng ngay và chỉ báo xong một lần", () => {
+    const view = page(3000);
+    const onFinish = vi.fn();
+    animateWindowScroll(0, onFinish, 1000);
+    vi.advanceTimersByTime(300);
+    const stoppedAt = view.current();
+
+    window.dispatchEvent(new Event("wheel"));
+    vi.advanceTimersByTime(1000);
+
+    expect(view.current()).toBe(stoppedAt);
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
 });
