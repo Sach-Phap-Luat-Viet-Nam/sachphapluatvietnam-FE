@@ -48,3 +48,56 @@ export function animateScrollLeft(
   frame = requestAnimationFrame(step);
   return { cancel: finish };
 }
+
+/** Cuộn dọc cả trang ngắn nhất và dài nhất (ms). */
+const MIN_PAGE_SCROLL_MS = 600;
+const MAX_PAGE_SCROLL_MS = 1600;
+
+/**
+ * Thời lượng cuộn dọc theo quãng đường: đủ chậm để khách thấy trang đang trôi tới đâu (cuộn mượt của trình duyệt chỉ
+ * ~0,3–0,5 giây cho mọi quãng nên từ chân trang lên đầu trông như nhảy trang), nhưng không quá 1,6 giây.
+ */
+export function pageScrollDuration(distance: number): number {
+  return Math.round(Math.min(MAX_PAGE_SCROLL_MS, Math.max(MIN_PAGE_SCROLL_MS, 450 + Math.abs(distance) * 0.35)));
+}
+
+/** Khách tự cuộn (lăn chuột, chạm) thì nhường lại, không giằng co với khách. */
+const USER_SCROLL_EVENTS = ["wheel", "touchstart"] as const;
+
+/**
+ * Cuộn dọc cả trang tới `to` (px) bằng `requestAnimationFrame`, thời lượng mặc định theo `pageScrollDuration`. Mỗi khung
+ * đặt `behavior: "instant"` để không bị `scroll-behavior: smooth` (nếu có) làm trễ thêm. Khách lăn chuột hoặc chạm màn hình
+ * thì dừng ngay; `onFinish` luôn được gọi đúng một lần (xong, hủy hoặc khách cắt ngang).
+ */
+export function animateWindowScroll(
+  to: number,
+  onFinish?: () => void,
+  duration = pageScrollDuration(to - window.scrollY),
+): ScrollAnimation {
+  const from = window.scrollY;
+  const startedAt = performance.now();
+  let frame = 0;
+  let finished = false;
+
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    cancelAnimationFrame(frame);
+    USER_SCROLL_EVENTS.forEach((type) => window.removeEventListener(type, finish));
+    onFinish?.();
+  };
+  // Đã ở đích thì xong ngay ở khung kế, không chờ đủ thời lượng tối thiểu.
+  const time = Math.abs(to - from) < 1 ? 0 : duration;
+  const step = (now: number) => {
+    const progress = time === 0 ? 1 : Math.min(1, (now - startedAt) / time);
+    window.scrollTo({ top: from + (to - from) * easeInOutCubic(progress), behavior: "instant" });
+    if (progress < 1) {
+      frame = requestAnimationFrame(step);
+    } else {
+      finish();
+    }
+  };
+  USER_SCROLL_EVENTS.forEach((type) => window.addEventListener(type, finish, { passive: true }));
+  frame = requestAnimationFrame(step);
+  return { cancel: finish };
+}
