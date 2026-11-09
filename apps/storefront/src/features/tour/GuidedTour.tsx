@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { DriveStep, Driver, Popover, PopoverDOM } from "driver.js";
 import "driver.js/dist/driver.css";
+import { animateWindowScroll } from "@/lib/animate-scroll";
+import type { ScrollAnimation } from "@/lib/animate-scroll";
 import { setTourActive } from "@/lib/onboarding-gate";
 import { tourSelector } from "@/lib/tour-anchor";
 import type { TourTarget } from "@/lib/tour-anchor";
@@ -12,10 +14,28 @@ import type { Box } from "./guide-placement";
 import { GUIDE_FACING, GUIDE_IMAGES, GUIDE_SHAPE, TOUR_STEPS, availableSteps } from "./steps";
 import type { TourStep } from "./steps";
 import { subscribeTourReplay, takeTourReplay } from "./tour-replay";
+import { stepScrollTarget } from "./tour-scroll";
+import type { PageViewport } from "./tour-scroll";
 import { markTourDone, shouldStartTour } from "./tour-storage";
 
 /** Đợi hiệu ứng mở đầu của trang chủ chạy xong rồi mới phủ nền tối. */
 const START_DELAY_MS = 1200;
+
+/** Class đặt trên `<html>` trong lúc trang tự cuộn sang bước kế: ẩn hộp text (`globals.css`). */
+const SCROLLING_CLASS = "tour-scrolling";
+
+/** Phần tử mốc của bước; `null` với bước không có mốc (lời chào giữa màn hình) hoặc không còn bước. */
+function stepElement(step: TourStep | undefined): Element | null {
+  return step?.target ? document.querySelector(tourSelector(step.target)) : null;
+}
+
+function pageViewport(): PageViewport {
+  return {
+    height: window.innerHeight,
+    scrollY: window.scrollY,
+    maxScrollY: Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+  };
+}
 
 function localStore(): Storage | null {
   try {
@@ -95,6 +115,8 @@ function createGuideImage(): HTMLImageElement {
 
 interface GuideLayer {
   show: (popover: PopoverDOM, step: TourStep) => void;
+  /** Mờ nhân vật đi (trang đang cuộn sang bước kế); `show` của bước kế cho hiện lại. */
+  hide: () => void;
   dispose: () => void;
 }
 
@@ -172,6 +194,11 @@ function createGuideLayer(): GuideLayer {
           };
         });
     },
+    hide() {
+      token += 1;
+      stop();
+      images.forEach((image) => image.classList.remove("is-active"));
+    },
     dispose() {
       token += 1;
       stop();
@@ -210,6 +237,10 @@ export function GuidedTour() {
     let tour: Driver | null = null;
     let timer: number | undefined;
     let disposed = false;
+    /** Trang đang tự cuộn (sang bước kế hoặc về đầu trang khi kết thúc). */
+    let scroll: ScrollAnimation | undefined;
+    /** Bước vừa chuyển sau khi cuộn đang tắt hiệu ứng trượt của lỗ sáng; bật lại khi bước đó đã khoanh xong. */
+    let instantStep = false;
     // Ảnh nhân vật nằm ngoài DOM của driver nên driver không tự gỡ: phải gỡ cùng lúc với hộp (`guide.dispose`).
     const guide = createGuideLayer();
 
@@ -217,6 +248,8 @@ export function GuidedTour() {
       if (tour?.isActive() || timer !== undefined) {
         return;
       }
+      // Xem lại khi trang còn đang cuộn về đầu sau lần trước: dừng cuộn để không giằng với hướng dẫn mới.
+      scroll?.cancel();
       // Báo cho popup quảng cáo đợi ngay từ lúc quyết định chạy, không đợi tới lúc hướng dẫn hiện.
       setTourActive(true);
       timer = window.setTimeout(() => {
@@ -237,9 +270,47 @@ export function GuidedTour() {
               guide.dispose();
               const current = tour;
               tour = null;
+              // Đang cuộn sang bước kế thì dừng (`go` thấy tour đã đóng nên không chuyển bước nữa).
+              scroll?.cancel();
               current?.destroy();
-              // Bước cuối ở sâu trong trang (chân trang, nút Zalo): đưa khách về đầu trang để bắt đầu duyệt web.
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              // Bước cuối ở sâu trong trang (chân trang, nút Zalo): đưa khách về đầu trang để bắt đầu duyệt web. Tự cuộn
+              // chậm theo quãng đường: cuộn mượt của trình duyệt đi từ chân trang lên đầu chỉ ~0,3 giây, trông như nhảy trang.
+              scroll = animateWindowScroll(0, () => {
+                scroll = undefined;
+              });
+            };
+            /**
+             * Chuyển bước (nút Tiếp/Quay lại, phím mũi tên). Mốc của bước kế nằm ngoài màn hình thì tự cuộn trang tới đó đủ
+             * chậm để khách thấy trang trôi, ẩn hộp text và nhân vật trong lúc cuộn, cuộn xong mới khoanh sáng tại chỗ.
+             * Để driver.js tự cuộn thì có lúc nhảy tức thì (nó dùng `behavior: "auto"` khi phần tử cha có nội dung tràn), có
+             * lúc quá nhanh, và lỗ sáng trượt từ chỗ cũ đã khuất vào. Mốc đã trong màn hình thì giữ hiệu ứng trượt như cũ.
+             */
+            const go = (direction: 1 | -1) => {
+              const current = tour;
+              if (!current || scroll) {
+                return;
+              }
+              const move = () => (direction === 1 ? current.moveNext() : current.movePrevious());
+              const index = current.getActiveIndex();
+              const element = index === undefined ? null : stepElement(steps[index + direction]);
+              const target = element ? stepScrollTarget(boxOf(element), pageViewport()) : null;
+              if (target === null) {
+                move();
+                return;
+              }
+              document.documentElement.classList.add(SCROLLING_CLASS);
+              guide.hide();
+              scroll = animateWindowScroll(target, () => {
+                scroll = undefined;
+                document.documentElement.classList.remove(SCROLLING_CLASS);
+                if (disposed || tour !== current) {
+                  return;
+                }
+                // Lỗ sáng hiện thẳng ở mốc mới; `onHighlighted` bật lại hiệu ứng trượt cho các bước sau.
+                current.setConfig({ ...current.getConfig(), animate: false });
+                instantStep = true;
+                move();
+              });
             };
             tour = driver({
               steps: steps.map((step, index) => toDriveStep(step, index, steps.length, end)),
@@ -262,6 +333,14 @@ export function GuidedTour() {
               prevBtnText: "Quay lại",
               doneBtnText: "Hoàn tất",
               closeBtnLabel: "Bỏ qua hướng dẫn",
+              onNextClick: () => go(1),
+              onPrevClick: () => go(-1),
+              onHighlighted: () => {
+                if (instantStep && tour) {
+                  instantStep = false;
+                  tour.setConfig({ ...tour.getConfig(), animate: true });
+                }
+              },
               onPopoverRender: (popover, { index }) => {
                 const step = index === undefined ? undefined : steps[index];
                 if (step) {
@@ -296,6 +375,7 @@ export function GuidedTour() {
       disposed = true;
       unsubscribe();
       window.clearTimeout(timer);
+      scroll?.cancel();
       guide.dispose();
       tour?.destroy();
       setTourActive(false);
