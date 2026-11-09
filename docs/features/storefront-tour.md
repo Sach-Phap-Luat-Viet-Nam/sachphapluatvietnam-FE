@@ -71,8 +71,23 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 - Lỗ sáng chuyển bước trong 0,6s (`duration: 600` của driver.js, mặc định 400ms thấy quá nhanh). Không tăng thêm: driver
   chỉ dựng hộp chữ khi animation đi được nửa chặng (0,3s sau khi bấm Tiếp) và nhân vật hiện theo hộp, nên `duration`
   càng lớn nhân vật càng hiện trễ (thử 800ms thì trễ 0,4s, khách thấy chậm).
-- **Kết thúc hướng dẫn** (Hoàn tất, Bỏ qua, X, Esc) thì trang tự cuộn mượt lên đầu (`end` ở `GuidedTour.tsx`), vì bước
-  cuối thường ở chân trang / nút Zalo.
+- **Bước kế nằm ngoài màn hình** (`go` ở `GuidedTour.tsx`, áp cho Tiếp, Quay lại, phím mũi tên): hướng dẫn **tự cuộn
+  trang** tới mốc, không để driver.js tự cuộn. driver.js có lúc nhảy tức thì (dùng `behavior: "auto"` khi phần tử cha
+  có nội dung tràn), có lúc cuộn quá nhanh, và lỗ sáng trượt từ chỗ cũ đã khuất vào nên trông như dịch chuyển.
+  - Trong lúc cuộn: hộp text mờ đi (class `tour-scrolling` trên `<html>`, `globals.css`), nhân vật ẩn. Lỗ sáng cũ trôi
+    theo trang.
+  - Cuộn xong: lỗ sáng hiện thẳng ở mốc mới (tắt `animate` của driver.js cho riêng lần chuyển này, bật lại ở
+    `onHighlighted`); hộp text và nhân vật hiện dần lên.
+  - Vị trí cuộn do hàm thuần `stepScrollTarget` (`tour-scroll.ts`, có test) tính: mốc vào giữa màn hình; mốc cao hơn
+    màn hình thì mép trên chạm đầu, giống driver.js nên driver không cuộn thêm lần nữa.
+  - Mốc đã nằm trọn trong màn hình (các nút ở header, nút Zalo cố định) thì không cuộn, lỗ sáng vẫn trượt sang như cũ.
+- **Tốc độ cuộn** (`animateWindowScroll`, `pageScrollDuration` ở `lib/animate-scroll.ts`): tự cuộn bằng
+  `requestAnimationFrame`, chậm ở hai đầu, nhanh ở giữa. Thời lượng theo quãng đường, `450 ms + 0,35 ms/px`, trong khoảng
+  0,6–1,6 giây (cuộn mượt của trình duyệt chỉ khoảng 0,3–0,5 giây cho mọi quãng). Khách lăn chuột hoặc chạm màn hình thì
+  dừng cuộn ngay, không giằng co với khách.
+- **Kết thúc hướng dẫn** (Hoàn tất, Bỏ qua, X, Esc) thì trang tự cuộn lên đầu với cùng tốc độ trên (`end` ở
+  `GuidedTour.tsx`), vì bước cuối thường ở chân trang / nút Zalo. Đo trên Playwright: từ chân trang (khoảng 3.500px) lên
+  đầu mất khoảng 1,6 giây.
 - Hiệu ứng và cuộn mượt luôn bật, không theo `prefers-reduced-motion`.
 
 ### Ảnh nhân vật
