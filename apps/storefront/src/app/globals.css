@@ -843,6 +843,12 @@
   opacity: 1;
   translate: 0 0;
 }
+/* Trang đang tự cuộn sang bước kế (`go` ở GuidedTour.tsx): mờ hộp text đi, cuộn xong hộp của bước mới hiện dần lên. */
+html.tour-scrolling .driver-popover.tour-popover {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
 .driver-popover.tour-popover .driver-popover-title {
   padding-right: 2rem;
   color: var(--color-gold);
