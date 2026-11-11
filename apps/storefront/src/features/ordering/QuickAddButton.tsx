@@ -74,12 +74,13 @@ export function QuickAddButton({ slug, title, variant = "icon" }: QuickAddButton
 
   if (variant === "full") {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
         <button type="button" onClick={() => void add()} disabled={busy} className={cn(SUBMIT, "px-6")}>
           {busy ? <LoaderCircle size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
           {busy ? "Đang thêm…" : "Thêm vào giỏ"}
         </button>
-        <p aria-live="polite" className="min-h-6 text-sm">
+        {/* Không chừa chỗ sẵn (các nút trong Xem nhanh xa nhau); để rỗng cao 0 chứ không ẩn để vẫn là vùng live. */}
+        <p aria-live="polite" className="mt-2 text-sm empty:mt-0">
           {feedback}
         </p>
       </div>
