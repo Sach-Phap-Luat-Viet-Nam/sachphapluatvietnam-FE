@@ -91,6 +91,11 @@ export function legalDocumentHref(docNumber: string): string {
   return catalogHref({}, { legalDocument: docNumber });
 }
 
+/** Bỏ cuốn đang xem khỏi danh sách gợi ý rồi cắt còn `limit` cuốn. */
+export function withoutBook<T extends { id: number }>(books: readonly T[], bookId: number, limit: number): T[] {
+  return books.filter((book) => book.id !== bookId).slice(0, limit);
+}
+
 export function pageCount(total: number, limit: number): number {
   return Math.max(1, Math.ceil(total / limit));
 }
