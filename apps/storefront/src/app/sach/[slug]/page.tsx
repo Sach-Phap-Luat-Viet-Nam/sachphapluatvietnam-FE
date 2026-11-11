@@ -20,7 +20,7 @@ import {
   selectEdition,
   serializeJsonLd,
 } from "@/features/catalog/book-detail";
-import { bookTypeLabel, param } from "@/features/catalog/catalog";
+import { bookTypeLabel, legalDocumentHref, param } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 import { descriptionText, formatRichText } from "@/features/catalog/description";
 import { getCombos } from "@/features/combo/api";
@@ -271,7 +271,14 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
                     const effective = formatDate(document.effectiveDate);
                     return (
                       <li key={document.id}>
-                        <span className="text-gold-pale font-medium">{document.docNumber}</span> · {document.title}
+                        <Link
+                          href={legalDocumentHref(document.docNumber)}
+                          title={`Sách khác cập nhật văn bản ${document.docNumber}`}
+                          className="link-underline text-gold-pale font-medium"
+                        >
+                          {document.docNumber}
+                        </Link>{" "}
+                        · {document.title}
                         {effective && <span className="text-mist"> (hiệu lực từ {effective})</span>}
                       </li>
                     );
