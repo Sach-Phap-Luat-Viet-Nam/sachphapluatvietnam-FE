@@ -48,7 +48,7 @@ export function QuickBuyButton({ slug, title, variant = "icon" }: QuickBuyButton
 
   if (variant === "full") {
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col">
         <button
           type="button"
           onClick={() => void buy()}
@@ -57,7 +57,7 @@ export function QuickBuyButton({ slug, title, variant = "icon" }: QuickBuyButton
         >
           {label}
         </button>
-        <p aria-live="polite" className="text-danger min-h-6 text-sm">
+        <p aria-live="polite" className="text-danger mt-2 text-sm empty:mt-0">
           {error}
         </p>
       </div>
