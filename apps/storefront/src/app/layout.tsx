@@ -12,6 +12,7 @@ import { ImpersonationBanner } from "@/features/impersonation/ImpersonationBanne
 import { PromoPopup } from "@/features/popup/PromoPopup";
 import { GuidedTour } from "@/features/tour/GuidedTour";
 import { TourReplayFab } from "@/features/tour/TourReplayButton";
+import { env } from "@/lib/env";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
@@ -30,6 +31,8 @@ const editorial = Lora({
 });
 
 export const metadata: Metadata = {
+  // Gốc để Next.js đổi canonical và ảnh Open Graph tương đối thành URL tuyệt đối.
+  metadataBase: new URL(env.SITE_URL),
   title: { default: "Sách Luật Việt Nam", template: "%s | Sách Luật Việt Nam" },
   description: "Khám phá tủ sách pháp luật Việt Nam: bộ luật, chú giải và giáo trình chuyên sâu.",
 };
