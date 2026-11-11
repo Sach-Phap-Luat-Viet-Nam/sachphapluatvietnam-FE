@@ -18,22 +18,22 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
    ban đầu, không ảnh hưởng SSR/LCP).
 3. **Các bước** (`features/tour/steps.ts`, xếp từ trên xuống dưới):
 
-   | #   | Phần tử (`data-tour`) | Nội dung                                             |
-   | --- | --------------------- | ---------------------------------------------------- |
-   | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                   |
-   | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                               |
+   | #   | Phần tử (`data-tour`) | Nội dung                                                 |
+   | --- | --------------------- | -------------------------------------------------------- |
+   | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                       |
+   | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                                   |
    | 3   | `search`              | Ô tìm sách (tên, tác giả, ISBN, không dấu), gợi ý khi gõ |
-   | 4   | `theme`               | Đổi giao diện sáng / tối                             |
-   | 5   | `order-lookup`        | Nút "Tra cứu đơn" trên header (`OrderLookupLink`)    |
-   | 6   | `cart`                | Giỏ hàng, mua không cần tài khoản                    |
-   | 7   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                   |
-   | 8   | `explore`             | Nút "Khám phá tủ sách"                               |
-   | 9   | `categories`          | Dải danh mục                                         |
-   | 10  | `offers`              | Khu "Ưu đãi đang chạy"                               |
-   | 11  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ |
-   | 12  | `on-sale`             | Tiêu đề kệ "Đang giảm giá" (`BookShelf` prop `tour`) |
-   | 13  | `zalo`                | Nút tư vấn qua Zalo                                  |
-   | 14  | `replay`              | Kết thúc, chỉ nút nổi "Xem hướng dẫn sử dụng"        |
+   | 4   | `theme`               | Đổi giao diện sáng / tối                                 |
+   | 5   | `order-lookup`        | Nút "Tra cứu đơn" trên header (`OrderLookupLink`)        |
+   | 6   | `cart`                | Giỏ hàng, mua không cần tài khoản                        |
+   | 7   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                       |
+   | 8   | `explore`             | Nút "Khám phá tủ sách"                                   |
+   | 9   | `categories`          | Dải danh mục                                             |
+   | 10  | `offers`              | Khu "Ưu đãi đang chạy"                                   |
+   | 11  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ     |
+   | 12  | `on-sale`             | Tiêu đề kệ "Đang giảm giá" (`BookShelf` prop `tour`)     |
+   | 13  | `zalo`                | Nút tư vấn qua Zalo                                      |
+   | 14  | `replay`              | Kết thúc, chỉ nút nổi "Xem hướng dẫn sử dụng"            |
 
    Bước tra cứu đơn trước đây trỏ vào link ở chân trang, nên tour phải cuộn hết trang rồi quay lên. Từ 11/2026 nó trỏ vào
    nút trên header, nằm theo thứ tự các nút từ trái sang phải. Link ở chân trang vẫn còn nhưng không còn là mốc của tour.
@@ -100,20 +100,20 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 
 Mười hai ảnh trong `public/tour/`, khai báo ở `GUIDE_IMAGES` (`features/tour/steps.ts`). Tên tư thế đặt theo nội dung ảnh:
 
-| Tư thế (`pose`) | File (ảnh gốc)                  | Cử chỉ                                  | Dùng ở bước            |
-| --------------- | ------------------------------- | --------------------------------------- | ---------------------- |
-| `welcome`       | `guide-welcome.webp` (1.png)    | Tay mở giới thiệu                       | Lời chào               |
-| `point`         | `guide-point.webp` (2.png)      | Nháy mắt, hai tay chỉ sang phải         | Thanh ưu đãi, thẻ sách |
-| `cheer`         | `guide-cheer.webp` (3.png)      | Like và OK                              | Kết thúc               |
-| `present`       | `guide-present.webp` (4.png)    | Một tay chỉ, một tay mở bên phải        | Danh mục               |
-| `open`          | `guide-open.webp` (5.png)       | Hai tay mở sang hai bên (ảnh **ngang**) | Ưu đãi đang chạy       |
-| `shades`        | `guide-shades.webp` (12.png)    | Hai tay chỉnh kính râm, mỉm cười        | Sáng/tối               |
-| `search`        | `guide-search.webp` (7.png)     | Cầm kính lúp, tay chỉ                   | Tìm sách               |
-| `lookup`        | `guide-lookup.webp` (13.png)    | Nháy mắt qua kính lúp                   | Tra cứu đơn hàng       |
+| Tư thế (`pose`) | File (ảnh gốc)                  | Cử chỉ                                  | Dùng ở bước                   |
+| --------------- | ------------------------------- | --------------------------------------- | ----------------------------- |
+| `welcome`       | `guide-welcome.webp` (1.png)    | Tay mở giới thiệu                       | Lời chào                      |
+| `point`         | `guide-point.webp` (2.png)      | Nháy mắt, hai tay chỉ sang phải         | Thanh ưu đãi, thẻ sách        |
+| `cheer`         | `guide-cheer.webp` (3.png)      | Like và OK                              | Kết thúc                      |
+| `present`       | `guide-present.webp` (4.png)    | Một tay chỉ, một tay mở bên phải        | Danh mục                      |
+| `open`          | `guide-open.webp` (5.png)       | Hai tay mở sang hai bên (ảnh **ngang**) | Ưu đãi đang chạy              |
+| `shades`        | `guide-shades.webp` (12.png)    | Hai tay chỉnh kính râm, mỉm cười        | Sáng/tối                      |
+| `search`        | `guide-search.webp` (7.png)     | Cầm kính lúp, tay chỉ                   | Tìm sách                      |
+| `lookup`        | `guide-lookup.webp` (13.png)    | Nháy mắt qua kính lúp                   | Tra cứu đơn hàng              |
 | `books`         | `guide-books.webp` (8.png)      | Hai tay giơ hai cuốn sách của shop      | Khám phá tủ sách, kệ giảm giá |
-| `support`       | `guide-support.webp` (9.png)    | Đeo tai nghe, tay chạm micro            | Tư vấn qua Zalo        |
-| `confident`     | `guide-confident.webp` (10.png) | Khoanh tay, mỉm cười tự tin             | Tài khoản              |
-| `study`         | `guide-study.webp` (11.png)     | Ôm cuốn vở trước ngực                   | Giỏ hàng               |
+| `support`       | `guide-support.webp` (9.png)    | Đeo tai nghe, tay chạm micro            | Tư vấn qua Zalo               |
+| `confident`     | `guide-confident.webp` (10.png) | Khoanh tay, mỉm cười tự tin             | Tài khoản                     |
+| `study`         | `guide-study.webp` (11.png)     | Ôm cuốn vở trước ngực                   | Giỏ hàng                      |
 
 Cách làm từ ảnh gốc (PNG nền trong suốt, 1,7–2 MB mỗi ảnh): cắt từ đầu tới ngang thắt lưng theo tỉ lệ 4:5 (ảnh
 1024×1536 lấy vùng `y` 40–1400 tùy ảnh để đủ đầu, tay và vật cầm; ảnh 1269×1239 giữ trọn chiều cao, đặt sát đáy khung),
