@@ -25,9 +25,18 @@ nhất và dẫn khách vào tủ sách. Thiết kế "Thư viện đêm" trên 
      một phần cuốn kế tiếp, gợi ý vuốt.
    - Tên sách tối đa 3 dòng, giá luôn ở đáy thẻ để các thẻ cùng hàng thẳng nhau (áp dụng cả trang `/sach`).
    - Link "Xem tất cả sách mới" dẫn tới `/sach?sort=newest`.
-5. **Combo tiết kiệm** (`ComboShelf`): tối đa 3 combo bộ sách đang chạy (`GET /combos`), xem đủ ở `/khuyen-mai#combo`. Không
+5. **Đang giảm giá** (`BookShelf` của `features/catalog`, mốc tour `on-sale`): 4 sách `onSale=true`, link "Xem tất cả sách
+   giảm giá" tới `/sach?onSale=1`.
+6. **Combo tiết kiệm** (`ComboShelf`): tối đa 3 combo bộ sách đang chạy (`GET /combos`), xem đủ ở `/khuyen-mai#combo`. Không
    có combo hoặc không tải được thì ẩn cả khu (xem `storefront-combo.md`).
-6. Dải cam kết (ISBN/QĐXB, "Cập nhật đến", phí ship).
+7. **Kệ theo lĩnh vực**: 3 danh mục gốc đầu tiên (theo thứ tự Admin sắp), mỗi kệ 4 sách và link tới
+   `/sach?category=<slug>`. Danh mục không có sách thì không có kệ.
+8. **Sách bạn đã xem gần đây** (`RecentlyViewed`, chỉ hiện sau khi tải vì đọc `localStorage`), xem
+   `storefront-shell.md`.
+9. Dải cam kết (ISBN/QĐXB, "Cập nhật đến", phí ship).
+
+Các kệ ở mục 5 và 7 dùng `getShelfBooks`: lỗi thì ghi log và ẩn riêng kệ đó, không làm hỏng trang. Kệ dùng chung bố cục
+với "Mới phát hành" (desktop lưới 4 cột, mobile vuốt ngang).
 
 Trang dựng tĩnh, làm mới sau 60 giây (ISR). Backend lỗi lúc dựng thì vẫn hiện hero (bìa chung "Tủ sách pháp luật"),
 các phần dữ liệu ẩn đi, ghi `console.error` và thử lại ở lần làm mới sau.
@@ -37,6 +46,8 @@ các phần dữ liệu ẩn đi, ghi `console.error` và thử lại ở lần 
 | Method | Route                                      | Dùng cho                              |
 | ------ | ------------------------------------------ | ------------------------------------- |
 | GET    | `/api/v1/books?Page=1&Limit=4&Sort=newest` | Sách nổi bật, băng chữ, mới phát hành |
+| GET    | `/api/v1/books?Page=1&Limit=4&OnSale=true` | Kệ "Đang giảm giá"                    |
+| GET    | `/api/v1/books?Page=1&Limit=4&Category=…`  | Kệ theo lĩnh vực (3 request)          |
 | GET    | `/api/v1/categories`                       | Thanh danh mục                        |
 | GET    | `/api/v1/combos`                           | Khu "Combo tiết kiệm"                 |
 
