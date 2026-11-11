@@ -48,7 +48,7 @@ Danh sách sách và danh mục lấy từ backend. Trang chủ: `home-page.md`;
   - `author=<slug>`: mở từ tên tác giả ở trang chi tiết; tiêu đề "Sách của …". API công khai không tra tên tác giả theo
     slug nên trang lấy tên từ chi tiết cuốn đầu tiên trong kết quả (`getBook`, đã cache); không có kết quả thì hiện slug.
   - Ba tham số trên được giữ khi đổi bộ lọc khác (input ẩn trong `CatalogFilters`) và khi sắp xếp.
-  Không có bộ lọc loại bìa (đã bỏ theo yêu cầu); loại bìa chỉ chọn ở trang chi tiết sách khi thêm vào giỏ.
+    Không có bộ lọc loại bìa (đã bỏ theo yêu cầu); loại bìa chỉ chọn ở trang chi tiết sách khi thêm vào giỏ.
 - **Thẻ sách**: bìa đứng trên "kệ", nhãn giảm giá hoặc "Sắp phát hành", loại sách, ấn bản · năm, dòng "Cập nhật đến",
   giá bán và giá bìa gạch ngang, trạng thái (sắp phát hành, ngừng bán, tạm hết hàng – bìa mờ, chưa có giá). Bấm bìa
   hoặc tên sách mở dialog xem nhanh, trong đó có nút sang trang chi tiết `/sach/<slug>` (`storefront-ordering.md`).
@@ -76,10 +76,10 @@ CSS trong `globals.css` (`@layer components`), chỉ animate `transform`/`opacit
 
 Gọi từ Server Component qua `serverApi` (`src/lib/api.ts`), cache `revalidate` 60 giây:
 
-| Method | Route                | Dùng cho                               |
-| ------ | -------------------- | -------------------------------------- |
+| Method | Route                | Dùng cho                                                               |
+| ------ | -------------------- | ---------------------------------------------------------------------- |
 | GET    | `/api/v1/books`      | Danh sách, lọc, sắp xếp, trang; sitemap; gợi ý khi gõ (từ trình duyệt) |
-| GET    | `/api/v1/categories` | Thanh danh mục, danh mục con, nhãn lọc |
+| GET    | `/api/v1/categories` | Thanh danh mục, danh mục con, nhãn lọc                                 |
 
 Response được parse bằng Zod ở `features/catalog/schemas.ts` vì type sinh từ OpenAPI đang lệch với JSON thật (enum sinh
 thành `number`, số thành `number | string`). Lỗi API (`ApiError`) hoặc response sai dạng đi tới `error.tsx`.
