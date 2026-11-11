@@ -3,7 +3,6 @@ import { Container } from "@slvn/ui";
 import { freeShippingText } from "@/features/ordering/shipping-threshold";
 import { getFreeShippingThreshold } from "@/features/ordering/shipping-threshold-server";
 import { TourReplayButton } from "@/features/tour/TourReplayButton";
-import { tourAnchor } from "@/lib/tour-anchor";
 import { FooterLoginLink } from "./FooterLoginLink";
 
 const HEADING = "text-gold text-[11px] tracking-[0.26em]";
@@ -32,7 +31,7 @@ export async function Footer() {
           <Link href="/khuyen-mai" className="link-underline w-fit">
             Khuyến mãi
           </Link>
-          <Link href="/don-hang/tra-cuu" {...tourAnchor("order-lookup")} className="link-underline w-fit">
+          <Link href="/don-hang/tra-cuu" className="link-underline w-fit">
             Tra cứu đơn hàng
           </Link>
           <FooterLoginLink />

@@ -43,16 +43,16 @@ const getServerSnapshot = () => "";
 export function RecentlyViewed({ current, className }: RecentlyViewedProps) {
   const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const currentId = current?.id;
-  const books = useMemo(
-    () => parseRecentlyViewed(raw).filter((book) => book.id !== currentId),
-    [raw, currentId],
-  );
+  const books = useMemo(() => parseRecentlyViewed(raw).filter((book) => book.id !== currentId), [raw, currentId]);
 
   const { slug = "", title = "", coverImageUrl = null } = current ?? {};
   useEffect(() => {
     if (currentId === undefined) return;
     const store = localStore();
-    writeRecentlyViewed(store, addRecentlyViewed(readRecentlyViewed(store), { id: currentId, slug, title, coverImageUrl }));
+    writeRecentlyViewed(
+      store,
+      addRecentlyViewed(readRecentlyViewed(store), { id: currentId, slug, title, coverImageUrl }),
+    );
   }, [currentId, slug, title, coverImageUrl]);
 
   if (!books.length) return null;

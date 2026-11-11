@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@slvn/ui";
+import { tourAnchor } from "@/lib/tour-anchor";
+import type { TourTarget } from "@/lib/tour-anchor";
 import { BookCard } from "./BookCard";
 import type { BookSummary } from "./schemas";
 
@@ -24,6 +26,8 @@ export interface BookShelfProps {
   /** Nút mua nhanh cho từng thẻ (trang truyền vào từ feature ordering). */
   actions?: (book: BookSummary) => BookShelfActions;
   className?: string;
+  /** Mốc của hướng dẫn sử dụng, gắn vào phần tiêu đề (cả kệ quá cao để khoanh sáng). */
+  tour?: TourTarget;
 }
 
 /**
@@ -40,11 +44,12 @@ export function BookShelf({
   books,
   actions,
   className,
+  tour,
 }: BookShelfProps) {
   if (!books.length) return null;
   return (
     <section aria-labelledby={id} className={className}>
-      <div className="motion-reveal flex flex-wrap items-end justify-between gap-6">
+      <div {...(tour ? tourAnchor(tour) : {})} className="motion-reveal flex flex-wrap items-end justify-between gap-6">
         <div className="flex max-w-xl flex-col gap-3">
           <p className="text-gold flex items-center gap-3.5 text-xs tracking-[0.3em] uppercase">
             <span className="bg-gold h-px w-10" />

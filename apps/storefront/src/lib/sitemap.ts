@@ -46,4 +46,12 @@ export function sitemapEntries(
  * Đường dẫn không cho công cụ tìm kiếm thu thập: trang theo phiên của khách và proxy API. Robots khớp theo tiền tố nên
  * `/dang-nhap` đã gồm `/dang-nhap-ho`, `/don-hang` gồm cả trang tra cứu.
  */
-export const ROBOTS_DISALLOW = ["/api/", "/gio-hang", "/thanh-toan", "/tai-khoan", "/don-hang", "/dang-nhap", "/dang-ky"];
+export const ROBOTS_DISALLOW = [
+  "/api/",
+  "/gio-hang",
+  "/thanh-toan",
+  "/tai-khoan",
+  "/don-hang",
+  "/dang-nhap",
+  "/dang-ky",
+];

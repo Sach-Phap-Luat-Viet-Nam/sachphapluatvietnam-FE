@@ -58,7 +58,7 @@ export function MobileBuyBar({
     <div
       inert={!visible}
       className={cn(
-        "bg-panel/95 border-gold/40 fixed bottom-4 left-4 right-21 z-30 flex items-center gap-3 border px-4 py-2.5 shadow-[0_16px_30px_-12px_rgb(0_0_0/0.8)] backdrop-blur transition-[translate,opacity] duration-300 sm:bottom-6 sm:left-6 sm:right-23 lg:hidden",
+        "bg-panel/95 border-gold/40 fixed right-21 bottom-4 left-4 z-30 flex items-center gap-3 border px-4 py-2.5 shadow-[0_16px_30px_-12px_rgb(0_0_0/0.8)] backdrop-blur transition-[translate,opacity] duration-300 sm:right-23 sm:bottom-6 sm:left-6 lg:hidden",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[150%] opacity-0",
       )}
     >

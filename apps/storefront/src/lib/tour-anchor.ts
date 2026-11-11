@@ -12,6 +12,7 @@ export type TourTarget =
   | "categories"
   | "offers"
   | "book"
+  | "on-sale"
   | "zalo"
   | "order-lookup"
   | "replay";

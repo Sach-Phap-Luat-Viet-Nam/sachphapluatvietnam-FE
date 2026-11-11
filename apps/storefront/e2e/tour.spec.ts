@@ -56,7 +56,7 @@ test("skips the tour, then replays it from the footer", async ({ page }) => {
 
 test("replays the tour from the floating button on any page", async ({ page }) => {
   // Đã xem rồi: không tự hiện, chỉ hiện khi bấm nút nổi.
-  await page.addInitScript(() => localStorage.setItem("tour:v1:done", "1"));
+  await page.addInitScript(() => localStorage.setItem("tour:v2:done", "1"));
   await page.goto("/sach");
   const welcome = page.getByRole("dialog", { name: "Chào mừng bạn đến Sách Luật Việt Nam" });
   await expect(welcome).toBeHidden();

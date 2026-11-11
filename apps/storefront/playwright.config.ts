@@ -9,7 +9,7 @@ export default defineConfig({
     // Hướng dẫn sử dụng cho thiết bị mới sẽ phủ trang chủ; các test coi như đã xem (tour.spec.ts tự bỏ dấu này).
     storageState: {
       cookies: [],
-      origins: [{ origin: BASE_URL, localStorage: [{ name: "tour:v1:done", value: "1" }] }],
+      origins: [{ origin: BASE_URL, localStorage: [{ name: "tour:v2:done", value: "1" }] }],
     },
   },
   webServer: { command: "pnpm dev", url: BASE_URL, reuseExistingServer: !process.env.CI },

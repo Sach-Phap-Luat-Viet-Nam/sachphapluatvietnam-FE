@@ -1,7 +1,7 @@
 type TourStore = Pick<Storage, "getItem" | "setItem">;
 
 /** Tăng phiên bản khi đổi nội dung hướng dẫn để khách đã xem bản cũ được xem lại. */
-export const TOUR_STORAGE_KEY = "tour:v1:done";
+export const TOUR_STORAGE_KEY = "tour:v2:done";
 
 /**
  * Thiết bị mới (chưa có dấu đã xem) thì hiện hướng dẫn. Storage bị chặn (`null` hoặc ném lỗi) thì không hiện: không

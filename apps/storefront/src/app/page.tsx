@@ -218,6 +218,7 @@ export default async function HomePage() {
       {onSale.length > 0 && (
         <Container className="pb-20 sm:pb-28">
           <BookShelf
+            tour="on-sale"
             id="dang-giam-gia"
             eyebrow="Ưu đãi đang chạy"
             title={
