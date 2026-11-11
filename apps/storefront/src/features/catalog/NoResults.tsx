@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Lightbulb } from "lucide-react";
-import { isUnaccentedQuery } from "./catalog";
 
 /** Số danh mục gốc tối đa gợi ý khi không có kết quả. */
 const MAX_CATEGORY_SUGGESTIONS = 8;
@@ -15,11 +13,10 @@ export interface NoResultsProps {
 }
 
 /**
- * Trạng thái không có kết quả ở tủ sách: nói rõ vì sao có thể không ra (backend tìm có phân biệt dấu) và đưa khách sang
- * lối khác (bỏ bộ lọc, duyệt danh mục) thay vì để trang trống.
+ * Trạng thái không có kết quả ở tủ sách: gợi ý cách tìm khác và đưa khách sang lối khác (bỏ bộ lọc, duyệt danh mục)
+ * thay vì để trang trống. Backend đã tìm không phân biệt dấu nên không còn nhắc gõ có dấu.
  */
 export function NoResults({ query, keepQueryHref, categories }: NoResultsProps) {
-  const unaccented = isUnaccentedQuery(query);
   const shownCategories = categories.slice(0, MAX_CATEGORY_SUGGESTIONS);
 
   return (
@@ -36,19 +33,10 @@ export function NoResults({ query, keepQueryHref, categories }: NoResultsProps) 
         )}
       </p>
 
-      {unaccented && (
-        <p className="border-upcoming/50 bg-upcoming/10 flex max-w-lg gap-3 border px-4 py-3 text-left leading-7">
-          <Lightbulb size={20} className="text-upcoming mt-1 shrink-0" />
-          <span>
-            Tủ sách đang tìm theo <strong>tiếng Việt có dấu</strong>. Thử gõ “bộ luật dân sự” thay vì “bo luat dan su”.
-          </span>
-        </p>
-      )}
-
       {query && (
         <ul className="text-sand flex max-w-lg list-disc flex-col gap-1 pl-5 text-left leading-7">
           <li>Dùng từ khóa ngắn hơn, ví dụ chỉ tên bộ luật hoặc lĩnh vực.</li>
-          <li>Tìm theo mã ISBN in ở bìa sau sách.</li>
+          <li>Tìm theo tên tác giả, mã sách (như PL250) hoặc mã ISBN in ở bìa sau sách.</li>
         </ul>
       )}
 

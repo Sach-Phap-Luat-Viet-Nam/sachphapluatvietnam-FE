@@ -29,7 +29,7 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
   const type = Object.hasOwn(BOOK_TYPE_LABELS, param(params, "type")) ? param(params, "type") : "";
   return (
     <form action="/sach" className="flex flex-col gap-7">
-      {["q", "category", "sort", "legalDocument"].map((key) =>
+      {["q", "category", "sort", "legalDocument", "author"].map((key) =>
         param(params, key) ? <input key={key} type="hidden" name={key} value={param(params, key)} /> : null,
       )}
 

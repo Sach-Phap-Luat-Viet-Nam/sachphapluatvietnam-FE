@@ -8,20 +8,13 @@ const categories = [
 ];
 
 describe("NoResults", () => {
-  it("nhắc gõ có dấu khi từ khóa không dấu", () => {
+  it("gợi ý cách tìm khác, không nhắc gõ có dấu (backend đã tìm không dấu)", () => {
     render(<NoResults query="bo luat dan su" keepQueryHref={null} categories={categories} />);
 
     expect(screen.getByRole("heading", { name: "Chưa tìm thấy sách phù hợp" })).toBeVisible();
-    expect(screen.getByText("tiếng Việt có dấu")).toBeVisible();
+    expect(screen.getByText(/Tìm theo tên tác giả, mã sách/)).toBeVisible();
+    expect(screen.queryByText(/có dấu/)).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Bỏ bộ lọc, giữ từ khóa" })).not.toBeInTheDocument();
-  });
-
-  it("không nhắc gõ có dấu khi từ khóa đã có dấu hoặc là mã", () => {
-    const { rerender } = render(<NoResults query="bộ luật dân sự" keepQueryHref={null} categories={[]} />);
-    expect(screen.queryByText("tiếng Việt có dấu")).not.toBeInTheDocument();
-
-    rerender(<NoResults query="9786045712345" keepQueryHref={null} categories={[]} />);
-    expect(screen.queryByText("tiếng Việt có dấu")).not.toBeInTheDocument();
   });
 
   it("cho bỏ bộ lọc giữ từ khóa và duyệt theo danh mục", () => {

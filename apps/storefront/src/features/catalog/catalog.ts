@@ -1,9 +1,12 @@
-import type { paths } from "@slvn/api-client";
+import type { BooksQuery } from "@slvn/api-client";
 import { formatPrice } from "@slvn/utils";
 import type { BookSummary, CategoryNode } from "./schemas";
 
+export type { BooksQuery };
 export type CatalogParams = Record<string, string | string[] | undefined>;
-export type BooksQuery = NonNullable<paths["/api/v1/books"]["get"]["parameters"]["query"]>;
+
+/** Slug hợp lệ của backend: chữ thường không dấu, số, gạch nối. */
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Số sách mỗi trang, chia hết cho 2/3/4 cột của lưới. */
 export const PAGE_SIZE = 24;
@@ -64,6 +67,7 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   const sort = param(params, "sort");
   // Quá 50 ký tự backend trả 400 nên bỏ hẳn thay vì cắt (cắt ra số hiệu khác là lọc sai).
   const legalDocument = param(params, "legalDocument").trim();
+  const author = param(params, "author").trim();
   let minPrice = nonNegativeInt(param(params, "minPrice"));
   let maxPrice = nonNegativeInt(param(params, "maxPrice"));
   if (minPrice !== undefined && maxPrice !== undefined && maxPrice < minPrice) {
@@ -78,7 +82,13 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   if (maxPrice !== undefined) query.MaxPrice = maxPrice;
   if (legalDocument && legalDocument.length <= MAX_LEGAL_DOCUMENT_LENGTH) query.LegalDocument = legalDocument;
   if (isOnSaleParam(param(params, "onSale"))) query.OnSale = true;
+  if (SLUG_PATTERN.test(author)) query.Author = author;
   return query;
+}
+
+/** Link tủ sách lọc theo tác giả (trang "Sách của tác giả"). */
+export function authorHref(slug: string): string {
+  return catalogHref({}, { author: slug });
 }
 
 /** Nhận cả giá trị form gửi lên lẫn `true` (link gõ tay theo tên tham số của API). */
@@ -210,7 +220,12 @@ export interface ActiveFilter {
 }
 
 /** Các bộ lọc đang áp dụng (đã chuẩn hóa như khi gọi API), dùng cho dòng "Đang lọc". */
-export function activeFilters(params: CatalogParams, categories: readonly FlatCategory[]): ActiveFilter[] {
+export function activeFilters(
+  params: CatalogParams,
+  categories: readonly FlatCategory[],
+  /** Tên tác giả đang lọc (API không có endpoint tra tên theo slug công khai), không có thì hiện slug. */
+  authorName?: string,
+): ActiveFilter[] {
   const query = toBooksQuery(params);
   const remove = (...keys: string[]) =>
     catalogHref(params, Object.fromEntries([...keys.map((key) => [key, ""]), ["page", ""]]));
@@ -225,6 +240,9 @@ export function activeFilters(params: CatalogParams, categories: readonly FlatCa
   }
   const price = priceLabel(queryNumber(query.MinPrice), queryNumber(query.MaxPrice));
   if (price) filters.push({ key: "price", label: price, removeHref: remove("minPrice", "maxPrice") });
+  if (query.Author) {
+    filters.push({ key: "author", label: `Tác giả: ${authorName ?? query.Author}`, removeHref: remove("author") });
+  }
   if (query.OnSale) filters.push({ key: "onSale", label: "Đang giảm giá", removeHref: remove("onSale") });
   if (query.LegalDocument) {
     filters.push({
@@ -275,15 +293,4 @@ export function rootCategorySlug(tree: readonly CategoryNode[], slug: string): s
   const contains = (node: CategoryNode): boolean =>
     node.slug === slug || node.children.some((child) => contains(child));
   return tree.find((root) => contains(root))?.slug;
-}
-
-/**
- * Từ khóa gõ không dấu (ví dụ "bo luat dan su"): backend đang tìm có phân biệt dấu nên trang không có kết quả nhắc
- * khách gõ có dấu. Bỏ qua chuỗi giống mã (một cụm liền, có chữ số, như ISBN hoặc mã SKU) vì mã không có dấu.
- */
-export function isUnaccentedQuery(query: string): boolean {
-  const text = query.trim();
-  if (!/[a-z]{2}/i.test(text) || /[^\x20-\x7e]/.test(text)) return false;
-  const looksLikeCode = !/\s/.test(text) && /\d/.test(text);
-  return !looksLikeCode;
 }

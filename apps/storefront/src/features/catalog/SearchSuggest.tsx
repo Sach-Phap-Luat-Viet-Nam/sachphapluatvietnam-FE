@@ -11,7 +11,7 @@ import { formatPrice } from "@slvn/utils";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { bookPath } from "./book-detail";
 import { BookCover } from "./BookCover";
-import { catalogHref, isUnaccentedQuery, nextSuggestionIndex, suggestionTerm } from "./catalog";
+import { catalogHref, nextSuggestionIndex, suggestionTerm } from "./catalog";
 import { catalogKeys, fetchSuggestions } from "./client-api";
 
 export interface SearchSuggestProps {
@@ -162,9 +162,7 @@ export function SearchSuggest({ inputId, placeholder, maxLength }: SearchSuggest
         {showNoMatch && (
           <p className="text-sand border-gold/20 flex gap-2.5 border-t px-4 py-3 text-sm leading-6">
             <Lightbulb size={16} aria-hidden="true" className="text-upcoming mt-1 shrink-0" />
-            {isUnaccentedQuery(term)
-              ? "Chưa có sách khớp. Tủ sách tìm theo tiếng Việt có dấu, thử gõ “bộ luật dân sự”."
-              : "Chưa có sách khớp. Thử từ khóa ngắn hơn hoặc mã ISBN."}
+            Chưa có sách khớp. Thử từ khóa ngắn hơn, tên tác giả hoặc mã ISBN.
           </p>
         )}
         {suggestions.isError && (

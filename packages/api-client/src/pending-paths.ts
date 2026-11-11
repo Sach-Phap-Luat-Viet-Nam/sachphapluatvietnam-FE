@@ -3,6 +3,8 @@
 // ghi đè bản sinh ra (xem `ClientPaths` trong `client.ts`); response để `unknown`, nơi gọi parse bằng Zod theo docs.
 // Xóa khai báo tương ứng khi OpenAPI của backend sinh đúng kiểu.
 
+import type { paths } from "./generated/schema";
+
 type NoParameters = { query?: never; header?: never; path?: never; cookie?: never };
 type JsonBody<T> = { content: { "application/json": T } };
 type UnknownJson = { headers: { [name: string]: unknown }; content: { "application/json": unknown } };
@@ -57,8 +59,23 @@ type Item<Body extends Json = Json> = {
   delete: { parameters: IdParams; requestBody?: never; responses: { 204: NoContent } };
 } & OtherMethods;
 
+type GeneratedBooksRoute = paths["/api/v1/books"];
+type GeneratedBooksGet = GeneratedBooksRoute["get"];
+
+/**
+ * Query của `GET /api/v1/books`. `Author` (slug tác giả, khớp nguyên) đã chạy trên backend (docs/features/catalog.md của
+ * BE, tháng 11/2026) nhưng `openapi/v1.json` trong repo chưa có; xóa phần thêm khi `pnpm api:generate` lại.
+ */
+export type BooksQuery = NonNullable<GeneratedBooksGet["parameters"]["query"]> & { Author?: string };
+
 /** Route chờ sinh type từ OpenAPI, gộp vào `paths` của client. */
 export interface PendingPaths {
+  /** Danh sách sách: như bản sinh ra, thêm `Author` vào query. */
+  "/api/v1/books": Omit<GeneratedBooksRoute, "get"> & {
+    get: Omit<GeneratedBooksGet, "parameters"> & {
+      parameters: Omit<GeneratedBooksGet["parameters"], "query"> & { query?: BooksQuery };
+    };
+  };
   /** "Mua ngay" một SKU, giỏ giữ nguyên: 201 `OrderResponse`. */
   "/api/v1/orders/buy-now": {
     parameters: NoParameters;

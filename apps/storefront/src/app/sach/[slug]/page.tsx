@@ -24,7 +24,14 @@ import {
   selectEdition,
   serializeJsonLd,
 } from "@/features/catalog/book-detail";
-import { bookTypeLabel, catalogHref, legalDocumentHref, param, withoutBook } from "@/features/catalog/catalog";
+import {
+  authorHref,
+  bookTypeLabel,
+  catalogHref,
+  legalDocumentHref,
+  param,
+  withoutBook,
+} from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 import { descriptionText, formatRichText } from "@/features/catalog/description";
 import { getCombos } from "@/features/combo/api";
@@ -185,7 +192,18 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
             </h1>
             <p className="text-mist mt-3">
               {editionLabel(edition)}
-              {book.authors.length > 0 && ` · ${book.authors.map((author) => author.name).join(", ")}`}
+              {book.authors.map((author, index) => (
+                <span key={author.id}>
+                  {index === 0 ? " · " : ", "}
+                  <Link
+                    href={authorHref(author.slug)}
+                    title={`Sách khác của ${author.name}`}
+                    className="link-underline text-sand"
+                  >
+                    {author.name}
+                  </Link>
+                </span>
+              ))}
             </p>
             {edition.updatedToText && (
               <p className="text-sand mt-4 flex gap-2.5 leading-7">

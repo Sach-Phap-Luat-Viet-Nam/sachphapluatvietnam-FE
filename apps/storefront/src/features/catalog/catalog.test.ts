@@ -4,12 +4,12 @@ import {
   PAGE_SIZE,
   PRICE_RANGES,
   activeFilters,
+  authorHref,
   availability,
   catalogHref,
   currentPage,
   flattenCategories,
   isPriceRangeActive,
-  isUnaccentedQuery,
   legalDocumentHref,
   nextSuggestionIndex,
   pageCount,
@@ -202,21 +202,6 @@ describe("category tree helpers", () => {
   });
 });
 
-describe("isUnaccentedQuery", () => {
-  it("flags Vietnamese words typed without diacritics", () => {
-    expect(isUnaccentedQuery("bo luat dan su")).toBe(true);
-    expect(isUnaccentedQuery("  hinh su 2015 ")).toBe(true);
-    expect(isUnaccentedQuery("luat")).toBe(true);
-  });
-  it("ignores accented words, codes and ISBNs", () => {
-    expect(isUnaccentedQuery("bộ luật dân sự")).toBe(false);
-    expect(isUnaccentedQuery("Bo luật")).toBe(false);
-    expect(isUnaccentedQuery("SLVN-0012")).toBe(false);
-    expect(isUnaccentedQuery("9786045712345")).toBe(false);
-    expect(isUnaccentedQuery("")).toBe(false);
-  });
-});
-
 describe("onSale and legalDocument filters", () => {
   it("maps both filters to the books API query", () => {
     expect(toBooksQuery({ onSale: ON_SALE_VALUE, legalDocument: " 91/2015/QH13 " })).toMatchObject({
@@ -264,5 +249,20 @@ describe("withoutBook", () => {
   it("drops the current book and caps the list", () => {
     const books = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
     expect(withoutBook(books, 2, 2)).toEqual([{ id: 1 }, { id: 3 }]);
+  });
+});
+
+describe("author filter", () => {
+  it("passes a valid author slug and drops anything else", () => {
+    expect(toBooksQuery({ author: " ban-bien-tap " }).Author).toBe("ban-bien-tap");
+    expect(toBooksQuery({ author: "Ban Biên Tập" }).Author).toBeUndefined();
+  });
+
+  it("shows the author name when known, else the slug", () => {
+    expect(activeFilters({ author: "ban-bien-tap" }, [], "Ban biên tập")).toEqual([
+      { key: "author", label: "Tác giả: Ban biên tập", removeHref: "/sach" },
+    ]);
+    expect(activeFilters({ author: "ban-bien-tap" }, [])[0]?.label).toBe("Tác giả: ban-bien-tap");
+    expect(authorHref("ban-bien-tap")).toBe("/sach?author=ban-bien-tap");
   });
 });

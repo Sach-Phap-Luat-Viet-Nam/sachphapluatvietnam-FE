@@ -9,7 +9,7 @@ import { CatalogPagination } from "@/features/catalog/CatalogPagination";
 import { MobileFilterSheet } from "@/features/catalog/MobileFilterSheet";
 import { NoResults } from "@/features/catalog/NoResults";
 import { SortForm } from "@/features/catalog/SortForm";
-import { getBooks, getCategoryTree } from "@/features/catalog/api";
+import { getBook, getBooks, getCategoryTree } from "@/features/catalog/api";
 import type { BookSummary } from "@/features/catalog/schemas";
 import {
   activeFilters,
@@ -52,6 +52,21 @@ async function loadSuggestions(): Promise<BookSummary[]> {
   }
 }
 
+/**
+ * Tên tác giả đang lọc (`?author=<slug>`): API công khai không tra được tên theo slug, nên lấy từ chi tiết cuốn đầu tiên
+ * trong kết quả (cuốn nào cũng có tác giả này, request được cache). Không có kết quả hoặc lỗi thì trả `undefined`, trang
+ * hiện slug.
+ */
+async function loadAuthorName(authorSlug: string, firstBookSlug: string | undefined): Promise<string | undefined> {
+  if (!firstBookSlug) return undefined;
+  try {
+    return (await getBook(firstBookSlug))?.authors.find((author) => author.slug === authorSlug)?.name;
+  } catch (error) {
+    console.error("Không tải được tên tác giả cho trang lọc theo tác giả", error);
+    return undefined;
+  }
+}
+
 export default async function BooksPage({ searchParams }: { searchParams: Promise<CatalogParams> }) {
   const params = await searchParams;
   const query = toBooksQuery(params);
@@ -63,7 +78,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const activeCategory = query.Category ?? "";
   const activeRoot = rootCategorySlug(categoryTree, activeCategory);
   const subcategories = subcategoryGroup(categoryTree, activeCategory);
-  const filters = activeFilters(params, flattenCategories(categoryTree));
+  const authorName = query.Author ? await loadAuthorName(query.Author, books.items[0]?.slug) : undefined;
+  const filters = activeFilters(params, flattenCategories(categoryTree), authorName);
   const filterCount = filters.filter((filter) => filter.key !== "q" && filter.key !== "category").length;
   const categoryHref = (slug: string) => catalogHref(params, { category: slug, page: "" });
 
@@ -147,6 +163,10 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                 {query.Q ? (
                   <>
                     Kết quả cho <span className="text-gold italic">“{query.Q}”</span>
+                  </>
+                ) : query.Author ? (
+                  <>
+                    Sách của <span className="text-gold italic">{authorName ?? "tác giả đã chọn"}</span>
                   </>
                 ) : query.LegalDocument ? (
                   <>

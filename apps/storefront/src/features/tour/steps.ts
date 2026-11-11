@@ -112,7 +112,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     side: "bottom",
     title: "Tìm sách",
     description:
-      "Gõ tên sách hoặc mã ISBN rồi bấm Tìm. Ở trang kết quả, bạn lọc thêm được theo danh mục, loại sách và giá.",
+      "Gõ tên sách, tên tác giả hoặc mã ISBN, có dấu hay không dấu đều được. Sách khớp hiện ngay bên dưới khi bạn gõ, bấm vào để mở; bấm Tìm để xem hết kết quả và lọc thêm.",
   },
   {
     target: "theme",
@@ -121,6 +121,15 @@ export const TOUR_STEPS: readonly TourStep[] = [
     align: "end",
     title: "Giao diện sáng / tối",
     description: "Đổi qua lại giao diện sáng và tối cho dễ đọc. Đã đăng nhập thì lựa chọn được lưu vào tài khoản.",
+  },
+  {
+    target: "order-lookup",
+    pose: "lookup",
+    side: "bottom",
+    align: "end",
+    title: "Tra cứu đơn hàng",
+    description:
+      "Đặt hàng không cần tài khoản vẫn theo dõi được đơn: bấm vào đây, nhập mã đơn và số điện thoại đã đặt.",
   },
   {
     target: "cart",
@@ -174,6 +183,15 @@ export const TOUR_STEPS: readonly TourStep[] = [
       "Bấm vào bìa hoặc tên sách để xem nhanh giá và văn bản được cập nhật đến đâu. Nút bên dưới bìa để thêm vào giỏ hoặc mua ngay.",
   },
   {
+    target: "on-sale",
+    pose: "books",
+    side: "bottom",
+    align: "start",
+    title: "Sách đang giảm giá",
+    description:
+      "Kệ này gom các cuốn đang bán thấp hơn giá bìa. Cuộn tiếp xuống dưới còn có combo tiết kiệm và kệ sách theo từng lĩnh vực.",
+  },
+  {
     target: "zalo",
     pose: "support",
     side: "top",
@@ -181,14 +199,6 @@ export const TOUR_STEPS: readonly TourStep[] = [
     title: "Tư vấn qua Zalo",
     description:
       "Cần hỏi sách nào phù hợp, phí giao hàng hay tình trạng đơn? Bấm nút Zalo, chọn người hỗ trợ rồi nhắn để được tư vấn trực tiếp.",
-  },
-  {
-    target: "order-lookup",
-    pose: "lookup",
-    side: "top",
-    align: "start",
-    title: "Tra cứu đơn hàng",
-    description: "Đặt hàng không cần tài khoản vẫn xem được tình trạng đơn: nhập mã đơn và số điện thoại ở đây.",
   },
   {
     target: "replay",

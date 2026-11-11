@@ -12,7 +12,10 @@ export const catalogKeys = {
   suggestions: (term: string) => ["catalog", "suggestions", term] as const,
 };
 
-/** Sách khớp từ khóa cho ô tìm kiếm (cùng cách tìm với trang `/sach`: theo tên có dấu, ISBN hoặc mã SKU). */
+/**
+ * Sách khớp từ khóa cho ô tìm kiếm, cùng cách tìm với trang `/sach`: tên sách hoặc tác giả (không phân biệt dấu), một
+ * phần mã SKU, hoặc ISBN đủ 13 số.
+ */
 export async function fetchSuggestions(term: string, signal?: AbortSignal): Promise<BookSummary[]> {
   const data = await unwrap(
     browserApi().GET("/api/v1/books", { params: { query: { Q: term, Page: 1, Limit: SUGGESTION_LIMIT } }, signal }),

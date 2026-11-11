@@ -82,7 +82,7 @@ describe("SearchSuggest", () => {
     expect(push).toHaveBeenCalledWith("/sach/dan-su-chu-giai");
   });
 
-  it("hints at Vietnamese accents when an unaccented search finds nothing", async () => {
+  it("suggests other ways to search when nothing matches", async () => {
     server.use(
       http.get(`${ORIGIN}/api/v1/books`, () => HttpResponse.json({ items: [], meta: { page: 1, limit: 5, total: 0 } })),
     );
@@ -91,7 +91,7 @@ describe("SearchSuggest", () => {
 
     await user.type(screen.getByRole("combobox"), "bo luat");
 
-    expect(await screen.findByText(/tìm theo tiếng Việt có dấu/)).toBeVisible();
+    expect(await screen.findByText(/Chưa có sách khớp/)).toBeVisible();
     await user.keyboard("{Escape}");
     expect(screen.getByRole("combobox")).toHaveAttribute("aria-expanded", "false");
   });
