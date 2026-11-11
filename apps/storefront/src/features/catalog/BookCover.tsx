@@ -8,6 +8,7 @@ const COVER_COLORS = ["bg-cover-navy", "bg-cover-wine", "bg-cover-green", "bg-co
 const COVER_SIZES = {
   shelf: "h-44 w-33 sm:h-60 sm:w-45",
   dialog: "h-52 w-39",
+  mini: "h-32 w-24",
 } as const;
 
 export interface BookCoverProps {
