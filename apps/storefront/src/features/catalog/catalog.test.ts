@@ -11,12 +11,15 @@ import {
   isPriceRangeActive,
   isUnaccentedQuery,
   legalDocumentHref,
+  nextSuggestionIndex,
   pageCount,
   pageWindow,
   priceRangeHref,
   rootCategorySlug,
   subcategoryGroup,
+  suggestionTerm,
   toBooksQuery,
+  withoutBook,
 } from "./catalog";
 
 describe("toBooksQuery", () => {
@@ -238,5 +241,28 @@ describe("onSale and legalDocument filters", () => {
 
   it("builds a catalog link for a legal document number", () => {
     expect(legalDocumentHref("91/2015/QH13")).toBe("/sach?legalDocument=91%2F2015%2FQH13");
+  });
+});
+
+describe("search suggestions", () => {
+  it("only suggests for trimmed terms of at least two characters", () => {
+    expect(suggestionTerm("  d ")).toBeNull();
+    expect(suggestionTerm("  dân sự ")).toBe("dân sự");
+    expect(suggestionTerm("a".repeat(250))).toHaveLength(200);
+  });
+
+  it("cycles through suggestions and back to the input", () => {
+    expect(nextSuggestionIndex(-1, 1, 3)).toBe(0);
+    expect(nextSuggestionIndex(2, 1, 3)).toBe(-1);
+    expect(nextSuggestionIndex(-1, -1, 3)).toBe(2);
+    expect(nextSuggestionIndex(0, -1, 3)).toBe(-1);
+    expect(nextSuggestionIndex(-1, 1, 0)).toBe(-1);
+  });
+});
+
+describe("withoutBook", () => {
+  it("drops the current book and caps the list", () => {
+    const books = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+    expect(withoutBook(books, 2, 2)).toEqual([{ id: 1 }, { id: 3 }]);
   });
 });

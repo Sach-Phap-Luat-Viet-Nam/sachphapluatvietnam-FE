@@ -5,12 +5,16 @@ import { AlertTriangle, BookOpen, Check } from "lucide-react";
 import { Container, cn } from "@slvn/ui";
 import { formatDate } from "@slvn/utils";
 import { coverTypeLabel } from "@/lib/labels";
-import { getBook } from "@/features/catalog/api";
+import { getBook, getShelfBooks } from "@/features/catalog/api";
+import { BookShelf } from "@/features/catalog/BookShelf";
+import { MobileBuyBar } from "@/features/catalog/MobileBuyBar";
+import { RecentlyViewed } from "@/features/catalog/RecentlyViewed";
 import {
   EDITION_PARAM,
   audienceText,
   bookJsonLd,
   bookPath,
+  cheapestBuyableSku,
   editionHref,
   editionLabel,
   latestEdition,
@@ -20,7 +24,7 @@ import {
   selectEdition,
   serializeJsonLd,
 } from "@/features/catalog/book-detail";
-import { bookTypeLabel, legalDocumentHref, param } from "@/features/catalog/catalog";
+import { bookTypeLabel, catalogHref, legalDocumentHref, param, withoutBook } from "@/features/catalog/catalog";
 import type { CatalogParams } from "@/features/catalog/catalog";
 import { descriptionText, formatRichText } from "@/features/catalog/description";
 import { getCombos } from "@/features/combo/api";
@@ -29,6 +33,12 @@ import { combosForSkus } from "@/features/combo/combo";
 import { Book3D } from "@/features/home/Book3D";
 import { HeroSpotlight } from "@/features/home/HeroSpotlight";
 import { AddToCartForm } from "@/features/ordering/AddToCartForm";
+import { QuickPurchase } from "@/features/ordering/QuickPurchase";
+
+/** Số sách gợi ý cùng lĩnh vực: đủ một hàng 4 cột trên desktop. */
+const RELATED_LIMIT = 4;
+/** `id` khối đặt mua, để thanh mua gọn trên mobile cuộn tới. */
+const PURCHASE_ID = "dat-mua";
 
 interface BookPageProps {
   params: Promise<{ slug: string }>;
@@ -92,6 +102,18 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
   const audiences = audienceText(book.targetAudiences);
   const typeLabel = bookTypeLabel(book.bookType);
   const jsonLd = serializeJsonLd(bookJsonLd(book, edition, descriptionText(book.description, 500)));
+  const cheapest = cheapestBuyableSku(edition);
+  // Lấy dư một cuốn vì kết quả có thể gồm chính sách đang xem.
+  const related = category
+    ? withoutBook(
+        await getShelfBooks(
+          { Category: category.slug, Page: 1, Limit: RELATED_LIMIT + 1 },
+          `cùng lĩnh vực ${category.slug}`,
+        ),
+        book.id,
+        RELATED_LIMIT,
+      )
+    : [];
 
   return (
     <main id="noi-dung">
@@ -210,7 +232,11 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
             </nav>
           )}
 
-          <section aria-label="Đặt mua" className="border-gold/30 bg-panel border px-6 py-7 sm:px-8">
+          <section
+            id={PURCHASE_ID}
+            aria-label="Đặt mua"
+            className="border-gold/30 bg-panel scroll-mt-4 border px-6 py-7 sm:px-8"
+          >
             {purchase.buyable ? (
               <>
                 {purchase.label && <p className="text-upcoming mb-3 text-sm">{purchase.label}</p>}
@@ -306,8 +332,47 @@ export default async function BookDetailPage({ params, searchParams }: BookPageP
         </div>
       </Container>
 
-      {/* Chừa khoảng trống trước chân trang */}
-      <div aria-hidden="true" className="h-20 sm:h-24" />
+      {category && (
+        <Container className="pt-6">
+          <BookShelf
+            id="cung-linh-vuc"
+            eyebrow="Cùng lĩnh vực"
+            title={
+              <>
+                Sách <span className="text-gold font-medium italic">{category.name}</span> khác
+              </>
+            }
+            href={catalogHref({}, { category: category.slug })}
+            linkLabel={`Xem tất cả sách ${category.name}`}
+            books={related}
+            actions={(item) => ({
+              cartAction: <QuickPurchase slug={item.slug} title={item.title} />,
+              dialogCartAction: <QuickPurchase slug={item.slug} title={item.title} variant="full" />,
+            })}
+          />
+        </Container>
+      )}
+
+      <Container>
+        <RecentlyViewed
+          className="pt-14"
+          current={{ id: book.id, slug: book.slug, title: book.title, coverImageUrl: edition.coverImageUrl }}
+        />
+      </Container>
+
+      {cheapest && (
+        <MobileBuyBar
+          targetId={PURCHASE_ID}
+          title={book.title}
+          salePrice={cheapest.salePrice}
+          listPrice={cheapest.listPrice}
+          discountPercent={cheapest.discountPercent}
+          hasMultipleOptions={edition.skus.length > 1}
+        />
+      )}
+
+      {/* Chừa khoảng trống trước chân trang (thêm chỗ cho thanh mua gọn trên mobile) */}
+      <div aria-hidden="true" className="h-28 sm:h-32 lg:h-24" />
     </main>
   );
 }

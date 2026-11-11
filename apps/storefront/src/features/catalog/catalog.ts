@@ -91,6 +91,25 @@ export function legalDocumentHref(docNumber: string): string {
   return catalogHref({}, { legalDocument: docNumber });
 }
 
+/** Số ký tự tối thiểu trước khi gợi ý khi gõ: 1 ký tự khớp quá nhiều sách, gợi ý không có ích. */
+const MIN_SUGGEST_LENGTH = 2;
+
+/** Từ khóa gửi đi để gợi ý khi gõ, `null` khi quá ngắn (không gọi API). */
+export function suggestionTerm(raw: string): string | null {
+  const term = raw.trim().slice(0, MAX_QUERY_LENGTH);
+  return term.length >= MIN_SUGGEST_LENGTH ? term : null;
+}
+
+/**
+ * Gợi ý được chọn sau khi bấm mũi tên (`step` = 1 xuống, -1 lên) trong danh sách `count` gợi ý. `-1` là đang ở ô nhập:
+ * đi quá gợi ý cuối thì về ô nhập, lên từ ô nhập thì tới gợi ý cuối (vòng như ô tìm kiếm của trình duyệt).
+ */
+export function nextSuggestionIndex(current: number, step: 1 | -1, count: number): number {
+  if (count <= 0) return -1;
+  const slots = count + 1;
+  return ((current + 1 + step + slots) % slots) - 1;
+}
+
 /** Bỏ cuốn đang xem khỏi danh sách gợi ý rồi cắt còn `limit` cuốn. */
 export function withoutBook<T extends { id: number }>(books: readonly T[], bookId: number, limit: number): T[] {
   return books.filter((book) => book.id !== bookId).slice(0, limit);

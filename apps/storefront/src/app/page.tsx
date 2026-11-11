@@ -5,7 +5,10 @@ import { Container } from "@slvn/ui";
 import { formatPrice } from "@slvn/utils";
 import { CategoryStrip } from "@/components/CategoryStrip";
 import { BookCard } from "@/features/catalog/BookCard";
-import { getBooks, getCategoryTree } from "@/features/catalog/api";
+import { BookShelf } from "@/features/catalog/BookShelf";
+import { RecentlyViewed } from "@/features/catalog/RecentlyViewed";
+import { getBooks, getCategoryTree, getShelfBooks } from "@/features/catalog/api";
+import { ON_SALE_VALUE, catalogHref } from "@/features/catalog/catalog";
 import type { BookSummary, CategoryNode } from "@/features/catalog/schemas";
 import { getCombos } from "@/features/combo/api";
 import { ComboShelf } from "@/features/combo/ComboShelf";
@@ -21,6 +24,10 @@ import { getRunningPopups } from "@/features/popup/server";
 import { tourAnchor } from "@/lib/tour-anchor";
 
 const NEW_BOOKS_LIMIT = 4;
+/** Số sách mỗi kệ phụ: một hàng 4 cột trên desktop. */
+const SHELF_LIMIT = 4;
+/** Số danh mục gốc có kệ riêng (theo thứ tự Admin sắp); danh mục khác vào qua thanh danh mục. */
+const CATEGORY_SHELF_COUNT = 3;
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -49,9 +56,27 @@ async function loadHomeData(): Promise<{ books: BookSummary[]; categories: Categ
   }
 }
 
+function shelfActions(book: BookSummary) {
+  return {
+    cartAction: <QuickPurchase slug={book.slug} title={book.title} />,
+    dialogCartAction: <QuickPurchase slug={book.slug} title={book.title} variant="full" />,
+  };
+}
+
 export default async function HomePage() {
-  // `getCombos` không ném lỗi (trả null): combo chỉ là phần thêm, lỗi thì ẩn khu combo.
-  const [{ books, categories }, offers, combos] = await Promise.all([loadHomeData(), getRunningPopups(), getCombos()]);
+  // `getCombos` và `getShelfBooks` không ném lỗi: combo và các kệ phụ lỗi thì chỉ ẩn khu đó.
+  const [{ books, categories }, offers, combos, onSale] = await Promise.all([
+    loadHomeData(),
+    getRunningPopups(),
+    getCombos(),
+    getShelfBooks({ Page: 1, Limit: SHELF_LIMIT, OnSale: true }, "đang giảm giá"),
+  ]);
+  const categoryShelves = await Promise.all(
+    categories.slice(0, CATEGORY_SHELF_COUNT).map(async (category) => ({
+      category,
+      books: await getShelfBooks({ Page: 1, Limit: SHELF_LIMIT, Category: category.slug }, `danh mục ${category.slug}`),
+    })),
+  );
   const featured = books[0];
 
   return (
@@ -190,7 +215,47 @@ export default async function HomePage() {
         </Container>
       </section>
 
+      {onSale.length > 0 && (
+        <Container className="pb-20 sm:pb-28">
+          <BookShelf
+            id="dang-giam-gia"
+            eyebrow="Ưu đãi đang chạy"
+            title={
+              <>
+                Đang <span className="foil-text font-medium italic">giảm giá</span>
+              </>
+            }
+            description="Sách đang bán thấp hơn giá bìa hoặc đang có lịch giá ưu đãi."
+            href={catalogHref({}, { onSale: ON_SALE_VALUE })}
+            linkLabel="Xem tất cả sách giảm giá"
+            books={onSale}
+            actions={shelfActions}
+          />
+        </Container>
+      )}
+
       <ComboShelf combos={combos ?? []} />
+
+      {categoryShelves.some((shelf) => shelf.books.length > 0) && (
+        <Container className="flex flex-col gap-20 pt-20 sm:gap-28 sm:pt-28">
+          {categoryShelves.map(({ category, books: shelfBooks }) => (
+            <BookShelf
+              key={category.slug}
+              id={`ke-${category.slug}`}
+              eyebrow="Theo lĩnh vực"
+              title={category.name}
+              href={catalogHref({}, { category: category.slug })}
+              linkLabel={`Xem tất cả sách ${category.name}`}
+              books={shelfBooks}
+              actions={shelfActions}
+            />
+          ))}
+        </Container>
+      )}
+
+      <Container>
+        <RecentlyViewed className="pt-20 sm:pt-28" />
+      </Container>
 
       {/* Chừa khoảng trống trước chân trang */}
       <div aria-hidden="true" className="h-20 sm:h-24" />

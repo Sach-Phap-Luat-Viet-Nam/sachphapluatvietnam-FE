@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { Container } from "@slvn/ui";
 import { getFreeShippingThreshold } from "@/features/ordering/shipping-threshold-server";
+import { SearchSuggest } from "@/features/catalog/SearchSuggest";
 import { CartLink } from "@/features/ordering/CartLink";
 import { tourAnchor } from "@/lib/tour-anchor";
 import { AccountNav } from "./AccountNav";
@@ -19,7 +20,7 @@ export async function Header() {
           action="/sach"
           role="search"
           {...tourAnchor("search")}
-          className="group border-ivory/15 bg-panel focus-within:border-gold order-3 flex h-12 w-full items-stretch border transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_0_0_4px_rgb(203_166_94/0.15)] lg:order-0 lg:max-w-xl lg:flex-1"
+          className="group border-ivory/15 bg-panel focus-within:border-gold relative order-3 flex h-12 w-full items-stretch border transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_0_0_4px_rgb(203_166_94/0.15)] lg:order-0 lg:max-w-xl lg:flex-1"
         >
           <label htmlFor="header-search" className="sr-only">
             Tìm theo tên sách hoặc ISBN
@@ -29,13 +30,7 @@ export async function Header() {
             strokeWidth={1.6}
             className="text-mist group-focus-within:text-gold ml-4 shrink-0 self-center transition-colors"
           />
-          <input
-            id="header-search"
-            name="q"
-            placeholder="Tên sách hoặc mã ISBN"
-            maxLength={200}
-            className="text-ivory min-w-0 flex-1 bg-transparent px-3 outline-none"
-          />
+          <SearchSuggest inputId="header-search" placeholder="Tên sách hoặc mã ISBN" maxLength={200} />
           <button type="submit" className="btn-sweep bg-gold text-ink px-6 text-sm font-semibold">
             Tìm
           </button>
