@@ -1,5 +1,5 @@
 import { formatDate, vnDateKey } from "@slvn/utils";
-import type { BookDetail, Edition } from "./schemas";
+import type { BookDetail, Edition, Sku } from "./schemas";
 
 /** Query chọn ấn bản trên trang chi tiết: `/sach/<slug>?an-ban=<id>` (docs/api_reference.md, mục Catalog). */
 export const EDITION_PARAM = "an-ban";
@@ -65,6 +65,17 @@ export function purchaseState(edition: Pick<Edition, "status" | "skus" | "releas
     default:
       return { buyable: false, label: "Chưa mở bán" };
   }
+}
+
+/**
+ * SKU còn hàng rẻ nhất của ấn bản mua được, cho thanh mua gọn trên mobile ("từ 150.000đ"). `null` khi ấn bản không mua
+ * được hoặc mọi SKU đều hết hàng (khối đặt mua tự báo lý do, thanh gọn không cần hiện).
+ */
+export function cheapestBuyableSku(edition: Pick<Edition, "status" | "skus" | "releaseDate">): Sku | null {
+  if (!purchaseState(edition).buyable) return null;
+  return edition.skus
+    .filter((sku) => sku.inStock)
+    .reduce<Sku | null>((cheapest, sku) => (cheapest && cheapest.salePrice <= sku.salePrice ? cheapest : sku), null);
 }
 
 export interface Fact {

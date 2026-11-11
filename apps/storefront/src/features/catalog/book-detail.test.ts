@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   audienceText,
   bookJsonLd,
+  cheapestBuyableSku,
   editionHref,
   editionLabel,
   publishingFacts,
@@ -183,5 +184,28 @@ describe("bookJsonLd", () => {
 
   it("escapes < so the data cannot close the script tag", () => {
     expect(serializeJsonLd({ name: "</script><script>alert(1)</script>" })).not.toContain("</script>");
+  });
+});
+
+describe("cheapestBuyableSku", () => {
+  const sku = (id: number, salePrice: number, inStock = true) => ({
+    id,
+    skuCode: `SKU-${id}`,
+    coverType: "paperback",
+    listPrice: 200000,
+    salePrice,
+    discountPercent: null,
+    allowPreorder: false,
+    inStock,
+  });
+
+  it("picks the cheapest SKU that is in stock", () => {
+    const skus = [sku(1, 180000), sku(2, 90000, false), sku(3, 150000)];
+    expect(cheapestBuyableSku(edition({ skus }))?.id).toBe(3);
+  });
+
+  it("returns null when nothing can be bought", () => {
+    expect(cheapestBuyableSku(edition({ skus: [sku(1, 150000, false)] }))).toBeNull();
+    expect(cheapestBuyableSku(edition({ status: "upcoming" }))).toBeNull();
   });
 });

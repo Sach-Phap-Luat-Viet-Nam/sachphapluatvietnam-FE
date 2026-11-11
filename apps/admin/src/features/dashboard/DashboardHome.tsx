@@ -1,12 +1,26 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { getServerSessionState, getSessionState, subscribeSession } from "@slvn/auth";
 import { modulesForRoles } from "@/lib/modules";
+import type { AdminModuleId } from "@/lib/modules";
 import { staffRoleLabels } from "@/lib/roles";
 
-/** Trang Tổng quan: lời chào và các phần quản trị theo vai trò. Chỉ render bên trong `AdminShell`. */
-export function DashboardHome() {
+const CARD = "bg-background border-border flex h-full flex-col gap-2 rounded-lg border p-5";
+
+export interface DashboardHomeProps {
+  /**
+   * Số việc đang chờ hiện trên thẻ của từng phần (ví dụ số đơn chờ xác nhận). Trang ghép vào từ feature tương ứng nên
+   * dashboard không phụ thuộc API của các phần khác; thẻ chỉ render khi người dùng có quyền vào phần đó.
+   */
+  workCounts?: Partial<Record<AdminModuleId, ReactNode>>;
+}
+
+/** Trang Tổng quan: lời chào và lối tắt tới các phần quản trị theo vai trò. Chỉ render bên trong `AdminShell`. */
+export function DashboardHome({ workCounts = {} }: DashboardHomeProps) {
   const session = useSyncExternalStore(subscribeSession, getSessionState, getServerSessionState);
   if (session.status !== "authenticated") {
     return null;
@@ -27,17 +41,39 @@ export function DashboardHome() {
             Phần việc của anh/chị
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2">
-            {modules.map((module) => (
-              <li key={module.id} className="bg-background border-border flex flex-col gap-2 rounded-lg border p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">{module.label}</h3>
-                  {!module.ready && (
-                    <span className="bg-warning-surface text-warning rounded px-2 py-0.5 text-sm">Đang phát triển</span>
+            {modules.map((module) => {
+              const content = (
+                <>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold">{module.label}</h3>
+                    {module.ready ? (
+                      <ArrowRight size={18} aria-hidden="true" className="text-muted shrink-0" />
+                    ) : (
+                      <span className="bg-warning-surface text-warning rounded px-2 py-0.5 text-sm">
+                        Đang phát triển
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted leading-7">{module.description}</p>
+                  {module.ready && workCounts[module.id]}
+                </>
+              );
+              return (
+                <li key={module.id}>
+                  {/* Phần chưa làm không có link: trang đích còn là 404 (xem `AdminModule.ready`). */}
+                  {module.ready ? (
+                    <Link
+                      href={module.href}
+                      className={`${CARD} hover:border-primary focus-visible:outline-primary transition-colors focus-visible:outline-2 focus-visible:outline-offset-2`}
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className={CARD}>{content}</div>
                   )}
-                </div>
-                <p className="text-muted leading-7">{module.description}</p>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : (
