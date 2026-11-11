@@ -55,6 +55,15 @@ App **admin**, cổng 3001. Theme sáng mặc định của `@slvn/ui`. Mọi tr
   có quyền truy cập".
 
 - Mobile: sidebar thành thanh trên cùng có nút Mở/Đóng menu.
+- **Trang Tổng quan** (`features/dashboard/DashboardHome.tsx`): lời chào, vai trò, mỗi phần được giao là một **thẻ bấm
+  được** (link tới `href` của phần đó; phần chưa làm thì không có link). Thẻ có số việc đang chờ:
+  - "Đơn hàng": số đơn `pending_confirm` (`features/orders/PendingOrdersCount.tsx`, `meta.total` của
+    `GET /admin/orders?status=pending_confirm`, dùng chung query key với danh sách đơn nên đổi trạng thái đơn là số tự
+    cập nhật).
+  - "Kho": số SKU tồn thấp (`features/inventory/LowStockCount.tsx`, `meta.total` của `GET /admin/inventory/low-stock`).
+  - Lỗi hoặc đang tải thì thẻ không hiện số. Số chỉ hiện khi người dùng có quyền vào phần đó (thẻ chỉ render theo vai
+    trò). Trang `app/(quan-tri)/page.tsx` ghép các component đếm vào prop `workCounts`, nên `features/dashboard` không
+    import nội bộ của `orders`/`inventory`.
 
 ## API backend sử dụng (method, route, mã lỗi được xử lý)
 
