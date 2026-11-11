@@ -12,7 +12,8 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 
 1. **Khi nào hiện** (`features/tour/tour-storage.ts`): `localStorage` chưa có khóa `tour:v2:done`. Trình duyệt chặn
    storage thì **không hiện** (không nhớ được đã xem nên nếu hiện thì lần nào cũng làm phiền). Đổi nội dung hướng dẫn
-   thì tăng `TOUR_STORAGE_KEY` lên `v2` để khách cũ xem lại.
+   thì tăng phiên bản trong `TOUR_STORAGE_KEY` để khách cũ xem lại (11/2026 đã lên `v2` khi chuyển bước tra cứu đơn
+   lên header và thêm bước kệ giảm giá; nhớ đổi cả `playwright.config.ts` và `e2e/tour.spec.ts`).
 2. Đợi 1,2 giây cho hiệu ứng mở đầu của trang chủ chạy xong rồi mới tải `driver.js` (import động, không nằm trong bundle
    ban đầu, không ảnh hưởng SSR/LCP).
 3. **Các bước** (`features/tour/steps.ts`, xếp từ trên xuống dưới):
@@ -21,17 +22,21 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
    | --- | --------------------- | ---------------------------------------------------- |
    | 1   | (giữa màn hình)       | Lời chào, nút "Bắt đầu" / "Bỏ qua"                   |
    | 2   | `promo-bar`           | Thanh ưu đãi đầu trang                               |
-   | 3   | `search`              | Ô tìm sách theo tên hoặc ISBN                        |
+   | 3   | `search`              | Ô tìm sách (tên, tác giả, ISBN, không dấu), gợi ý khi gõ |
    | 4   | `theme`               | Đổi giao diện sáng / tối                             |
-   | 5   | `cart`                | Giỏ hàng, mua không cần tài khoản                    |
-   | 6   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                   |
-   | 7   | `explore`             | Nút "Khám phá tủ sách"                               |
-   | 8   | `categories`          | Dải danh mục                                         |
-   | 9   | `offers`              | Khu "Ưu đãi đang chạy"                               |
-   | 10  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ |
-   | 11  | `zalo`                | Nút tư vấn qua Zalo                                  |
-   | 12  | `order-lookup`        | Link "Tra cứu đơn hàng" ở chân trang (mới thêm)      |
-   | 13  | `replay`              | Kết thúc, chỉ nút nổi "Xem hướng dẫn sử dụng"        |
+   | 5   | `order-lookup`        | Nút "Tra cứu đơn" trên header (`OrderLookupLink`)    |
+   | 6   | `cart`                | Giỏ hàng, mua không cần tài khoản                    |
+   | 7   | `account`             | Đăng nhập / tài khoản, Đơn của tôi                   |
+   | 8   | `explore`             | Nút "Khám phá tủ sách"                               |
+   | 9   | `categories`          | Dải danh mục                                         |
+   | 10  | `offers`              | Khu "Ưu đãi đang chạy"                               |
+   | 11  | `book`                | Thẻ sách đầu tiên: xem nhanh, mua ngay, thêm vào giỏ |
+   | 12  | `on-sale`             | Tiêu đề kệ "Đang giảm giá" (`BookShelf` prop `tour`) |
+   | 13  | `zalo`                | Nút tư vấn qua Zalo                                  |
+   | 14  | `replay`              | Kết thúc, chỉ nút nổi "Xem hướng dẫn sử dụng"        |
+
+   Bước tra cứu đơn trước đây trỏ vào link ở chân trang, nên tour phải cuộn hết trang rồi quay lên. Từ 11/2026 nó trỏ vào
+   nút trên header, nằm theo thứ tự các nút từ trái sang phải. Link ở chân trang vẫn còn nhưng không còn là mốc của tour.
 
    Phần tử không có trên trang hoặc đang cao/rộng 0 (backend lỗi nên ẩn danh mục, chưa có ưu đãi, thanh ưu đãi đã đóng)
    thì **bỏ bước đó**, bộ đếm "n/tổng" chỉ đếm các bước còn lại.
@@ -64,7 +69,8 @@ thẳng trang khác (ví dụ `/sach/<slug>` từ Google) không bị chặn; kh
 - **Chuyển bước mượt**: dùng hai ảnh luân phiên (`createGuideLayer` ở `GuidedTour.tsx`). Ảnh của bước mới được tải và giải mã xong mới đặt vào chỗ của nó rồi hiện dần (0,35s) và trồi nhẹ từ dưới lên (0,5s), cùng lúc ảnh của bước trước mờ dần và chìm xuống, nên tổng độ rõ luôn xấp xỉ 1, không có nhịp trống. Chỉ `opacity` và `translate` có chuyển động; vị trí đổi tức thì để ảnh bám theo hộp khi cuộn. Khi bấm Tiếp, driver.js ẩn hộp cũ (kích thước 0) rồi mới vẽ hộp mới: lúc đó bộ theo dõi bỏ qua, ảnh cũ ở lại tới khi ảnh mới sẵn sàng (không thì ảnh cũ tắt ngay còn ảnh mới hiện chậm ~250ms). Ảnh các tư thế được tải sẵn khi tour bắt đầu (`preloadGuides`). Tắt hiệu ứng khi bật giảm chuyển động.
 - **Đa dạng tư thế và đúng nội dung**: 12 ảnh, mỗi bước một ảnh hợp với điều đang nói (kính lúp chỉ tay ở bước tìm sách,
   nháy mắt qua kính lúp ở bước tra cứu đơn, kính râm ở bước sáng/tối, tai nghe ở bước Zalo, giơ sách ở bước khám phá tủ
-  sách...). 13 bước dùng cả 12 tư thế, chỉ `point` xuất hiện hai lần và không liền nhau. Có bước bị bỏ (không có danh mục, chưa có ưu đãi...) làm hai bước cùng tư
+  sách...). 14 bước dùng cả 12 tư thế; `point` (thanh ưu đãi, thẻ sách) và `books` (khám phá tủ sách, kệ giảm giá)
+  mỗi tư thế xuất hiện hai lần, không liền nhau. Có bước bị bỏ (không có danh mục, chưa có ưu đãi...) làm hai bước cùng tư
   thế đứng cạnh nhau thì `varyPoses` (`steps.ts`) đổi bước sau sang tư thế khác.
 - Mở hộp thì focus vào nút chính ("Bắt đầu" / "Tiếp"). Hộp có `role="dialog"`, tên lấy từ tiêu đề bước, Tab chỉ chạy
   trong hộp (do `driver.js` lo).
@@ -104,7 +110,7 @@ Mười hai ảnh trong `public/tour/`, khai báo ở `GUIDE_IMAGES` (`features/
 | `shades`        | `guide-shades.webp` (12.png)    | Hai tay chỉnh kính râm, mỉm cười        | Sáng/tối               |
 | `search`        | `guide-search.webp` (7.png)     | Cầm kính lúp, tay chỉ                   | Tìm sách               |
 | `lookup`        | `guide-lookup.webp` (13.png)    | Nháy mắt qua kính lúp                   | Tra cứu đơn hàng       |
-| `books`         | `guide-books.webp` (8.png)      | Hai tay giơ hai cuốn sách của shop      | Khám phá tủ sách       |
+| `books`         | `guide-books.webp` (8.png)      | Hai tay giơ hai cuốn sách của shop      | Khám phá tủ sách, kệ giảm giá |
 | `support`       | `guide-support.webp` (9.png)    | Đeo tai nghe, tay chạm micro            | Tư vấn qua Zalo        |
 | `confident`     | `guide-confident.webp` (10.png) | Khoanh tay, mỉm cười tự tin             | Tài khoản              |
 | `study`         | `guide-study.webp` (11.png)     | Ôm cuốn vở trước ngực                   | Giỏ hàng               |
