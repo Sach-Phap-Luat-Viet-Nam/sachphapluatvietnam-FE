@@ -8,6 +8,11 @@ export type BooksQuery = NonNullable<paths["/api/v1/books"]["get"]["parameters"]
 /** Số sách mỗi trang, chia hết cho 2/3/4 cột của lưới. */
 export const PAGE_SIZE = 24;
 const MAX_QUERY_LENGTH = 200;
+/** Giới hạn độ dài `legalDocument` của `GET /api/v1/books`. */
+const MAX_LEGAL_DOCUMENT_LENGTH = 50;
+
+/** Giá trị `onSale` trên URL khi bật lọc "Đang giảm giá". */
+export const ON_SALE_VALUE = "1";
 
 export const BOOK_TYPE_LABELS = {
   code: "Bộ luật",
@@ -57,6 +62,8 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   const category = param(params, "category").trim();
   const type = param(params, "type");
   const sort = param(params, "sort");
+  // Quá 50 ký tự backend trả 400 nên bỏ hẳn thay vì cắt (cắt ra số hiệu khác là lọc sai).
+  const legalDocument = param(params, "legalDocument").trim();
   let minPrice = nonNegativeInt(param(params, "minPrice"));
   let maxPrice = nonNegativeInt(param(params, "maxPrice"));
   if (minPrice !== undefined && maxPrice !== undefined && maxPrice < minPrice) {
@@ -69,7 +76,19 @@ export function toBooksQuery(params: CatalogParams): BooksQuery {
   if (hasKey(SORT_LABELS, sort)) query.Sort = sort;
   if (minPrice !== undefined) query.MinPrice = minPrice;
   if (maxPrice !== undefined) query.MaxPrice = maxPrice;
+  if (legalDocument && legalDocument.length <= MAX_LEGAL_DOCUMENT_LENGTH) query.LegalDocument = legalDocument;
+  if (isOnSaleParam(param(params, "onSale"))) query.OnSale = true;
   return query;
+}
+
+/** Nhận cả giá trị form gửi lên lẫn `true` (link gõ tay theo tên tham số của API). */
+function isOnSaleParam(value: string): boolean {
+  return value === ON_SALE_VALUE || value === "true";
+}
+
+/** Link tủ sách lọc theo một văn bản pháp luật (số hiệu như `91/2015/QH13`). */
+export function legalDocumentHref(docNumber: string): string {
+  return catalogHref({}, { legalDocument: docNumber });
 }
 
 export function pageCount(total: number, limit: number): number {
@@ -182,6 +201,14 @@ export function activeFilters(params: CatalogParams, categories: readonly FlatCa
   }
   const price = priceLabel(queryNumber(query.MinPrice), queryNumber(query.MaxPrice));
   if (price) filters.push({ key: "price", label: price, removeHref: remove("minPrice", "maxPrice") });
+  if (query.OnSale) filters.push({ key: "onSale", label: "Đang giảm giá", removeHref: remove("onSale") });
+  if (query.LegalDocument) {
+    filters.push({
+      key: "legalDocument",
+      label: `Văn bản ${query.LegalDocument}`,
+      removeHref: remove("legalDocument"),
+    });
+  }
   if (query.Q) filters.push({ key: "q", label: `“${query.Q}”`, removeHref: remove("q") });
   return filters;
 }

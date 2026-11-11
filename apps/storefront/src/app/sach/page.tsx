@@ -148,6 +148,12 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                   <>
                     Kết quả cho <span className="text-gold italic">“{query.Q}”</span>
                   </>
+                ) : query.LegalDocument ? (
+                  <>
+                    Sách cập nhật văn bản <span className="text-gold italic">{query.LegalDocument}</span>
+                  </>
+                ) : query.OnSale ? (
+                  "Sách đang giảm giá"
                 ) : (
                   "Tất cả sách"
                 )}

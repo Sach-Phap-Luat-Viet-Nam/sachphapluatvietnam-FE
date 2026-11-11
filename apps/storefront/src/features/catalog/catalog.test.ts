@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ON_SALE_VALUE,
   PAGE_SIZE,
   PRICE_RANGES,
   activeFilters,
@@ -9,6 +10,7 @@ import {
   flattenCategories,
   isPriceRangeActive,
   isUnaccentedQuery,
+  legalDocumentHref,
   pageCount,
   pageWindow,
   priceRangeHref,
@@ -209,5 +211,32 @@ describe("isUnaccentedQuery", () => {
     expect(isUnaccentedQuery("SLVN-0012")).toBe(false);
     expect(isUnaccentedQuery("9786045712345")).toBe(false);
     expect(isUnaccentedQuery("")).toBe(false);
+  });
+});
+
+describe("onSale and legalDocument filters", () => {
+  it("maps both filters to the books API query", () => {
+    expect(toBooksQuery({ onSale: ON_SALE_VALUE, legalDocument: " 91/2015/QH13 " })).toMatchObject({
+      OnSale: true,
+      LegalDocument: "91/2015/QH13",
+    });
+    expect(toBooksQuery({ onSale: "true" }).OnSale).toBe(true);
+  });
+
+  it("drops values the backend would reject", () => {
+    const query = toBooksQuery({ onSale: "yes", legalDocument: "x".repeat(51) });
+    expect(query).toEqual({ Page: 1, Limit: PAGE_SIZE });
+  });
+
+  it("lists both as active filters", () => {
+    const filters = activeFilters({ onSale: "1", legalDocument: "91/2015/QH13" }, []);
+    expect(filters).toEqual([
+      { key: "onSale", label: "Đang giảm giá", removeHref: "/sach?legalDocument=91%2F2015%2FQH13" },
+      { key: "legalDocument", label: "Văn bản 91/2015/QH13", removeHref: "/sach?onSale=1" },
+    ]);
+  });
+
+  it("builds a catalog link for a legal document number", () => {
+    expect(legalDocumentHref("91/2015/QH13")).toBe("/sach?legalDocument=91%2F2015%2FQH13");
   });
 });

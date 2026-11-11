@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { cn } from "@slvn/ui";
 import type { CatalogParams } from "./catalog";
-import { BOOK_TYPE_LABELS, PRICE_RANGES, isPriceRangeActive, param, priceRangeHref } from "./catalog";
+import {
+  BOOK_TYPE_LABELS,
+  ON_SALE_VALUE,
+  PRICE_RANGES,
+  isPriceRangeActive,
+  param,
+  priceRangeHref,
+  toBooksQuery,
+} from "./catalog";
 
 export interface CatalogFiltersProps {
   params: CatalogParams;
@@ -21,7 +29,7 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
   const type = Object.hasOwn(BOOK_TYPE_LABELS, param(params, "type")) ? param(params, "type") : "";
   return (
     <form action="/sach" className="flex flex-col gap-7">
-      {["q", "category", "sort"].map((key) =>
+      {["q", "category", "sort", "legalDocument"].map((key) =>
         param(params, key) ? <input key={key} type="hidden" name={key} value={param(params, key)} /> : null,
       )}
 
@@ -91,6 +99,22 @@ export function CatalogFilters({ params, idPrefix }: CatalogFiltersProps) {
               />
             </label>
           </div>
+        </fieldset>
+      </div>
+
+      <div className={DIVIDER}>
+        <fieldset className="flex flex-col">
+          <legend className={LEGEND}>Ưu đãi</legend>
+          <label className="has-checked:text-gold flex min-h-10 items-center gap-3 text-[15px]">
+            <input
+              type="checkbox"
+              name="onSale"
+              value={ON_SALE_VALUE}
+              defaultChecked={toBooksQuery(params).OnSale === true}
+              className="accent-gold size-4.5"
+            />
+            Chỉ sách đang giảm giá
+          </label>
         </fieldset>
       </div>
 
