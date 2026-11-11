@@ -50,7 +50,21 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
 - **Giá khuyến mãi**: giá đang áp dụng `salePrice`, giá bìa `listPrice` gạch ngang, nhãn `-discountPercent%`; đang khuyến
   mãi thì thêm "Giá thường" (`regularSalePrice`, khi khác giá bìa) và "Giá ưu đãi đến …" (`saleEndsAt`, giờ Việt Nam).
   JSON-LD `Offer` có `priceValidUntil`. Hộp "Xem nhanh" ở tủ sách cũng hiện hạn ưu đãi.
-- Header sách có thêm dòng danh mục (link về tủ sách đã lọc).
+- Header sách có thêm dòng danh mục (link về tủ sách đã lọc). Tên tác giả là link `/sach?author=<slug>` ("Sách khác
+  của …"); số hiệu văn bản pháp luật trong "Thông tin xuất bản" là link `/sach?legalDocument=<số hiệu>` ("Sách khác cập
+  nhật văn bản …"), xem `storefront-shell.md`.
+- **Thanh mua gọn trên mobile/tablet** (`features/catalog/MobileBuyBar.tsx`, ẩn từ `lg`): ở đó khối đặt mua nằm dưới
+  mô hình 3D và tiêu đề, khách phải cuộn mới thấy giá. Thanh ghim đáy màn hình hiện tên sách, giá SKU còn hàng rẻ nhất
+  (`cheapestBuyableSku`, "Từ …" khi có nhiều loại bìa), giá bìa, % giảm và nút "Chọn mua". Thanh chỉ hiện khi khối
+  đặt mua (`#dat-mua`) nằm ngoài màn hình (`IntersectionObserver`); bấm nút thì cuộn tới khối đó và focus ô đầu tiên,
+  nên chọn bìa, số lượng, xác nhận ấn bản cũ vẫn chỉ ở `AddToCartForm`. Thanh chừa góc phải cho nút Zalo. Ấn bản
+  không mua được hoặc hết hàng thì không có thanh.
+- **Sách cùng lĩnh vực**: kệ 4 sách cùng danh mục đầu tiên của sách (bỏ chính cuốn đang xem, `withoutBook`), link
+  "Xem tất cả sách …". Lỗi tải thì ẩn kệ.
+- **Sách bạn đã xem gần đây** (`RecentlyViewed`, `features/catalog/recently-viewed.ts`): mỗi lần mở trang chi tiết thì
+  ghi `{id, slug, title, coverImageUrl}` vào `localStorage` khóa `recently-viewed:v1` (tối đa 9 cuốn, mới nhất trước,
+  không trùng). **Không lưu giá hay tồn kho** vì dữ liệu trên máy có thể cũ; bấm vào mở trang chi tiết để có giá mới.
+  Mục này hiện ở trang chi tiết (bỏ cuốn đang xem) và trang chủ. Storage bị chặn hoặc dữ liệu hỏng thì ẩn mục.
 - **SEO**: `generateMetadata` (title, description, canonical, Open Graph `book` + ảnh bìa), JSON-LD
   `Book`+`Product`/`Offer` (mỗi SKU một offer, `InStock`/`OutOfStock`/`Discontinued`) và `BreadcrumbList` (NFR-31),
   ký tự `<` được đổi thành mã thoát Unicode (`serializeJsonLd`) để dữ liệu không đóng được thẻ `<script>`.
@@ -65,6 +79,9 @@ Giỏ hàng, thanh toán, tra cứu và đơn hàng đặt `noindex`; trang chi 
   (`pickQuickAddSku`, `features/ordering/quick-add.ts`). Không còn SKU mua được thì mở trang chi tiết.
 - Phản hồi: nút chuyển sang dấu tích, thông báo "Đã thêm 1 cuốn (bìa …) vào giỏ. Xem giỏ" nổi phía trên dòng giá
   (không xê dịch lưới) trong 3,5 giây; số trên icon giỏ ở header cập nhật ngay. Lỗi hiện theo `code`.
+- Trong hộp "Xem nhanh", dòng thông báo dưới nút "Thêm vào giỏ" và "Mua ngay" **không chừa chỗ sẵn** (trước đây
+  `min-h-6` làm các nút cách nhau gần 50px): rỗng thì cao 0 nhưng vẫn nằm trong DOM để `aria-live` đọc được khi có
+  thông báo; có thông báo thì đẩy nút dưới xuống.
 
 ### Giỏ hàng
 
