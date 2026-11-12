@@ -132,9 +132,21 @@ async function fillRecipient(user: ReturnType<typeof userEvent.setup>) {
   await user.type(await screen.findByLabelText("Họ và tên"), "Nguyễn Văn A");
   await user.type(screen.getByLabelText("Số điện thoại"), "090 123 4567");
   await user.selectOptions(screen.getByLabelText("Tỉnh/Thành phố"), "Hà Nội");
-  await user.type(screen.getByLabelText("Phường/Xã"), "Phường Cầu Giấy");
+  await user.selectOptions(screen.getByLabelText("Phường/Xã"), "Phường Cầu Giấy");
   await user.type(screen.getByLabelText("Số nhà, tên đường"), "1 Xuân Thủy");
 }
+
+it("clears the selected ward when the province changes", async () => {
+  server.use(...baseHandlers());
+  const user = userEvent.setup();
+  renderCheckout();
+  await fillRecipient(user);
+  await user.selectOptions(screen.getByLabelText("Tỉnh/Thành phố"), "Đà Nẵng");
+  expect(screen.getByLabelText("Phường/Xã")).toHaveValue("");
+  expect(screen.queryByRole("option", { name: "Phường Cầu Giấy" })).not.toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
+  expect(screen.getByLabelText("Phường/Xã")).toHaveValue("Phường Hải Châu");
+});
 
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
@@ -291,7 +303,7 @@ describe("Checkout", () => {
     await user.click(screen.getByRole("radio", { name: "Giao đến địa chỉ khác" }));
     expect(screen.getByLabelText("Tỉnh/Thành phố")).toHaveValue("");
     await user.selectOptions(screen.getByLabelText("Tỉnh/Thành phố"), "Đà Nẵng");
-    await user.type(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
+    await user.selectOptions(screen.getByLabelText("Phường/Xã"), "Phường Hải Châu");
     await user.type(screen.getByLabelText("Số nhà, tên đường"), "3 Bạch Đằng");
     await user.click(screen.getByLabelText("Lưu địa chỉ này vào sổ địa chỉ"));
     await submit(user);
