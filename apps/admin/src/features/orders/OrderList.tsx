@@ -107,11 +107,11 @@ export function OrderList() {
   const monthRange = currentMonthRange();
   const exporting = useMutation({
     mutationFn: () => exportOrders(query),
-    onSuccess: (blob) => {
+    onSuccess: ({ blob, filename }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "orders.xlsx";
+      link.download = filename;
       document.body.append(link);
       link.click();
       link.remove();

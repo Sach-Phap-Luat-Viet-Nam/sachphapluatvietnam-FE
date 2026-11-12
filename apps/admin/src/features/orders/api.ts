@@ -25,15 +25,38 @@ function orderFilters(query: OrderListQuery) {
 }
 
 /** Xuất toàn bộ kết quả theo bộ lọc, không giới hạn theo trang hiện tại. */
-export async function exportOrders(query: OrderListQuery): Promise<Blob> {
-  const blob = await unwrap(
-    browserApi().GET("/api/v1/admin/orders/export", {
-      params: { query: orderFilters(query) },
-      parseAs: "blob",
-    }),
-  );
+export async function exportOrders(query: OrderListQuery): Promise<{ blob: Blob; filename: string }> {
+  const result = await browserApi().GET("/api/v1/admin/orders/export", {
+    params: { query: orderFilters(query) },
+    parseAs: "blob",
+  });
+  const blob = await unwrap(Promise.resolve(result));
   if (!blob) throw new Error("Không nhận được file Excel. Vui lòng thử lại.");
-  return blob;
+  return { blob, filename: exportFileName(result.response.headers.get("Content-Disposition"), query) };
+}
+
+function exportFileName(disposition: string | null, query: OrderListQuery): string {
+  const encoded = disposition?.match(/(?:^|;)\s*filename\*\s*=\s*UTF-8'[^']*'([^;]+)/i);
+  if (encoded?.[1]) {
+    try {
+      const filename = decodeURIComponent(encoded[1].trim());
+      if (filename) return filename;
+    } catch {
+      // A malformed encoded name can still have a valid plain filename below.
+    }
+  }
+  const plain = disposition?.match(/(?:^|;)\s*filename\s*=\s*(?:"([^"]+)"|([^;]+))/i);
+  const filename = (plain?.[1] ?? plain?.[2])?.trim();
+  if (filename) return filename;
+
+  // Older backends/proxies may omit the header; keep the download descriptive in that case too.
+  const period = [query.from && `Tu-${query.from}`, query.to && `Den-${query.to}`].filter(Boolean).join("_");
+  const exportedAt = new Date(Date.now() + 7 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", "_")
+    .replaceAll(":", "-");
+  return `Sach-Luat-Viet-Nam_Bao-cao-don-hang_${period || "Tat-ca-thoi-gian"}_Xuat-${exportedAt}.xlsx`;
 }
 
 export interface OrderListQuery {

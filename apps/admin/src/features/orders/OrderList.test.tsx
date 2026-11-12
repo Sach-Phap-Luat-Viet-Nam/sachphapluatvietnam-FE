@@ -89,11 +89,12 @@ describe("OrderList", () => {
         return new HttpResponse(new Uint8Array([80, 75, 3, 4]), {
           headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": 'attachment; filename="Bao-cao-don-hang_2026-11.xlsx"',
           },
         });
       }),
     );
-    const blob = await exportOrders({
+    const { blob, filename } = await exportOrders({
       ...EMPTY_ORDER_QUERY,
       page: 3,
       status: "delivered",
@@ -103,6 +104,7 @@ describe("OrderList", () => {
       q: "0901234567",
     });
     expect(blob.size).toBe(4);
+    expect(filename).toBe("Bao-cao-don-hang_2026-11.xlsx");
     expect(authorization).toBe("Bearer t1");
     expect(requestUrl?.searchParams.get("Status")).toBe("delivered");
     expect(requestUrl?.searchParams.get("PaymentMethod")).toBe("cod");
@@ -120,6 +122,62 @@ describe("OrderList", () => {
       ),
     );
     await expect(exportOrders(EMPTY_ORDER_QUERY)).rejects.toMatchObject({ status: 403, code: "FORBIDDEN" });
+  });
+
+  it("uses the server filename when clicking Export Excel", async () => {
+    const user = userEvent.setup();
+    const filename = "Sach-Luat-Viet-Nam_Bao-cao-don-hang_Xuat-2026-11-12_14-30-00.xlsx";
+    server.use(
+      http.get(
+        `${ORIGIN}/api/v1/admin/orders/export`,
+        () =>
+          new HttpResponse(new Uint8Array([80, 75, 3, 4]), {
+            headers: { "Content-Disposition": `attachment; filename="${filename}"` },
+          }),
+      ),
+    );
+    vi.stubGlobal(
+      "URL",
+      class extends URL {
+        static override createObjectURL = vi.fn(() => "blob:order-report");
+        static override revokeObjectURL = vi.fn();
+      },
+    );
+    let downloadedName: string | undefined;
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloadedName = this.download;
+    });
+    try {
+      renderList();
+      await screen.findByRole("link", { name: "SLVN2610230001" });
+      await user.click(screen.getByRole("button", { name: "Xuất Excel" }));
+      await vi.waitFor(() => expect(downloadedName).toBe(filename));
+      await vi.waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:order-report"), { timeout: 2000 });
+    } finally {
+      click.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each([
+    ["attachment; filename=plain.xlsx; filename*=UTF-8''B%C3%A1o-c%C3%A1o.xlsx", "Báo-cáo.xlsx"],
+    ["attachment; filename=plain.xlsx; filename*=UTF-8''%broken", "plain.xlsx"],
+  ])("reads Content-Disposition %s", async (disposition, filename) => {
+    server.use(
+      http.get(
+        `${ORIGIN}/api/v1/admin/orders/export`,
+        () => new HttpResponse(new Uint8Array([80, 75]), { headers: { "Content-Disposition": disposition } }),
+      ),
+    );
+    expect((await exportOrders(EMPTY_ORDER_QUERY)).filename).toBe(filename);
+  });
+
+  it("uses a descriptive dated filename when the server omits the header", async () => {
+    server.use(http.get(`${ORIGIN}/api/v1/admin/orders/export`, () => new HttpResponse(new Uint8Array([80, 75]))));
+    const { filename } = await exportOrders({ ...EMPTY_ORDER_QUERY, from: "2026-11-01", to: "2026-11-12" });
+    expect(filename).toMatch(
+      /^Sach-Luat-Viet-Nam_Bao-cao-don-hang_Tu-2026-11-01_Den-2026-11-12_Xuat-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.xlsx$/,
+    );
   });
   it("liệt kê đơn, cả hàng là link sang chi tiết", async () => {
     renderList();

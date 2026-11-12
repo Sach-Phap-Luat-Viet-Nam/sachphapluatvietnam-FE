@@ -25,6 +25,10 @@ App **admin**, phần "Đơn hàng" (`lib/modules.ts`). Xem đơn: `super_admin`
 - **Danh sách**: mỗi đơn là một hàng bấm được cả hàng để mở chi tiết (bảng ở màn rộng, thẻ ở điện thoại): mã đơn và ngày
   đặt, khách + SĐT, nhãn trạng thái (màu theo nhóm chờ / đang xử lý / đã giao / đã đóng / hủy), phương thức và tình trạng
   thanh toán, số cuốn, tổng tiền. Có tổng số đơn, nút "Làm mới" và tự làm mới mỗi phút để thấy đơn mới. 20 đơn/trang.
+- **Xuất Excel**: xuất toàn bộ đơn theo bộ lọc qua `/api/v1/admin/orders/export` (không gửi phân trang).
+  Tên file tải xuống lấy từ header `Content-Disposition`, ưu tiên `filename*` UTF-8 rồi `filename`.
+  Nếu header bị thiếu/sai, dùng tên `Sach-Luat-Viet-Nam_Bao-cao-don-hang_<khoảng ngày>_Xuat-<giờ Việt Nam>.xlsx`.
+  Frontend giữ cả blob và tên file, gán tên này vào thuộc tính `download` của liên kết tải xuống.
 - **Chi tiết**: khách (khách vãng lai hoặc "Tài khoản #id", có link sang chi tiết khách khi được vào phần Khách hàng), địa
   chỉ và ghi chú, thanh toán (hạn thanh toán khi đơn chuyển khoản đang chờ), hóa đơn công ty, sách (ấn bản · bìa · SKU ·
   ISBN), tiền lấy nguyên từ backend (tạm tính, giảm giá, phí ship, tổng), giá vốn hàng xuất (có từ khi đóng gói), dòng thời
@@ -67,7 +71,7 @@ Không có biến mới. Dùng `API_BASE_URL`, `PROXY_SECRET` như `docs/feature
 
 - **Chưa thử với backend thật**: luồng đã kiểm tra bằng Vitest + MSW và Playwright giả lập API.
 - Bộ lọc và trang chưa lưu lên URL: quay lại từ chi tiết thì mất bộ lọc.
-- Chưa in phiếu giao hàng/hóa đơn, chưa tạo vận đơn (FR-71), chưa tạo đơn thủ công (FR-72), chưa xuất Excel.
+- Chưa in phiếu giao hàng/hóa đơn, chưa tạo vận đơn (FR-71), chưa tạo đơn thủ công (FR-72).
 - Chưa hiện tên người đổi trạng thái trong dòng thời gian (API chưa trả).
 - Kế toán chưa đổi được `paid` (backend chỉ cho `orders_manage`).
 - Chưa có thông báo realtime khi có đơn mới; muốn thấy đơn mới thì tải lại trang.
