@@ -1,3 +1,5 @@
+import { BookOpen, Store } from "lucide-react";
+import { OrderProgress } from "./OrderProgress";
 import type { ReactNode } from "react";
 import { formatDateTime, formatPrice } from "@slvn/utils";
 import { coverTypeLabel } from "@/lib/labels";
@@ -18,8 +20,9 @@ export function OrderDetails({ order }: { order: Order }) {
   const address = order.shippingAddress;
 
   return (
-    <div className="flex flex-col gap-8">
-      <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-3">
+    <div className="border-gold/20 bg-panel overflow-hidden border">
+      <OrderProgress order={order} />
+      <dl className="border-gold/20 bg-gold/5 grid gap-x-8 gap-y-4 border-y px-5 py-5 sm:grid-cols-3 sm:px-8">
         <div>
           <dt className="text-gold text-[11px] tracking-[0.26em] uppercase">Trạng thái</dt>
           <dd className="mt-1.5 text-lg font-semibold">{label(ORDER_STATUS_LABELS, order.status)}</dd>
@@ -37,23 +40,88 @@ export function OrderDetails({ order }: { order: Order }) {
         </div>
       </dl>
 
-      <section aria-labelledby={`${order.orderCode}-items`}>
+      <div className="border-gold/20 grid gap-8 border-b px-5 py-7 sm:px-8 lg:grid-cols-[1fr_1.5fr]">
+        <div className="flex flex-col gap-6">
+          <section aria-labelledby={`${order.orderCode}-shipping`}>
+            <h3 id={`${order.orderCode}-shipping`} className="font-editorial text-xl font-bold">
+              Giao đến
+            </h3>
+            <address className="text-sand mt-2 leading-7 not-italic">
+              {order.customerName} · {order.phone}
+              <br />
+              {[address.streetAddress, address.ward, address.province].join(", ")}
+              {order.email && (
+                <>
+                  <br />
+                  {order.email}
+                </>
+              )}
+            </address>
+            {order.note && <p className="text-mist mt-2 text-sm">Ghi chú: {order.note}</p>}
+          </section>
+          {order.invoiceInfo && (
+            <section aria-labelledby={`${order.orderCode}-invoice`}>
+              <h3 id={`${order.orderCode}-invoice`} className="font-editorial text-xl font-bold">
+                Hóa đơn công ty
+              </h3>
+              <p className="text-sand mt-2 leading-7">
+                {order.invoiceInfo.companyName}
+                <br />
+                MST {order.invoiceInfo.taxCode}
+                <br />
+                {order.invoiceInfo.address}
+                <br />
+                {order.invoiceInfo.email}
+              </p>
+            </section>
+          )}
+        </div>
+
+        {order.history.length > 0 && (
+          <section aria-labelledby={`${order.orderCode}-history`}>
+            <h3 id={`${order.orderCode}-history`} className="font-editorial text-xl font-bold">
+              Lịch sử đơn hàng
+            </h3>
+            <ol className="border-gold/40 mt-3 ml-1.5 flex flex-col gap-4 border-l pl-5">
+              {[...order.history]
+                .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                .map((entry) => (
+                  <li key={`${entry.toStatus}-${entry.createdAt}`} className="relative">
+                    <span aria-hidden="true" className="bg-gold absolute top-2 -left-[25px] size-2 rounded-full" />
+                    <p className="font-medium">{label(ORDER_STATUS_LABELS, entry.toStatus)}</p>
+                    <p className="text-mist text-sm">
+                      <time dateTime={entry.createdAt}>{formatDateTime(entry.createdAt)}</time>
+                      {entry.note && ` · ${entry.note}`}
+                    </p>
+                  </li>
+                ))}
+            </ol>
+          </section>
+        )}
+      </div>
+      <section aria-labelledby={`${order.orderCode}-items`} className="px-5 py-7 sm:px-8">
+        <p className="text-gold border-gold/20 mb-5 flex items-center gap-2 border-b pb-4 text-sm font-semibold">
+          <Store size={18} aria-hidden="true" /> Sách Luật Việt Nam
+        </p>
         <h3 id={`${order.orderCode}-items`} className="font-editorial text-2xl font-bold">
           Sách trong đơn
         </h3>
         <ul className="border-gold/20 mt-3 border-t">
           {order.items.map((item) => (
-            <li
-              key={item.skuId}
-              className="border-gold/20 flex flex-wrap justify-between gap-x-6 gap-y-1 border-b py-4"
-            >
-              <div className="min-w-0">
+            <li key={item.skuId} className="border-gold/20 flex flex-wrap items-start gap-4 border-b py-5 sm:gap-6">
+              <div
+                aria-hidden="true"
+                className="border-gold/20 bg-gold/5 text-gold flex h-24 w-16 shrink-0 items-center justify-center border sm:h-28 sm:w-20"
+              >
+                <BookOpen size={28} strokeWidth={1.25} />
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="font-medium">{item.bookTitle}</p>
                 <p className="text-mist text-sm">
                   {[item.editionName, coverTypeLabel(item.coverType), item.skuCode].filter(Boolean).join(" · ")}
                 </p>
               </div>
-              <p className="text-sand text-right">
+              <p className="text-sand ml-auto text-right text-sm">
                 {item.quantity} × {formatPrice(item.unitPrice)}
                 {item.discountAmount > 0 && (
                   <span className="text-ok block text-sm">−{formatPrice(item.discountAmount)}</span>
@@ -77,7 +145,7 @@ export function OrderDetails({ order }: { order: Order }) {
             ))}
           </ul>
         )}
-        <dl className="mt-4 ml-auto flex max-w-sm flex-col gap-2.5 text-[15px]">
+        <dl className="border-gold/20 bg-gold/5 mt-6 ml-auto flex max-w-lg flex-col gap-4 border p-5 text-[15px] sm:p-6">
           <Row term="Tạm tính">{formatPrice(order.subtotal)}</Row>
           {order.discount > 0 && <Row term="Giảm giá">−{formatPrice(order.discount)}</Row>}
           <Row term="Phí vận chuyển">{order.shippingFee ? formatPrice(order.shippingFee) : "Miễn phí"}</Row>
@@ -89,62 +157,6 @@ export function OrderDetails({ order }: { order: Order }) {
           </div>
         </dl>
       </section>
-
-      <div className="grid gap-8 sm:grid-cols-2">
-        <section aria-labelledby={`${order.orderCode}-shipping`}>
-          <h3 id={`${order.orderCode}-shipping`} className="font-editorial text-xl font-bold">
-            Giao đến
-          </h3>
-          <address className="text-sand mt-2 leading-7 not-italic">
-            {order.customerName} · {order.phone}
-            <br />
-            {[address.streetAddress, address.ward, address.province].join(", ")}
-            {order.email && (
-              <>
-                <br />
-                {order.email}
-              </>
-            )}
-          </address>
-          {order.note && <p className="text-mist mt-2 text-sm">Ghi chú: {order.note}</p>}
-        </section>
-        {order.invoiceInfo && (
-          <section aria-labelledby={`${order.orderCode}-invoice`}>
-            <h3 id={`${order.orderCode}-invoice`} className="font-editorial text-xl font-bold">
-              Hóa đơn công ty
-            </h3>
-            <p className="text-sand mt-2 leading-7">
-              {order.invoiceInfo.companyName}
-              <br />
-              MST {order.invoiceInfo.taxCode}
-              <br />
-              {order.invoiceInfo.address}
-              <br />
-              {order.invoiceInfo.email}
-            </p>
-          </section>
-        )}
-      </div>
-
-      {order.history.length > 0 && (
-        <section aria-labelledby={`${order.orderCode}-history`}>
-          <h3 id={`${order.orderCode}-history`} className="font-editorial text-xl font-bold">
-            Lịch sử đơn hàng
-          </h3>
-          <ol className="border-gold/40 mt-3 ml-1.5 flex flex-col gap-4 border-l pl-5">
-            {order.history.map((entry) => (
-              <li key={`${entry.toStatus}-${entry.createdAt}`} className="relative">
-                <span aria-hidden="true" className="bg-gold absolute top-2 -left-[25px] size-2 rounded-full" />
-                <p className="font-medium">{label(ORDER_STATUS_LABELS, entry.toStatus)}</p>
-                <p className="text-mist text-sm">
-                  <time dateTime={entry.createdAt}>{formatDateTime(entry.createdAt)}</time>
-                  {entry.note && ` · ${entry.note}`}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
     </div>
   );
 }
