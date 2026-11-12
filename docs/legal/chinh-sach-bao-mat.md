@@ -10,7 +10,7 @@ Các dữ liệu được xử lý khi dùng website, mua sách và liên hệ h
 
 Chính sách này giải thích việc xử lý dữ liệu cá nhân khi bạn truy cập Sách Luật Việt Nam, đăng ký/đăng nhập, quản lý hồ sơ, mua sách, thanh toán, tra cứu và liên hệ hỗ trợ. Dữ liệu có thể thuộc người mua, người nhận hàng khác hoặc người đại diện tổ chức yêu cầu hóa đơn.
 
-Đơn vị vận hành chịu trách nhiệm đối với hoạt động xử lý do mình quyết định. Trước khi áp dụng bản chính thức, cần công bố tên pháp lý, địa chỉ, mã số thuế và đầu mối bảo vệ dữ liệu. Kênh hỗ trợ đơn hàng đang được website liên kết là Zalo 0932 000 035; bạn có thể nêu rõ ‘yêu cầu dữ liệu cá nhân’ để được chuyển xử lý.
+Đơn vị vận hành là CÔNG TY TNHH SÁCH LUẬT VIỆT NAM, mã số thuế 0316181465, địa chỉ 77 Đường S9, Phường Tây Thạnh, Thành phố Hồ Chí Minh, Việt Nam. Công ty chịu trách nhiệm đối với hoạt động xử lý dữ liệu do mình quyết định. Kênh hỗ trợ đơn hàng đang được website liên kết là Zalo 0932 000 035; bạn có thể nêu rõ ‘yêu cầu dữ liệu cá nhân’ để được chuyển xử lý. Đầu mối bảo vệ dữ liệu chuyên trách sẽ được công bố sau khi xác nhận.
 
 Chính sách này không thay thế thông báo riêng của ngân hàng, Zalo hoặc dịch vụ bên ngoài khi bạn sử dụng trực tiếp các dịch vụ đó. Cửa hàng vẫn có trách nhiệm đối với việc lựa chọn, cung cấp dữ liệu và phối hợp với bên xử lý trong phạm vi của mình.
 
