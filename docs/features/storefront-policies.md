@@ -37,7 +37,7 @@ Lần rà soát tiếp theo: đối chiếu Điều 38 Luật Bảo vệ quyền
 
 ## Các điểm chủ website cần hoàn thiện trước khi áp dụng chính thức
 
-1. **Chủ thể cung cấp dịch vụ và kiểm soát dữ liệu:** tên pháp lý, loại hình kinh doanh, mã số thuế/đăng ký, địa chỉ, người/bộ phận tiếp nhận khiếu nại và yêu cầu dữ liệu; xác nhận quyền sử dụng hai số Zalo hiện có. Chưa có căn cứ để tự điền email hoặc địa chỉ doanh nghiệp.
+1. **Chủ thể cung cấp dịch vụ và kiểm soát dữ liệu:** đã bổ sung tên CÔNG TY TNHH SÁCH LUẬT VIỆT NAM, mã số thuế 0316181465 và địa chỉ 77 Đường S9, Phường Tây Thạnh, Thành phố Hồ Chí Minh, Việt Nam theo ảnh do chủ dự án cung cấp. Cần xác nhận người/bộ phận tiếp nhận khiếu nại và yêu cầu dữ liệu, địa chỉ nhận thư khiếu nại và quyền sử dụng hai số Zalo hiện có; chưa có căn cứ để tự điền email.
 2. **Bán hàng:** cách tính/hiển thị thuế trong giá, thời điểm và thông báo xác nhận giao kết, lịch xử lý/giao hàng và việc đồng kiểm với hãng giao thực tế. Chốt phương thức cung cấp xác nhận/chứng từ cho khách, không chỉ màn hình có thể mất sau F5.
 3. **Đổi trả:** lỗi nào được xử lý theo quy trình riêng, quyền đổi ý nếu có, thời hạn nội bộ, địa chỉ gửi lại, bên chịu phí, chứng cứ thay thế; không loại trừ quyền luật định, không bắt buộc video mở hộp.
 4. **Tiền:** người phụ trách đối soát giao dịch sai/trùng/muộn, quy trình xác minh tài khoản hoàn, lịch phản hồi/hoàn thực tế và cách theo dõi. Những trường hợp BE không tự khớp phải có người xử lý, không chỉ đổi nội dung tài liệu.
