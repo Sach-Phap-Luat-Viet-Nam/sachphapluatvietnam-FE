@@ -11,6 +11,7 @@ import { FORM_ERROR, INPUT, LABEL } from "@/components/form-styles";
 import { BankTransferInfo } from "./BankTransferInfo";
 import { orderingErrorMessage } from "./errors";
 import { OrderDetails } from "./OrderDetails";
+import { ORDER_STATUS_LABELS, label } from "./labels";
 import { isAwaitingTransfer } from "./payment";
 import { OrdersSignInRequired } from "./OrdersSignInRequired";
 import { useCancelOrder, useMyOrder } from "./useOrders";
@@ -171,8 +172,18 @@ export function MyOrder({ code }: MyOrderProps) {
   }
 
   return (
-    <div ref={content} tabIndex={-1} className="flex flex-col gap-8 outline-none">
-      {back}
+    <div ref={content} tabIndex={-1} className="flex flex-col gap-4 outline-none">
+      <div className="border-gold/20 bg-panel flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border px-5 py-3 sm:px-8">
+        {back}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <span className="text-mist">
+            Mã đơn: <span className="text-ivory font-medium break-all">{order.orderCode}</span>
+          </span>
+          <span className="text-gold border-gold/25 border-l pl-4 font-semibold">
+            {label(ORDER_STATUS_LABELS, order.status)}
+          </span>
+        </div>
+      </div>
       {cancel.isSuccess && (
         <p role="status" className="text-ok flex items-center gap-2">
           <CircleCheck size={18} /> Đã hủy đơn hàng.
@@ -180,7 +191,7 @@ export function MyOrder({ code }: MyOrderProps) {
       )}
       {isAwaitingTransfer(order) && <BankTransferInfo order={order} />}
       <OrderDetails order={order} />
-      <div className="border-gold/20 flex flex-col gap-3 border-t pt-6">
+      <div className="border-gold/20 bg-panel flex flex-col items-start gap-3 border p-5 sm:items-end sm:px-8">
         {order.canCancel ? (
           <>
             <p className="text-mist text-sm">Bạn có thể tự hủy đơn khi đơn chưa được đóng gói.</p>
