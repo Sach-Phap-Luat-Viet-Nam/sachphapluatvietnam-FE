@@ -14,6 +14,7 @@ import { formatPrice } from "@slvn/utils";
 import { BookLoader } from "@/components/BookLoader";
 import { FORM_ERROR, INPUT, LABEL, SUBMIT } from "@/components/form-styles";
 import { ProvinceSelect } from "@/components/ProvinceSelect";
+import { WardSelect } from "@/components/WardSelect";
 import { TextField } from "@/components/TextField";
 import { coverTypeLabel } from "@/lib/labels";
 import { MAX_ADDRESSES } from "@/lib/account-api";
@@ -136,6 +137,7 @@ function CheckoutForm({ summary, methods, blocker, submitOrder, recovery, onPlac
   const [checkingCoupon, setCheckingCoupon] = useState(false);
   const [couponNotice, setCouponNotice] = useState<CouponNotice | null>(null);
   const province = useWatch({ control, name: "shippingAddress.province" });
+  const ward = useWatch({ control, name: "shippingAddress.ward" });
   const phone = useWatch({ control, name: "phone" });
   const previewInput = {
     ...summary.source,
@@ -329,15 +331,19 @@ function CheckoutForm({ summary, methods, blocker, submitOrder, recovery, onPlac
               id="province"
               label="Tỉnh/Thành phố"
               autoComplete="address-level1"
-              registration={register("shippingAddress.province")}
+              registration={register("shippingAddress.province", {
+                onChange: () => setValue("shippingAddress.ward", "", { shouldDirty: true }),
+              })}
               value={province}
               error={
                 errors.shippingAddress?.province?.message ??
                 (addressUnsupported ? "Chưa hỗ trợ giao đến địa chỉ này." : undefined)
               }
             />
-            <TextField
+            <WardSelect
               id="ward"
+              province={province}
+              value={ward}
               label="Phường/Xã"
               autoComplete="address-level2"
               registration={register("shippingAddress.ward")}
