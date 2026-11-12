@@ -103,12 +103,18 @@ describe("Account", () => {
     const form = screen.getByRole("form", { name: "Thêm địa chỉ" });
     // Người nhận, số điện thoại điền sẵn từ hồ sơ.
     expect(within(form).getByLabelText("Tên người nhận")).toHaveValue("Nguyễn Văn A");
+    const ward = within(form).getByRole("combobox", { name: "Phường/Xã" });
+    expect(ward).toBeDisabled();
+    await user.selectOptions(within(form).getByLabelText("Tỉnh/Thành phố"), "Hà Nội");
+    await user.selectOptions(ward, "Phường Cầu Giấy");
     await user.selectOptions(within(form).getByLabelText("Tỉnh/Thành phố"), "TP. Hồ Chí Minh");
-    await user.type(within(form).getByLabelText("Phường/Xã"), "Phường Bến Nghé");
+    expect(ward).toHaveValue("");
+    expect(within(ward).queryByRole("option", { name: "Phường Cầu Giấy" })).not.toBeInTheDocument();
+    await user.selectOptions(ward, "Phường Sài Gòn");
     await user.type(within(form).getByLabelText("Số nhà, tên đường"), "2 Lê Duẩn");
     await user.click(within(form).getByRole("button", { name: "Lưu địa chỉ" }));
 
-    const office = (await screen.findByText("2 Lê Duẩn, Phường Bến Nghé, TP. Hồ Chí Minh")).closest("li");
+    const office = (await screen.findByText("2 Lê Duẩn, Phường Sài Gòn, TP. Hồ Chí Minh")).closest("li");
     if (!office) throw new Error("Không thấy địa chỉ vừa thêm");
     await user.click(within(office).getByRole("button", { name: "Đặt làm mặc định" }));
     expect(await within(office).findByText("Mặc định")).toBeVisible();
@@ -116,7 +122,7 @@ describe("Account", () => {
     await user.click(within(office).getByRole("button", { name: "Xóa" }));
     await user.click(within(office).getByRole("button", { name: "Xóa" }));
     await vi.waitFor(() =>
-      expect(screen.queryByText("2 Lê Duẩn, Phường Bến Nghé, TP. Hồ Chí Minh")).not.toBeInTheDocument(),
+      expect(screen.queryByText("2 Lê Duẩn, Phường Sài Gòn, TP. Hồ Chí Minh")).not.toBeInTheDocument(),
     );
     // Xóa địa chỉ mặc định thì địa chỉ còn lại thành mặc định.
     expect(await screen.findByText("Mặc định")).toBeVisible();
