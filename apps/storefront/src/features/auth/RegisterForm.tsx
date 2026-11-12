@@ -129,8 +129,28 @@ export function RegisterForm() {
               aria-describedby={errors.acceptTerms ? "acceptTerms-error" : undefined}
               className="accent-gold mt-1 size-4.5 shrink-0"
             />
-            Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật
+            <span>
+              Tôi đồng ý với{" "}
+              <Link
+                href="/dieu-khoan-su-dung"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline underline-offset-4"
+              >
+                Điều khoản sử dụng
+              </Link>{" "}
+              và{" "}
+              <Link
+                href="/chinh-sach-bao-mat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline underline-offset-4"
+              >
+                Chính sách bảo mật
+              </Link>
+            </span>
           </label>
+          <p className="text-mist text-xs leading-5">Các liên kết mở trong tab mới để giữ thông tin đang nhập.</p>
           {errors.acceptTerms && (
             <p id="acceptTerms-error" role="alert" className="text-danger text-sm">
               {errors.acceptTerms.message}
