@@ -41,6 +41,12 @@ export async function Footer() {
           <span className={HEADING}>GIAO HÀNG VÀ THANH TOÁN</span>
           {shipping && <span>{shipping}</span>}
           <span>Thanh toán khi nhận hàng (COD) hoặc chuyển khoản</span>
+          <Link href="/dieu-khoan-su-dung" className="link-underline w-fit">
+            Điều khoản sử dụng
+          </Link>
+          <Link href="/chinh-sach-bao-mat" className="link-underline w-fit">
+            Chính sách bảo mật
+          </Link>
         </div>
       </Container>
       <Container className="border-gold/15 text-dim border-t py-6 text-[13px]">© 2026 Sách Luật Việt Nam</Container>
