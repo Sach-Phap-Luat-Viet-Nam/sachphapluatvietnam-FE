@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { clearSession, startSession } from "@slvn/auth";
 import { OrderList } from "./OrderList";
+import { EMPTY_ORDER_QUERY, exportOrders } from "./api";
 
 const ORIGIN = window.location.origin;
 const server = setupServer();
@@ -62,6 +63,64 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("OrderList", () => {
+  it("shows server statistics even when the current page has no orders", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/orders`, () =>
+        HttpResponse.json({
+          items: [],
+          meta: { page: 1, limit: 20, total: 0 },
+          statistics: { revenue: 1234567, booksSold: 321 },
+        }),
+      ),
+    );
+    renderList();
+    expect(await screen.findByText("1.234.567 ₫")).toBeVisible();
+    expect(screen.getByText("321")).toBeVisible();
+    expect(screen.getByText("Chưa có đơn hàng nào.")).toBeVisible();
+  });
+
+  it("exports binary Excel with authentication and filters, excluding pagination", async () => {
+    let requestUrl: URL | undefined;
+    let authorization: string | null = null;
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/orders/export`, ({ request }) => {
+        requestUrl = new URL(request.url);
+        authorization = request.headers.get("Authorization");
+        return new HttpResponse(new Uint8Array([80, 75, 3, 4]), {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          },
+        });
+      }),
+    );
+    const blob = await exportOrders({
+      ...EMPTY_ORDER_QUERY,
+      page: 3,
+      status: "delivered",
+      paymentMethod: "cod",
+      from: "2026-11-01",
+      to: "2026-11-12",
+      q: "0901234567",
+    });
+    expect(blob.size).toBe(4);
+    expect(authorization).toBe("Bearer t1");
+    expect(requestUrl?.searchParams.get("Status")).toBe("delivered");
+    expect(requestUrl?.searchParams.get("PaymentMethod")).toBe("cod");
+    expect(requestUrl?.searchParams.get("From")).toBe("2026-11-01");
+    expect(requestUrl?.searchParams.get("To")).toBe("2026-11-12");
+    expect(requestUrl?.searchParams.get("Q")).toBe("0901234567");
+    expect(requestUrl?.searchParams.has("Page")).toBe(false);
+    expect(requestUrl?.searchParams.has("Limit")).toBe(false);
+  });
+
+  it("rejects an export API error instead of downloading it as Excel", async () => {
+    server.use(
+      http.get(`${ORIGIN}/api/v1/admin/orders/export`, () =>
+        HttpResponse.json({ status: 403, code: "FORBIDDEN", title: "Forbidden" }, { status: 403 }),
+      ),
+    );
+    await expect(exportOrders(EMPTY_ORDER_QUERY)).rejects.toMatchObject({ status: 403, code: "FORBIDDEN" });
+  });
   it("liệt kê đơn, cả hàng là link sang chi tiết", async () => {
     renderList();
 

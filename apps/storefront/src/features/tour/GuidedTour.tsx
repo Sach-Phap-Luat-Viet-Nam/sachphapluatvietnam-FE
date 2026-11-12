@@ -185,10 +185,15 @@ function createGuideLayer(): GuideLayer {
           // Hộp có thể dịch chuyển (driver tự né mép viewport, khách cuộn/resize trong lúc hộp mở) nên theo dõi liên tục.
           const observer = new ResizeObserver(reposition);
           observer.observe(popover.wrapper);
+          // Driver có thể đặt lại top/left sau khi render mà không đổi kích thước hộp.
+          // ResizeObserver không nhận được thay đổi này: nhân vật phải theo cả vị trí cuối của hộp.
+          const positionObserver = new MutationObserver(reposition);
+          positionObserver.observe(popover.wrapper, { attributes: true, attributeFilter: ["style", "class"] });
           window.addEventListener("scroll", reposition, { passive: true, capture: true });
           window.addEventListener("resize", reposition);
           stopTracking = () => {
             observer.disconnect();
+            positionObserver.disconnect();
             window.removeEventListener("scroll", reposition, true);
             window.removeEventListener("resize", reposition);
           };
@@ -292,8 +297,12 @@ export function GuidedTour() {
               }
               const move = () => (direction === 1 ? current.moveNext() : current.movePrevious());
               const index = current.getActiveIndex();
-              const element = index === undefined ? null : stepElement(steps[index + direction]);
-              const target = element ? stepScrollTarget(boxOf(element), pageViewport()) : null;
+              const nextStep = index === undefined ? undefined : steps[index + direction];
+              const element = stepElement(nextStep);
+              // Kệ giảm giá nằm cao hơn tâm màn hình để chừa chỗ cho hộp hướng dẫn và nhân vật bên dưới.
+              const target = element
+                ? stepScrollTarget(boxOf(element), pageViewport(), nextStep?.target === "on-sale" ? 0.29 : undefined)
+                : null;
               if (target === null) {
                 move();
                 return;

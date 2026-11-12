@@ -16,7 +16,14 @@ export interface PageViewport {
  * cuộn, giữ hiệu ứng lỗ sáng trượt sang). Cùng tiêu chí và cùng vị trí với `scrollIntoView` của driver.js (giữa màn hình,
  * phần tử cao hơn màn hình thì mép trên chạm đầu) nên cuộn xong driver không tự cuộn thêm lần nữa.
  */
-export function stepScrollTarget(box: VerticalBox, viewport: PageViewport): number | null {
+export function stepScrollTarget(box: VerticalBox, viewport: PageViewport, topShare?: number): number | null {
+  if (topShare !== undefined) {
+    const target = Math.min(
+      viewport.maxScrollY,
+      Math.max(0, Math.round(viewport.scrollY + box.top - viewport.height * topShare)),
+    );
+    return Math.abs(target - viewport.scrollY) <= 1 ? null : target;
+  }
   if (box.top >= 0 && box.bottom <= viewport.height) {
     return null;
   }

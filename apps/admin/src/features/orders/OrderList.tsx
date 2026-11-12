@@ -3,8 +3,8 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { CalendarDays, RefreshCw, Search, X } from "lucide-react";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { CalendarDays, Download, RefreshCw, Search, X } from "lucide-react";
 import { Button, cn } from "@slvn/ui";
 import { formatDateTime, formatPrice } from "@slvn/utils";
 import { DateInput } from "@/components/DateInput";
@@ -15,7 +15,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { CARD, FIELD_ERROR, INPUT, SELECT } from "@/components/form-styles";
 import { enumLabel } from "@/lib/enum-label";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
-import { ORDERS_PAGE_SIZE, fetchOrders, orderKeys } from "./api";
+import { ORDERS_PAGE_SIZE, exportOrders, fetchOrders, orderKeys } from "./api";
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
@@ -104,6 +104,19 @@ export function OrderList() {
   };
   const hasDates = filters.from !== "" || filters.to !== "";
   const datesOpen = showDates || hasDates;
+  const exporting = useMutation({
+    mutationFn: () => exportOrders(query),
+    onSuccess: (blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "orders.xlsx";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+  });
 
   return (
     <div className="flex flex-col gap-5">
@@ -111,17 +124,53 @@ export function OrderList() {
         title="Đơn hàng"
         description="Mở một đơn để xem chi tiết và chuyển trạng thái: xác nhận, đóng gói, giao hàng, hủy, hoàn tiền."
         actions={
-          <Button
-            variant="outline"
-            onClick={() => void orders.refetch()}
-            disabled={orders.isFetching}
-            aria-label="Làm mới danh sách đơn"
-          >
-            <RefreshCw size={18} aria-hidden="true" className={orders.isFetching ? "animate-spin" : undefined} /> Làm
-            mới
-          </Button>
+          <>
+            <Button
+              onClick={() => exporting.mutate()}
+              disabled={exporting.isPending || Object.keys(inputErrors).length > 0 || filters.q !== debouncedQ}
+            >
+              <Download size={18} aria-hidden="true" /> {exporting.isPending ? "Đang xuất…" : "Xuất Excel"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void orders.refetch()}
+              disabled={orders.isFetching}
+              aria-label="Làm mới danh sách đơn"
+            >
+              <RefreshCw size={18} aria-hidden="true" className={orders.isFetching ? "animate-spin" : undefined} /> Làm
+              mới
+            </Button>
+          </>
         }
       />
+      {exporting.isError && <ErrorStatus error={exporting.error} onRetry={() => exporting.mutate()} />}
+
+      <section aria-label="Thống kê đơn hàng" aria-busy={orders.isFetching} className="grid gap-4 sm:grid-cols-2">
+        <div className={`${CARD} p-5`}>
+          <p className="text-muted text-sm">Doanh thu tiền sách</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
+            {orders.isFetching || orders.isError
+              ? "—"
+              : orders.data?.statistics
+                ? formatPrice(orders.data.statistics.revenue)
+                : "—"}
+          </p>
+          <p className="text-muted mt-2 text-sm">Đơn đã giao / hoàn tất, sau giảm giá, không gồm phí vận chuyển.</p>
+        </div>
+        <div className={`${CARD} p-5`}>
+          <p className="text-muted text-sm">Số cuốn đã bán</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
+            {orders.isFetching || orders.isError
+              ? "—"
+              : orders.data?.statistics
+                ? new Intl.NumberFormat("vi-VN").format(orders.data.statistics.booksSold)
+                : "—"}
+          </p>
+          <p className="text-muted mt-2 text-sm">
+            Tính trên toàn bộ đơn đã giao / hoàn tất theo bộ lọc, qua mọi trang.
+          </p>
+        </div>
+      </section>
 
       <section aria-label="Lọc đơn hàng" className={`${CARD} flex flex-col gap-4 p-4 sm:p-5`}>
         <div role="search" className="flex flex-col gap-2">

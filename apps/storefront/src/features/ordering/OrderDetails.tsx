@@ -1,4 +1,5 @@
-import { BookOpen, Store } from "lucide-react";
+import { Store } from "lucide-react";
+import { BookCover } from "@/features/catalog/BookCover";
 import { OrderProgress } from "./OrderProgress";
 import type { ReactNode } from "react";
 import { formatDateTime, formatPrice } from "@slvn/utils";
@@ -109,12 +110,11 @@ export function OrderDetails({ order }: { order: Order }) {
         <ul className="border-gold/20 mt-3 border-t">
           {order.items.map((item) => (
             <li key={item.skuId} className="border-gold/20 flex flex-wrap items-start gap-4 border-b py-5 sm:gap-6">
-              <div
-                aria-hidden="true"
-                className="border-gold/20 bg-gold/5 text-gold flex h-24 w-16 shrink-0 items-center justify-center border sm:h-28 sm:w-20"
-              >
-                <BookOpen size={28} strokeWidth={1.25} />
-              </div>
+              <BookCover
+                book={{ id: item.skuId, title: item.bookTitle, coverImageUrl: item.coverImageUrl }}
+                size="mini"
+                className="h-24 w-18 shrink-0 sm:h-28 sm:w-21"
+              />
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{item.bookTitle}</p>
                 <p className="text-mist text-sm">

@@ -41,6 +41,21 @@ function order(overrides: Record<string, unknown> = {}) {
 }
 
 describe("OrderDetails", () => {
+  it("preserves the API cover URL when parsing and renders the book image", () => {
+    const original = order();
+    const coverImageUrl = "https://catalog.example.com/covers/civil-law.jpg";
+    const parsed = order({ items: [{ ...original.items[0], coverImageUrl }] });
+    render(<OrderDetails order={parsed} />);
+    expect(screen.getByRole("img", { name: "Bìa sách Bộ luật Dân sự 2026" })).toHaveAttribute("src", coverImageUrl);
+  });
+
+  it("supports missing and null covers without rendering a broken image", () => {
+    const original = order();
+    expect(original.items[0]?.coverImageUrl).toBeNull();
+    render(<OrderDetails order={order({ items: [{ ...original.items[0], coverImageUrl: null }] })} />);
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
   it("shows no discount rows for an order without promotions", () => {
     render(<OrderDetails order={order()} />);
     expect(screen.queryByText("Giảm giá")).not.toBeInTheDocument();

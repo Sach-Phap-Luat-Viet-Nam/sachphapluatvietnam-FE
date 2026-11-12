@@ -4,6 +4,10 @@ import { stepScrollTarget } from "./tour-scroll";
 const viewport = { height: 800, scrollY: 1000, maxScrollY: 5000 };
 
 describe("stepScrollTarget", () => {
+  it("positions the sale heading higher even when it is already visible", () => {
+    expect(stepScrollTarget({ top: 360, bottom: 490 }, viewport, 0.29)).toBe(1128);
+    expect(stepScrollTarget({ top: 232, bottom: 362 }, viewport, 0.29)).toBeNull();
+  });
   it("không cuộn khi mốc đã nằm trọn trong màn hình", () => {
     expect(stepScrollTarget({ top: 0, bottom: 800 }, viewport)).toBeNull();
     expect(stepScrollTarget({ top: 300, bottom: 400 }, viewport)).toBeNull();

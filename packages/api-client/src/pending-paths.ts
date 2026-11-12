@@ -70,6 +70,15 @@ export type BooksQuery = NonNullable<GeneratedBooksGet["parameters"]["query"]> &
 
 /** Route chờ sinh type từ OpenAPI, gộp vào `paths` của client. */
 export interface PendingPaths {
+  "/api/v1/admin/orders/export": {
+    parameters: NoParameters;
+    get: {
+      parameters: Omit<NoParameters, "query"> & {
+        query?: { Status?: string; PaymentMethod?: string; From?: string; To?: string; Q?: string };
+      };
+      responses: { 200: { content: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": Blob } } };
+    };
+  };
   /** Danh sách sách: như bản sinh ra, thêm `Author` vào query. */
   "/api/v1/books": Omit<GeneratedBooksRoute, "get"> & {
     get: Omit<GeneratedBooksGet, "parameters"> & {

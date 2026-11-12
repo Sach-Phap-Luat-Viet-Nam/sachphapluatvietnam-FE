@@ -58,6 +58,8 @@ export const orderItemSchema = z.object({
   editionName: z.string().nullable(),
   isbn: z.string(),
   coverType: z.string(),
+  /** Ảnh hiện tại từ catalog; SKU đã xóa hoặc response cũ có thể không có ảnh. */
+  coverImageUrl: z.string().nullable().default(null),
   unitPrice: z.number(),
   quantity: z.number(),
   lineTotal: z.number(),

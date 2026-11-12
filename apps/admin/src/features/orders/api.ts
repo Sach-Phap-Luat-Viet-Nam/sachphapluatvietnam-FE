@@ -1,16 +1,40 @@
 import { unwrap } from "@slvn/api-client";
+import { z } from "zod";
 import { browserApi } from "@slvn/auth";
 import { pageSchema } from "@/lib/page-schema";
-import type { Page } from "@/lib/page-schema";
 import { adminOrderSchema, orderSummarySchema } from "./schemas";
-import type { AdminOrder, OrderSummary } from "./schemas";
+import type { AdminOrder } from "./schemas";
 
 // API "Admin — Đơn hàng" (docs/api_reference.md): xem đơn với policy `orders_read` (super_admin, order_manager,
 // customer_service, accountant), đổi trạng thái với `orders_manage` (super_admin, order_manager). Gọi qua proxy `/api/v1`.
 
 export const ORDERS_PAGE_SIZE = 20;
 
-const orderPageSchema = pageSchema(orderSummarySchema);
+const orderPageSchema = pageSchema(orderSummarySchema).extend({
+  statistics: z.object({ revenue: z.number(), booksSold: z.number() }).optional(),
+});
+
+function orderFilters(query: OrderListQuery) {
+  return {
+    Status: query.status || undefined,
+    PaymentMethod: query.paymentMethod || undefined,
+    From: query.from || undefined,
+    To: query.to || undefined,
+    Q: query.q || undefined,
+  };
+}
+
+/** Xuất toàn bộ kết quả theo bộ lọc, không giới hạn theo trang hiện tại. */
+export async function exportOrders(query: OrderListQuery): Promise<Blob> {
+  const blob = await unwrap(
+    browserApi().GET("/api/v1/admin/orders/export", {
+      params: { query: orderFilters(query) },
+      parseAs: "blob",
+    }),
+  );
+  if (!blob) throw new Error("Không nhận được file Excel. Vui lòng thử lại.");
+  return blob;
+}
 
 export interface OrderListQuery {
   status: string;
@@ -26,16 +50,12 @@ export interface OrderListQuery {
 export const EMPTY_ORDER_QUERY: OrderListQuery = { status: "", paymentMethod: "", from: "", to: "", q: "", page: 1 };
 
 /** Danh sách đơn, mới nhất trước. Ô lọc trống thì không gửi. */
-export async function fetchOrders(query: OrderListQuery): Promise<Page<OrderSummary>> {
+export async function fetchOrders(query: OrderListQuery): Promise<z.infer<typeof orderPageSchema>> {
   const data = await unwrap(
     browserApi().GET("/api/v1/admin/orders", {
       params: {
         query: {
-          Status: query.status || undefined,
-          PaymentMethod: query.paymentMethod || undefined,
-          From: query.from || undefined,
-          To: query.to || undefined,
-          Q: query.q || undefined,
+          ...orderFilters(query),
           Page: query.page,
           Limit: ORDERS_PAGE_SIZE,
         },
