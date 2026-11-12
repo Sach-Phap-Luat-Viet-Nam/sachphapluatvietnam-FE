@@ -61,7 +61,7 @@ export function AccountNav() {
       <Link
         href="/tai-khoan"
         title="Tài khoản"
-        className="group hover:text-gold flex min-h-11 max-w-60 items-center gap-2.5 transition-colors"
+        className="group hover:text-gold flex min-h-11 max-w-44 min-w-0 items-center gap-2.5 transition-colors"
       >
         {/* Tên đã có ngay cạnh (hoặc trong sr-only) nên avatar chỉ để trang trí. */}
         <Avatar
@@ -76,20 +76,22 @@ export function AccountNav() {
       <span aria-hidden="true" className="bg-ivory/15 h-6 w-px max-sm:hidden" />
       <Link
         href="/don-hang"
-        className="link-underline text-mist hover:text-gold flex min-h-11 items-center gap-2 max-sm:w-10 max-sm:justify-center"
+        title="Đơn của tôi"
+        className="link-underline text-mist hover:text-gold flex min-h-11 items-center gap-2 max-2xl:w-10 max-2xl:justify-center"
       >
         <Package size={18} strokeWidth={1.6} />
-        <span className="max-sm:sr-only">Đơn của tôi</span>
+        <span className="max-2xl:sr-only">Đơn của tôi</span>
       </Link>
       <button
         type="button"
         onClick={() => void handleLogout()}
         disabled={loggingOut}
-        className="link-underline text-mist hover:text-gold flex min-h-11 items-center gap-2 disabled:opacity-60 max-sm:w-10 max-sm:justify-center"
+        title={session.impersonation ? "Thoát đăng nhập hộ" : "Đăng xuất"}
+        className="link-underline text-mist hover:text-gold flex min-h-11 items-center gap-2 disabled:opacity-60 max-2xl:w-10 max-2xl:justify-center"
       >
         <LogOut size={18} strokeWidth={1.6} />
         {/* Tab đăng nhập hộ: `logout` chỉ xóa token ở tab này, không gọi `/auth/logout`. */}
-        <span className="max-sm:sr-only">
+        <span className="max-2xl:sr-only">
           {loggingOut ? "Đang đăng xuất…" : session.impersonation ? "Thoát đăng nhập hộ" : "Đăng xuất"}
         </span>
       </button>
