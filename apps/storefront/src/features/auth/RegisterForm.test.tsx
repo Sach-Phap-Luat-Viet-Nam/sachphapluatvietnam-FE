@@ -61,6 +61,28 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("RegisterForm", () => {
+  it("opens both policies separately while retaining registration input", async () => {
+    const user = userEvent.setup();
+    render(<RegisterForm />);
+    await user.type(screen.getByLabelText("Họ tên"), "Nguyễn Văn A");
+    for (const [name, href] of [
+      ["Điều khoản sử dụng", "/dieu-khoan-su-dung"],
+      ["Chính sách bảo mật", "/chinh-sach-bao-mat"],
+    ]) {
+      const link = screen.getByRole("link", { name });
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      // Prevent jsdom navigation while exercising click behavior inside the checkbox label.
+      link.addEventListener("click", (event) => event.preventDefault(), { once: true });
+      await user.click(link);
+      expect(screen.getByRole("checkbox", { name: TERMS_LABEL })).not.toBeChecked();
+      expect(screen.getByLabelText("Họ tên")).toHaveValue("Nguyễn Văn A");
+    }
+    expect(replace).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it("báo lỗi từng ô khi gửi form trống, không gọi API", async () => {
     const user = userEvent.setup();
     render(<RegisterForm />);
