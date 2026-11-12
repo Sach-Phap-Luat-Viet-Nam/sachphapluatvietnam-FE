@@ -14,8 +14,8 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
           <aside aria-label="Trạng thái tài liệu" className="border-gold/35 bg-panel mt-7 border p-5 text-sm leading-7">
             <p className="text-gold font-semibold">Bản dự thảo • Soạn ngày {POLICY_DRAFT_DATE}</p>
             <p className="text-sand mt-1">
-              Tài liệu đang được hoàn thiện, chưa công bố ngày hiệu lực. Thông tin pháp lý của đơn vị vận hành, thời hạn
-              xử lý và lưu giữ dữ liệu cần được xác nhận trước khi áp dụng chính thức.
+              Tài liệu đang được hoàn thiện, chưa công bố ngày hiệu lực. Đầu mối tiếp nhận yêu cầu, thời hạn xử lý và
+              lưu giữ dữ liệu cần được xác nhận trước khi áp dụng chính thức.
             </p>
           </aside>
           <nav aria-label="Các chính sách" className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
