@@ -150,7 +150,6 @@ export function RegisterForm() {
               </Link>
             </span>
           </label>
-          <p className="text-mist text-xs leading-5">Các liên kết mở trong tab mới để giữ thông tin đang nhập.</p>
           {errors.acceptTerms && (
             <p id="acceptTerms-error" role="alert" className="text-danger text-sm">
               {errors.acceptTerms.message}
