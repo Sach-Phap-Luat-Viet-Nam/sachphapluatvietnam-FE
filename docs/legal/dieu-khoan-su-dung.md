@@ -8,7 +8,7 @@
 
 ## 1. Phạm vi áp dụng và cách đọc điều khoản
 
-Điều khoản này mô tả việc sử dụng website mang tên Sách Luật Việt Nam và giao dịch mua sách qua website, áp dụng cho người xem, khách mua không đăng nhập và thành viên. Trong tài liệu, ‘cửa hàng’ là đơn vị vận hành website; ‘khách hàng’ hoặc ‘bạn’ là người sử dụng hoặc đặt hàng. Tên pháp lý, mã số thuế và địa chỉ của đơn vị vận hành cần được công bố đầy đủ trước khi bản dự thảo được áp dụng chính thức.
+Điều khoản này mô tả việc sử dụng website Sách Luật Việt Nam và giao dịch mua sách qua website, áp dụng cho người xem, khách mua không đăng nhập và thành viên. Đơn vị vận hành là CÔNG TY TNHH SÁCH LUẬT VIỆT NAM, mã số thuế 0316181465, địa chỉ 77 Đường S9, Phường Tây Thạnh, Thành phố Hồ Chí Minh, Việt Nam. Trong tài liệu, ‘cửa hàng’ là công ty; ‘khách hàng’ hoặc ‘bạn’ là người sử dụng hoặc đặt hàng.
 
 Bạn có thể đọc thông tin sách, tham khảo giá và đặt hàng mà không cần tạo tài khoản. Khi đăng ký tài khoản, bạn cần đọc Điều khoản sử dụng và Chính sách bảo mật trước khi tích ô đồng ý. Việc đồng ý đăng ký không đồng nghĩa đồng ý nhận quảng cáo qua điện thoại, email hoặc mạng xã hội.
 
@@ -20,7 +20,7 @@ Các kênh Zalo đang được liên kết trên website gồm 0984 739 739 (tư
 
 Khi liên hệ về giao dịch, nên cung cấp mã đơn, số điện thoại đã đặt và mô tả vấn đề. Chỉ gửi chứng từ cần thiết; che số dư, giao dịch khác và dữ liệu không liên quan. Cửa hàng không yêu cầu mật khẩu đăng nhập, mã OTP ngân hàng, mã PIN hoặc thông tin đăng nhập ngân hàng để hỗ trợ.
 
-Không chuyển tiền theo tài khoản được gửi từ người lạ tự xưng là nhân viên. Nếu chỉ dẫn nhận được khác với thông tin thanh toán của đơn trên website, hãy xác minh qua kênh hỗ trợ trước khi thực hiện. Địa chỉ nhận thư khiếu nại và đầu mối bảo vệ dữ liệu sẽ được bổ sung cùng thông tin pháp lý của đơn vị vận hành.
+Không chuyển tiền theo tài khoản được gửi từ người lạ tự xưng là nhân viên. Nếu chỉ dẫn nhận được khác với thông tin thanh toán của đơn trên website, hãy xác minh qua kênh hỗ trợ trước khi thực hiện. Địa chỉ tiếp nhận thư khiếu nại và đầu mối bảo vệ dữ liệu sẽ được công bố sau khi cửa hàng xác nhận.
 
 ## 3. Đăng ký, quản lý và bảo vệ tài khoản
 
