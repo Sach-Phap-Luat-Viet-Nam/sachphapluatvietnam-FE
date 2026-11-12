@@ -14,6 +14,10 @@ export interface PolicyDocument {
 // Editorial revision only. Not the backend's Auth:TermsVersion or an effective date.
 export const POLICY_DRAFT_DATE = "12/11/2026";
 
+const COMPANY_NAME = "CÔNG TY TNHH SÁCH LUẬT VIỆT NAM";
+const COMPANY_TAX_CODE = "0316181465";
+const COMPANY_ADDRESS = "77 Đường S9, Phường Tây Thạnh, Thành phố Hồ Chí Minh, Việt Nam";
+
 export const terms: PolicyDocument = {
   title: "Điều khoản sử dụng",
   description:
@@ -23,7 +27,7 @@ export const terms: PolicyDocument = {
       id: "pham-vi",
       title: "1. Phạm vi áp dụng và cách đọc điều khoản",
       paragraphs: [
-        "Điều khoản này mô tả việc sử dụng website mang tên Sách Luật Việt Nam và giao dịch mua sách qua website, áp dụng cho người xem, khách mua không đăng nhập và thành viên. Trong tài liệu, ‘cửa hàng’ là đơn vị vận hành website; ‘khách hàng’ hoặc ‘bạn’ là người sử dụng hoặc đặt hàng. Tên pháp lý, mã số thuế và địa chỉ của đơn vị vận hành cần được công bố đầy đủ trước khi bản dự thảo được áp dụng chính thức.",
+        `Điều khoản này mô tả việc sử dụng website Sách Luật Việt Nam và giao dịch mua sách qua website, áp dụng cho người xem, khách mua không đăng nhập và thành viên. Đơn vị vận hành là ${COMPANY_NAME}, mã số thuế ${COMPANY_TAX_CODE}, địa chỉ ${COMPANY_ADDRESS}. Trong tài liệu, ‘cửa hàng’ là công ty; ‘khách hàng’ hoặc ‘bạn’ là người sử dụng hoặc đặt hàng.`,
         "Bạn có thể đọc thông tin sách, tham khảo giá và đặt hàng mà không cần tạo tài khoản. Khi đăng ký tài khoản, bạn cần đọc Điều khoản sử dụng và Chính sách bảo mật trước khi tích ô đồng ý. Việc đồng ý đăng ký không đồng nghĩa đồng ý nhận quảng cáo qua điện thoại, email hoặc mạng xã hội.",
         "Thông tin riêng của từng sách, chương trình ưu đãi, báo giá tại bước thanh toán và xác nhận đơn là các thông tin cần đọc cùng điều khoản này. Nếu có thông tin không thống nhất, hãy liên hệ cửa hàng để làm rõ trước khi trả tiền. Không nội dung nào ở đây loại trừ các quyền bắt buộc của người tiêu dùng theo pháp luật.",
       ],
@@ -34,7 +38,7 @@ export const terms: PolicyDocument = {
       paragraphs: [
         "Các kênh Zalo đang được liên kết trên website gồm 0984 739 739 (tư vấn chọn sách) và 0932 000 035 (hỗ trợ đơn hàng). Với vấn đề giao nhận, thanh toán, đổi trả, thông tin tài khoản hoặc dữ liệu cá nhân, bạn có thể bắt đầu tại kênh hỗ trợ đơn hàng và nêu rõ loại yêu cầu.",
         "Khi liên hệ về giao dịch, nên cung cấp mã đơn, số điện thoại đã đặt và mô tả vấn đề. Chỉ gửi chứng từ cần thiết; che số dư, giao dịch khác và dữ liệu không liên quan. Cửa hàng không yêu cầu mật khẩu đăng nhập, mã OTP ngân hàng, mã PIN hoặc thông tin đăng nhập ngân hàng để hỗ trợ.",
-        "Không chuyển tiền theo tài khoản được gửi từ người lạ tự xưng là nhân viên. Nếu chỉ dẫn nhận được khác với thông tin thanh toán của đơn trên website, hãy xác minh qua kênh hỗ trợ trước khi thực hiện. Địa chỉ nhận thư khiếu nại và đầu mối bảo vệ dữ liệu sẽ được bổ sung cùng thông tin pháp lý của đơn vị vận hành.",
+        "Không chuyển tiền theo tài khoản được gửi từ người lạ tự xưng là nhân viên. Nếu chỉ dẫn nhận được khác với thông tin thanh toán của đơn trên website, hãy xác minh qua kênh hỗ trợ trước khi thực hiện. Địa chỉ tiếp nhận thư khiếu nại và đầu mối bảo vệ dữ liệu sẽ được công bố sau khi cửa hàng xác nhận.",
       ],
     },
     {
@@ -209,7 +213,7 @@ export const privacy: PolicyDocument = {
       title: "1. Phạm vi và đầu mối liên hệ",
       paragraphs: [
         "Chính sách này giải thích việc xử lý dữ liệu cá nhân khi bạn truy cập Sách Luật Việt Nam, đăng ký/đăng nhập, quản lý hồ sơ, mua sách, thanh toán, tra cứu và liên hệ hỗ trợ. Dữ liệu có thể thuộc người mua, người nhận hàng khác hoặc người đại diện tổ chức yêu cầu hóa đơn.",
-        "Đơn vị vận hành chịu trách nhiệm đối với hoạt động xử lý do mình quyết định. Trước khi áp dụng bản chính thức, cần công bố tên pháp lý, địa chỉ, mã số thuế và đầu mối bảo vệ dữ liệu. Kênh hỗ trợ đơn hàng đang được website liên kết là Zalo 0932 000 035; bạn có thể nêu rõ ‘yêu cầu dữ liệu cá nhân’ để được chuyển xử lý.",
+        `Đơn vị vận hành là ${COMPANY_NAME}, mã số thuế ${COMPANY_TAX_CODE}, địa chỉ ${COMPANY_ADDRESS}. Công ty chịu trách nhiệm đối với hoạt động xử lý dữ liệu do mình quyết định. Kênh hỗ trợ đơn hàng đang được website liên kết là Zalo 0932 000 035; bạn có thể nêu rõ ‘yêu cầu dữ liệu cá nhân’ để được chuyển xử lý. Đầu mối bảo vệ dữ liệu chuyên trách sẽ được công bố sau khi xác nhận.`,
         "Chính sách này không thay thế thông báo riêng của ngân hàng, Zalo hoặc dịch vụ bên ngoài khi bạn sử dụng trực tiếp các dịch vụ đó. Cửa hàng vẫn có trách nhiệm đối với việc lựa chọn, cung cấp dữ liệu và phối hợp với bên xử lý trong phạm vi của mình.",
       ],
     },
