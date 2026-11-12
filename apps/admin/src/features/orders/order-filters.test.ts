@@ -1,5 +1,6 @@
 import {
   activeFilterCount,
+  currentMonthRange,
   normalizeOrderSearch,
   recentDaysRange,
   resolveOrderQuery,
@@ -7,6 +8,15 @@ import {
 } from "./order-filters";
 import { isDestructiveTransition, transitionEffect } from "./labels";
 import { orderFilterFormSchema } from "./schemas";
+
+describe("currentMonthRange", () => {
+  it("uses the Vietnamese month at the UTC boundary", () => {
+    expect(currentMonthRange(new Date("2026-10-31T18:00:00Z"))).toEqual({ from: "2026-11-01", to: "2026-11-30" });
+  });
+  it("includes February's leap day", () => {
+    expect(currentMonthRange(new Date("2028-02-12T00:00:00Z"))).toEqual({ from: "2028-02-01", to: "2028-02-29" });
+  });
+});
 
 describe("normalizeOrderSearch", () => {
   it("bỏ khoảng trắng, dấu chấm ở số điện thoại và viết hoa mã đơn", () => {

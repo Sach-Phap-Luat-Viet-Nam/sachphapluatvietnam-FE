@@ -67,3 +67,12 @@ export function recentDaysRange(days: number, now: Date = new Date()): { from: s
   const DAY_MS = 24 * 60 * 60 * 1000;
   return { from: vnDateKey(new Date(now.getTime() - (days - 1) * DAY_MS)), to: vnDateKey(now) };
 }
+
+/** Trọn tháng hiện tại theo giờ Việt Nam, gồm cả ngày cuối tháng. */
+export function currentMonthRange(now: Date = new Date()): { from: string; to: string } {
+  const month = vnDateKey(now).slice(0, 7);
+  const year = Number(month.slice(0, 4));
+  const monthNumber = Number(month.slice(5, 7));
+  const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  return { from: `${month}-01`, to: `${month}-${lastDay}` };
+}

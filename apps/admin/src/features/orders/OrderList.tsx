@@ -26,7 +26,7 @@ import {
   paymentStatusTone,
 } from "./labels";
 import type { OrderStatus } from "./labels";
-import { activeFilterCount, recentDaysRange, resolveOrderQuery } from "./order-filters";
+import { activeFilterCount, currentMonthRange, recentDaysRange, resolveOrderQuery } from "./order-filters";
 import type { OrderFilterFormValues } from "./schemas";
 
 const EMPTY_FILTERS: OrderFilterFormValues = { status: "", paymentMethod: "", from: "", to: "", q: "" };
@@ -103,7 +103,8 @@ export function OrderList() {
     setShowDates(false);
   };
   const hasDates = filters.from !== "" || filters.to !== "";
-  const datesOpen = showDates || hasDates;
+  const datesOpen = showDates;
+  const monthRange = currentMonthRange();
   const exporting = useMutation({
     mutationFn: () => exportOrders(query),
     onSuccess: (blob) => {
@@ -173,8 +174,21 @@ export function OrderList() {
       </section>
 
       <section aria-label="Lọc đơn hàng" className={`${CARD} flex flex-col gap-4 p-4 sm:p-5`}>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-semibold">Bộ lọc đơn hàng</h2>
+            <p className="text-muted mt-1 text-sm">
+              Kết hợp các nhóm bên dưới để tìm đơn. Kết quả tự cập nhật khi chọn.
+            </p>
+          </div>
+          {filtered && (
+            <Button variant="ghost" onClick={reset} className="shrink-0">
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
         <div role="search" className="flex flex-col gap-2">
-          <label htmlFor="order-q" className="sr-only">
+          <label htmlFor="order-q" className="text-sm font-medium">
             Mã đơn hoặc số điện thoại
           </label>
           <div className="relative">
@@ -208,113 +222,143 @@ export function OrderList() {
           )}
         </div>
 
-        <div role="group" aria-label="Trạng thái" className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
-          <Chip active={filters.status === ""} onClick={() => change({ status: "" })}>
-            Tất cả
-          </Chip>
-          {QUICK_STATUSES.map((status) => (
-            <Chip key={status} active={filters.status === status} onClick={() => change({ status })}>
-              {ORDER_STATUS_LABELS[status]}
+        <div className="border-border border-t pt-4">
+          <h3 className="mb-3 text-sm font-semibold">Trạng thái đơn</h3>
+          <div role="group" aria-label="Trạng thái" className="flex flex-wrap items-center gap-2">
+            <Chip active={filters.status === ""} onClick={() => change({ status: "" })}>
+              Tất cả
             </Chip>
-          ))}
-          <select
-            aria-label="Trạng thái khác"
-            value={OTHER_STATUSES.some((status) => status === filters.status) ? filters.status : ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              change({ status: OTHER_STATUSES.find((status) => status === value) ?? "" });
-            }}
-            className={cn(SELECT, "h-11 w-auto shrink-0 rounded-full text-sm")}
-          >
-            <option value="">Trạng thái khác</option>
-            {OTHER_STATUSES.map((status) => (
-              <option key={status} value={status}>
+            {QUICK_STATUSES.map((status) => (
+              <Chip key={status} active={filters.status === status} onClick={() => change({ status })}>
                 {ORDER_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div role="group" aria-label="Thanh toán" className="flex flex-wrap items-center gap-2">
-            <Chip active={filters.paymentMethod === ""} onClick={() => change({ paymentMethod: "" })}>
-              Mọi hình thức
-            </Chip>
-            {PAYMENT_METHOD_FILTERS.map((method) => (
-              <Chip
-                key={method}
-                active={filters.paymentMethod === method}
-                onClick={() => change({ paymentMethod: method })}
-              >
-                {PAYMENT_METHOD_LABELS[method]}
               </Chip>
             ))}
+            <select
+              aria-label="Trạng thái khác"
+              value={OTHER_STATUSES.some((status) => status === filters.status) ? filters.status : ""}
+              onChange={(event) => {
+                const value = event.target.value;
+                change({ status: OTHER_STATUSES.find((status) => status === value) ?? "" });
+              }}
+              className={cn(SELECT, "h-11 w-auto shrink-0 rounded-full text-sm")}
+            >
+              <option value="">Trạng thái khác</option>
+              {OTHER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {ORDER_STATUS_LABELS[status]}
+                </option>
+              ))}
+            </select>
           </div>
-          <span aria-hidden="true" className="bg-border mx-1 hidden h-6 w-px sm:block" />
-          <div role="group" aria-label="Ngày đặt" className="flex flex-wrap items-center gap-2">
-            {DATE_PRESETS.map((preset) => {
-              const range = recentDaysRange(preset.days);
-              return (
-                <Chip
-                  key={preset.label}
-                  active={filters.from === range.from && filters.to === range.to}
-                  onClick={() => change(range)}
-                >
-                  {preset.label}
-                </Chip>
-              );
-            })}
-            <Chip active={datesOpen} onClick={() => setShowDates((open) => !open)}>
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays size={16} aria-hidden="true" /> Chọn ngày
-              </span>
-            </Chip>
-          </div>
-          {filtered && (
-            <Button variant="ghost" onClick={reset} className="ml-auto">
-              Xóa bộ lọc
-            </Button>
-          )}
         </div>
 
-        {datesOpen && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="order-from" className="text-base font-medium">
-                Đặt từ ngày
-              </label>
-              <DateInput
-                id="order-from"
-                value={filters.from}
-                onChange={(from) => change({ from })}
-                invalid={Boolean(inputErrors.from)}
-                describedBy={inputErrors.from ? "order-from-error" : undefined}
-              />
-              {inputErrors.from && (
-                <p id="order-from-error" role="alert" className={FIELD_ERROR}>
-                  {inputErrors.from}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="order-to" className="text-base font-medium">
-                Đến ngày
-              </label>
-              <DateInput
-                id="order-to"
-                value={filters.to}
-                onChange={(to) => change({ to })}
-                invalid={Boolean(inputErrors.to)}
-                describedBy={inputErrors.to ? "order-to-error" : undefined}
-              />
-              {inputErrors.to && (
-                <p id="order-to-error" role="alert" className={FIELD_ERROR}>
-                  {inputErrors.to}
-                </p>
-              )}
+        <div className="border-border grid gap-5 border-t pt-4 lg:grid-cols-[1fr_2fr]">
+          <div className="lg:border-border lg:border-r lg:pr-5">
+            <h3 className="mb-3 text-sm font-semibold">Hình thức thanh toán</h3>
+            <div role="group" aria-label="Thanh toán" className="flex flex-wrap items-center gap-2">
+              <Chip active={filters.paymentMethod === ""} onClick={() => change({ paymentMethod: "" })}>
+                Mọi hình thức
+              </Chip>
+              {PAYMENT_METHOD_FILTERS.map((method) => (
+                <Chip
+                  key={method}
+                  active={filters.paymentMethod === method}
+                  onClick={() => change({ paymentMethod: method })}
+                >
+                  {PAYMENT_METHOD_LABELS[method]}
+                </Chip>
+              ))}
             </div>
           </div>
-        )}
+          <div className="min-w-0">
+            <h3 className="mb-3 text-sm font-semibold">Ngày đặt hàng</h3>
+            <div role="group" aria-label="Ngày đặt" className="flex flex-wrap items-center gap-2">
+              <Chip
+                active={!hasDates}
+                onClick={() => {
+                  change({ from: "", to: "" });
+                  setShowDates(false);
+                }}
+              >
+                Mọi thời gian
+              </Chip>
+              {DATE_PRESETS.map((preset) => {
+                const range = recentDaysRange(preset.days);
+                return (
+                  <Chip
+                    key={preset.label}
+                    active={filters.from === range.from && filters.to === range.to}
+                    onClick={() => {
+                      change(range);
+                      setShowDates(false);
+                    }}
+                  >
+                    {preset.label}
+                  </Chip>
+                );
+              })}
+              <Chip
+                active={filters.from === monthRange.from && filters.to === monthRange.to}
+                onClick={() => {
+                  change(monthRange);
+                  setShowDates(false);
+                }}
+              >
+                Tháng này
+              </Chip>
+              <Chip active={datesOpen} onClick={() => setShowDates((open) => !open)}>
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays size={16} aria-hidden="true" /> Chọn ngày
+                </span>
+              </Chip>
+            </div>
+            {hasDates && !datesOpen && (
+              <p className="text-muted mt-3 text-sm">
+                Từ {filters.from ? filters.from.split("-").reverse().join("/") : "trước đến nay"} đến{" "}
+                {filters.to ? filters.to.split("-").reverse().join("/") : "hiện tại"} · Giờ Việt Nam
+              </p>
+            )}
+
+            {datesOpen && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="order-from" className="text-base font-medium">
+                    Đặt từ ngày
+                  </label>
+                  <DateInput
+                    id="order-from"
+                    value={filters.from}
+                    onChange={(from) => change({ from })}
+                    invalid={Boolean(inputErrors.from)}
+                    describedBy={inputErrors.from ? "order-from-error" : undefined}
+                  />
+                  {inputErrors.from && (
+                    <p id="order-from-error" role="alert" className={FIELD_ERROR}>
+                      {inputErrors.from}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="order-to" className="text-base font-medium">
+                    Đến ngày
+                  </label>
+                  <DateInput
+                    id="order-to"
+                    value={filters.to}
+                    onChange={(to) => change({ to })}
+                    invalid={Boolean(inputErrors.to)}
+                    describedBy={inputErrors.to ? "order-to-error" : undefined}
+                  />
+                  {inputErrors.to && (
+                    <p id="order-to-error" role="alert" className={FIELD_ERROR}>
+                      {inputErrors.to}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
       {orders.isError ? (

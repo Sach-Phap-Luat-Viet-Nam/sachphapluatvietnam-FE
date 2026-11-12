@@ -176,6 +176,8 @@ describe("OrderList", () => {
     expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(requests[1]?.get("To")).toBe(today);
 
+    expect(screen.queryByLabelText("Đặt từ ngày")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Chọn ngày" }));
     await user.clear(screen.getByLabelText("Đặt từ ngày"));
     await user.type(screen.getByLabelText("Đặt từ ngày"), "01102026");
     await user.clear(screen.getByLabelText("Đến ngày"));
