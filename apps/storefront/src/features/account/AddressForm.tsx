@@ -6,6 +6,7 @@ import { authErrorMessage, fieldErrors } from "@slvn/auth";
 import { cn } from "@slvn/ui";
 import { FORM_ERROR, SUBMIT } from "@/components/form-styles";
 import { ProvinceSelect } from "@/components/ProvinceSelect";
+import { WardSelect } from "@/components/WardSelect";
 import { TextField } from "@/components/TextField";
 import type { Address } from "@/lib/account-api";
 import { useSaveAddress } from "@/lib/use-account";
@@ -31,12 +32,14 @@ export function AddressForm({ address, initial, forceDefault, onDone }: AddressF
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
     defaultValues: address ?? { ...EMPTY_ADDRESS, ...initial, isDefault: forceDefault },
   });
   const province = useWatch({ control, name: "province" });
+  const ward = useWatch({ control, name: "ward" });
 
   const onSubmit = async (values: AddressFormValues) => {
     try {
@@ -82,12 +85,16 @@ export function AddressForm({ address, initial, forceDefault, onDone }: AddressF
           id={`${prefix}-province`}
           label="Tỉnh/Thành phố"
           autoComplete="address-level1"
-          registration={register("province")}
+          registration={register("province", {
+            onChange: () => setValue("ward", "", { shouldDirty: true }),
+          })}
           value={province}
           error={errors.province?.message}
         />
-        <TextField
+        <WardSelect
           id={`${prefix}-ward`}
+          province={province}
+          value={ward}
           label="Phường/Xã"
           autoComplete="address-level2"
           registration={register("ward")}
