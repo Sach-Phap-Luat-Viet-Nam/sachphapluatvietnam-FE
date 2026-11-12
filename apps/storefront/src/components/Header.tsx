@@ -15,13 +15,13 @@ export async function Header() {
   return (
     <header className="motion-drop bg-ink-deep relative z-20">
       <PromoBar freeShippingThreshold={freeShippingThreshold} />
-      <Container className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4 py-4 sm:gap-x-8 sm:py-5">
+      <Container className="flex flex-wrap items-center justify-between gap-x-2 gap-y-4 py-4 sm:gap-x-6 sm:py-5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto]">
         <BrandMark />
         <form
           action="/sach"
           role="search"
           {...tourAnchor("search")}
-          className="group border-ivory/15 bg-panel focus-within:border-gold relative order-3 flex h-12 w-full items-stretch border transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_0_0_4px_rgb(203_166_94/0.15)] lg:order-0 lg:max-w-xl lg:flex-1"
+          className="group border-ivory/15 bg-panel focus-within:border-gold relative order-3 flex h-12 w-full min-w-0 items-stretch border transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_0_0_4px_rgb(203_166_94/0.15)] lg:order-0"
         >
           <label htmlFor="header-search" className="sr-only">
             Tìm theo tên sách, tác giả hoặc ISBN
@@ -36,7 +36,7 @@ export async function Header() {
             Tìm
           </button>
         </form>
-        <nav aria-label="Tài khoản" className="flex items-center gap-1 sm:gap-5">
+        <nav aria-label="Tài khoản" className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
           <OrderLookupLink />
           <CartLink />
