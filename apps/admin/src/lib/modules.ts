@@ -38,7 +38,7 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
     id: "content",
     href: "/noi-dung/popup",
     label: "Nội dung",
-    description: "Popup quảng cáo trên website: ảnh, link, lịch chạy và tần suất hiển thị.",
+    description: "Popup quảng cáo và trang tĩnh (điều khoản, chính sách) trên website.",
     roles: ["super_admin", "marketing"],
     ready: true,
   },
