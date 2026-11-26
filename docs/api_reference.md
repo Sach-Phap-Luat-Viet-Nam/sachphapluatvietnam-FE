@@ -340,6 +340,16 @@ Trả mảng gốc, mỗi nút có `children` đệ quy, đã sắp theo thứ t
 ]
 ```
 
+## Trang tĩnh (điều khoản, chính sách)
+
+Chi tiết: BE `docs/features/static-pages.md`.
+
+| Method | Route                  | Xác thực | Response                                                                                        |
+| ------ | ---------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/pages/{slug}` | —        | 200 `{ slug, title, description, contentHtml, updatedAt }`; 404 khi không có hoặc chưa xuất bản |
+
+`contentHtml` là HTML Admin soạn, **chưa lọc**: FE phải sanitize trước khi render. Admin CRUD ở `/api/v1/admin/pages` (policy `content_admin`).
+
 ## Giỏ hàng
 
 Giỏ dùng được cho cả khách vãng lai (cookie `sl_cart`) và thành viên (theo tài khoản); đăng nhập là tùy chọn. Mọi endpoint trả về toàn bộ giỏ sau thay đổi, FE chỉ cần thay state bằng response.
@@ -534,7 +544,7 @@ Mọi API dưới `/api/v1/admin` yêu cầu Bearer token của nhân viên đú
 | ----------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------- | ----------------- | -------------- | ----------------- | ---------- | --------- |
 | Catalog (`/admin/books`, `/editions`, `/skus`, `/categories`, `/authors`, `/legal-documents`, `/uploads/cover-signature`)     | Có           | Có               | —                 | —              | —                 | —          | —         |
 | Lịch giá, khuyến mãi (`/admin/skus/{skuId}/price-schedules`, `/admin/price-schedules`, `/admin/promotions`, `/admin/coupons`) | Có           | Có               | —                 | —              | —                 | —          | Có        |
-| Nội dung (`/admin/popups`, `/admin/uploads/popup-signature`)                                                                  | Có           | —                | —                 | —              | —                 | —          | Có        |
+| Nội dung (`/admin/popups`, `/admin/pages`, `/admin/uploads/popup-signature`)                                                  | Có           | —                | —                 | —              | —                 | —          | Có        |
 | Kho (`/admin/inventory/...`)                                                                                                  | Có           | —                | Có                | —              | —                 | —          | —         |
 | Duyệt/từ chối phiếu nhập                                                                                                      | Có           | —                | —                 | —              | —                 | —          | —         |
 | Xem đơn (`GET /admin/orders`)                                                                                                 | Có           | —                | —                 | Có             | Có                | Có         | —         |
@@ -999,20 +1009,20 @@ export async function api(path: string, init: RequestInit = {}, retry = true): P
 
 ### Chưa có trong API (giai đoạn 1)
 
-| Hạng mục                                                                      | Hiện trạng                                                                             | FE tạm làm gì                                                                                              |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| CORS cho trình duyệt gọi thẳng khác site                                      | Đã bật theo `Cors:AllowedOrigins`, nhưng cookie `sl_refresh` là `SameSite=Strict`      | Proxy `/api/v1` qua Next.js (`proxy.ts`)                                                                   |
-| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                     | Chưa có                                                                                | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền và QR lấy từ `paymentInstructions` của backend |
-| Phí ship theo đơn vị vận chuyển (GHN/GHTK...)                                 | Biểu phí tự quản lý theo vùng tỉnh + trọng lượng, có thời gian giao dự kiến            | Dùng `/checkout/preview` hoặc `/shipping/quote`                                                            |
-| Combo, giá sỉ                                                                 | Chưa có (đã có mã giảm giá và khuyến mãi tự áp)                                        | —                                                                                                          |
-| Đặt trước (pre-order)                                                         | Chưa có                                                                                | Ấn bản `upcoming` chỉ hiển thị                                                                             |
-| Gợi ý khi gõ riêng (`/search`), chịu lỗi chính tả, xếp theo độ liên quan      | `q` đã tìm không dấu, theo tác giả, một phần mã SKU (11/2026); kết quả vẫn theo `sort` | Gợi ý khi gõ dùng `GET /books?q=&limit=5` (`SearchSuggest`)                                                |
-| Lọc còn hàng, sắp bán chạy / đánh giá cao                                     | Chưa có (đã có `onSale`)                                                               | Ẩn các lựa chọn này                                                                                        |
-| Xác thực email/OTP, quên mật khẩu, đăng nhập mạng xã hội                      | Chưa có                                                                                | Ẩn link “Quên mật khẩu”                                                                                    |
-| Yêu thích, đánh giá, đăng ký nhận tin ấn bản mới                              | Chưa có (sổ địa chỉ đã có: `/me/addresses`)                                            | —                                                                                                          |
-| Yêu cầu đổi trả phía khách, hóa đơn điện tử                                   | Chưa có                                                                                | Hướng dẫn liên hệ CSKH                                                                                     |
-| Upload file đọc thử                                                           | Chỉ lưu URL (ảnh bìa, popup, avatar đã upload được qua Cloudinary)                     | Dán URL đã upload nơi khác                                                                                 |
-| Nội dung (bài viết, banner, trang tĩnh), dashboard, báo cáo, nhật ký thao tác | Chưa có (đã có popup)                                                                  | —                                                                                                          |
-| Tên người thao tác trong thẻ kho / phiếu nhập                                 | Chỉ có user id                                                                         | Hiển thị id                                                                                                |
+| Hạng mục                                                                 | Hiện trạng                                                                             | FE tạm làm gì                                                                                              |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| CORS cho trình duyệt gọi thẳng khác site                                 | Đã bật theo `Cors:AllowedOrigins`, nhưng cookie `sl_refresh` là `SameSite=Strict`      | Proxy `/api/v1` qua Next.js (`proxy.ts`)                                                                   |
+| Cổng thanh toán VNPAY/MoMo/ZaloPay/VietQR                                | Chưa có                                                                                | Chỉ hiện COD và chuyển khoản; thông tin tài khoản nhận tiền và QR lấy từ `paymentInstructions` của backend |
+| Phí ship theo đơn vị vận chuyển (GHN/GHTK...)                            | Biểu phí tự quản lý theo vùng tỉnh + trọng lượng, có thời gian giao dự kiến            | Dùng `/checkout/preview` hoặc `/shipping/quote`                                                            |
+| Combo, giá sỉ                                                            | Chưa có (đã có mã giảm giá và khuyến mãi tự áp)                                        | —                                                                                                          |
+| Đặt trước (pre-order)                                                    | Chưa có                                                                                | Ấn bản `upcoming` chỉ hiển thị                                                                             |
+| Gợi ý khi gõ riêng (`/search`), chịu lỗi chính tả, xếp theo độ liên quan | `q` đã tìm không dấu, theo tác giả, một phần mã SKU (11/2026); kết quả vẫn theo `sort` | Gợi ý khi gõ dùng `GET /books?q=&limit=5` (`SearchSuggest`)                                                |
+| Lọc còn hàng, sắp bán chạy / đánh giá cao                                | Chưa có (đã có `onSale`)                                                               | Ẩn các lựa chọn này                                                                                        |
+| Xác thực email/OTP, quên mật khẩu, đăng nhập mạng xã hội                 | Chưa có                                                                                | Ẩn link “Quên mật khẩu”                                                                                    |
+| Yêu thích, đánh giá, đăng ký nhận tin ấn bản mới                         | Chưa có (sổ địa chỉ đã có: `/me/addresses`)                                            | —                                                                                                          |
+| Yêu cầu đổi trả phía khách, hóa đơn điện tử                              | Chưa có                                                                                | Hướng dẫn liên hệ CSKH                                                                                     |
+| Upload file đọc thử                                                      | Chỉ lưu URL (ảnh bìa, popup, avatar đã upload được qua Cloudinary)                     | Dán URL đã upload nơi khác                                                                                 |
+| Nội dung (bài viết, banner), dashboard, báo cáo, nhật ký thao tác        | Chưa có (đã có popup, trang tĩnh `/pages`)                                             | —                                                                                                          |
+| Tên người thao tác trong thẻ kho / phiếu nhập                            | Chỉ có user id                                                                         | Hiển thị id                                                                                                |
 
 Lỗi đã biết: `sort=newest` hiện để sách **chưa có `releaseDate`** lên đầu danh sách (PostgreSQL xếp `NULL` trước khi sắp giảm dần); backend sẽ sửa. Admin nên nhập `releaseDate` cho mọi ấn bản.
