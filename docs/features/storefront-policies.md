@@ -8,10 +8,11 @@ Lần rà soát tiếp theo: đối chiếu Điều 38 Luật Bảo vệ quyền
 
 - `/dieu-khoan-su-dung`: 18 mục về tài khoản, sản phẩm, đặt hàng, tiền, giao nhận và hậu mãi.
 - `/chinh-sach-bao-mat`: 16 mục về dữ liệu, cookie, nhà cung cấp, lưu trữ và yêu cầu của chủ thể dữ liệu.
-- Hai trang có thông báo dự thảo, mục lục, liên kết chéo, kênh Zalo hỗ trợ và `noindex`. Chưa đưa vào sitemap.
+- Hai trang có thông báo dự thảo (khối `<blockquote>` đầu nội dung), mục lục, liên kết chéo, kênh Zalo hỗ trợ và `noindex`. Chưa đưa vào sitemap.
 - Form đăng ký mở hai tài liệu trong tab mới, giữ form đang nhập. Checkbox vẫn mặc định bỏ chọn, giữ nguyên validation và request `acceptTerms`.
 - Chân trang có cả hai liên kết, kể cả khi khách không đăng nhập.
-- Nguồn nội dung duy nhất: `apps/storefront/src/features/legal/content.ts`. Bản Markdown để duyệt ở `docs/legal/`; khi sửa nguồn cần xuất lại hai bản này.
+- Nguồn nội dung: backend, `GET /api/v1/pages/{slug}` (BE `docs/features/static-pages.md`), sửa qua API Admin `/api/v1/admin/pages`, không cần deploy FE. Storefront cache 60 giây, lọc HTML bằng `sanitize-html` và tách mục theo `<h2>` (`features/legal/policy-html.ts`); dòng "Cập nhật ngày" lấy `updatedAt`. Slug không có hoặc chưa xuất bản thì 404, lỗi khác hiện trang lỗi.
+- Nội dung ban đầu được BE seed từ bản viết cứng cũ (`content.ts`, đã xóa). `docs/legal/` là bản chụp lúc chuyển (12/11/2026), không tự cập nhật theo nội dung đang chạy.
 
 ## Căn cứ rà soát tính năng
 
