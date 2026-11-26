@@ -1,24 +1,58 @@
 ﻿import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, ChevronDown, FileText, ShieldCheck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Container } from "@slvn/ui";
-import { POLICY_DRAFT_DATE, privacy } from "./content";
-import type { PolicyDocument } from "./content";
+import { formatDate } from "@slvn/utils";
+import type { PolicyContent, PolicySection } from "./policy-html";
+import type { StaticPage } from "./schemas";
 
-function Contents({ document }: { document: PolicyDocument }) {
+/** Hai trang chính sách có route riêng; phần khung (icon, link đọc tiếp) theo slug, nội dung lấy từ backend. */
+export const POLICY_PAGES = {
+  "dieu-khoan-su-dung": {
+    label: "Điều khoản",
+    icon: FileText,
+    related: { href: "/chinh-sach-bao-mat", title: "Chính sách bảo mật" },
+  },
+  "chinh-sach-bao-mat": {
+    label: "Bảo mật",
+    icon: ShieldCheck,
+    related: { href: "/dieu-khoan-su-dung", title: "Điều khoản sử dụng" },
+  },
+} satisfies Record<string, { label: string; icon: LucideIcon; related: { href: string; title: string } }>;
+
+export type PolicySlug = keyof typeof POLICY_PAGES;
+
+/** Kiểu chữ cho HTML Admin soạn (đã lọc ở `policy-html.ts`), giữ giao diện của bản viết cứng trước đây. */
+const BODY_CLASS =
+  "text-sand mt-5 space-y-4 text-[15px] leading-[1.9] break-words sm:mt-6 sm:text-base [&_a]:text-gold [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-gold/40 [&_blockquote]:border-l [&_blockquote]:pl-5 [&_blockquote]:italic [&_h3]:text-ivory [&_h3]:pt-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h4]:text-ivory [&_h4]:font-semibold [&_hr]:border-gold/20 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_strong]:text-ivory [&_ul]:border-gold/20 [&_ul]:bg-panel [&_ul]:mt-6[&_ul]:space-y-4 [&_ul]:border-l-2 [&_ul]:px-5 [&_ul]:py-5 sm:[&_ul]:px-6 [&_ul>li]:relative [&_ul>li]:pl-[1.125rem] [&_ul>li]:before:bg-gold [&_ul>li]:before:absolute [&_ul>li]:before:top-[0.8em] [&_ul>li]:before:left-0 [&_ul>li]:before:size-1.5 [&_ul>li]:before:rounded-full [&_ul>li]:before:content-['']";
+
+/** Khối trước mục đầu tiên (thông báo dự thảo...): `blockquote` hiển thị như ghi chú trạng thái. */
+const INTRO_CLASS =
+  "text-mist text-[13px] leading-6 [&_a]:text-gold [&_a]:underline [&_blockquote]:border-gold/35 [&_blockquote]:bg-gold/5 [&_blockquote]:border-l-2 [&_blockquote]:px-5 [&_blockquote]:py-4 sm:[&_blockquote]:px-6 [&_p+p]:mt-2 [&_strong]:text-ivory [&_strong]:font-semibold";
+
+/** Nửa đầu tiêu đề chữ thường, nửa sau in nghiêng màu vàng: "Điều khoản | sử dụng". */
+function splitTitle(title: string): [string, string] {
+  const words = title.trim().split(/\s+/);
+  if (words.length < 2) return [title, ""];
+  const head = Math.ceil(words.length / 2);
+  return [words.slice(0, head).join(" "), words.slice(head).join(" ")];
+}
+
+const sectionNumber = (index: number) => String(index + 1).padStart(2, "0");
+
+function Contents({ sections }: { sections: PolicySection[] }) {
   return (
     <ol className="space-y-0.5">
-      {document.sections.map((section, index) => (
+      {sections.map((section, index) => (
         <li key={section.id}>
           <a
             href={`#${section.id}`}
             className="group hover:bg-gold/8 flex gap-3 rounded-sm px-3 py-2.5 transition-colors"
           >
             <span aria-hidden="true" className="text-gold/75 font-editorial w-5 shrink-0 text-xs tabular-nums">
-              {String(index + 1).padStart(2, "0")}
+              {sectionNumber(index)}
             </span>
-            <span className="text-mist group-hover:text-ivory text-[13px] leading-5">
-              {section.title.replace(/^\d+\.\s*/, "")}
-            </span>
+            <span className="text-mist group-hover:text-ivory text-[13px] leading-5">{section.title}</span>
           </a>
         </li>
       ))}
@@ -26,12 +60,17 @@ function Contents({ document }: { document: PolicyDocument }) {
   );
 }
 
-export function PolicyPage({ document }: { document: PolicyDocument }) {
-  const isPrivacy = document === privacy;
-  const otherHref = isPrivacy ? "/dieu-khoan-su-dung" : "/chinh-sach-bao-mat";
-  const otherTitle = isPrivacy ? "Điều khoản sử dụng" : "Chính sách bảo mật";
-  const titleParts = isPrivacy ? ["Chính sách", "bảo mật"] : ["Điều khoản", "sử dụng"];
-  const Icon = isPrivacy ? ShieldCheck : FileText;
+interface PolicyPageProps {
+  slug: PolicySlug;
+  page: StaticPage;
+  content: PolicyContent;
+}
+
+export function PolicyPage({ slug, page, content }: PolicyPageProps) {
+  const { label, icon: Icon, related } = POLICY_PAGES[slug];
+  const [titleHead, titleTail] = splitTitle(page.title);
+  const { intro, sections } = content;
+  const updatedAt = formatDate(page.updatedAt);
 
   return (
     <main id="noi-dung" className="overflow-clip">
@@ -53,7 +92,7 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
               /
             </span>
             <span aria-current="page" className="text-ivory">
-              {document.title}
+              {page.title}
             </span>
           </nav>
           <div className="mt-10 flex items-end justify-between gap-12 sm:mt-14">
@@ -62,11 +101,13 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
                 <span aria-hidden="true" className="bg-gold h-px w-8" /> Sách Luật Việt Nam
               </p>
               <h1 className="font-editorial mt-5 text-[40px] leading-[1.14] font-bold tracking-tight sm:text-[58px] lg:text-[66px]">
-                {titleParts[0]} <span className="text-gold font-medium italic">{titleParts[1]}</span>
+                {titleHead} {titleTail && <span className="text-gold font-medium italic">{titleTail}</span>}
               </h1>
-              <p className="text-mist mt-5 max-w-2xl text-[15px] leading-7 sm:text-base sm:leading-8">
-                {document.description}
-              </p>
+              {page.description && (
+                <p className="text-mist mt-5 max-w-2xl text-[15px] leading-7 sm:text-base sm:leading-8">
+                  {page.description}
+                </p>
+              )}
             </div>
             <div
               aria-hidden="true"
@@ -78,11 +119,12 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
             </div>
           </div>
           <div className="border-gold/25 mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 border-t pt-5 text-xs sm:mt-12 sm:text-[13px]">
-            <span className="text-gold flex items-center gap-2 font-semibold">
-              <span aria-hidden="true" className="bg-gold size-1.5 rounded-full" /> Bản dự thảo
-            </span>
-            <span className="text-mist">Soạn ngày {POLICY_DRAFT_DATE}</span>
-            <span className="text-mist">{document.sections.length} mục nội dung</span>
+            {updatedAt && (
+              <span className="text-gold flex items-center gap-2 font-semibold">
+                <span aria-hidden="true" className="bg-gold size-1.5 rounded-full" /> Cập nhật ngày {updatedAt}
+              </span>
+            )}
+            <span className="text-mist">{sections.length} mục nội dung</span>
             <a
               href="#bat-dau"
               className="text-ivory hover:text-gold ml-auto inline-flex items-center gap-2 transition-colors"
@@ -94,47 +136,42 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
       </div>
 
       <Container className="pt-6 pb-20 sm:pt-9 sm:pb-28">
-        <aside
-          aria-label="Trạng thái tài liệu"
-          className="border-gold/35 bg-gold/5 flex items-start gap-4 border-l-2 px-5 py-4 sm:px-6"
-        >
-          <span aria-hidden="true" className="text-gold font-editorial text-2xl leading-none">
-            ✳
-          </span>
-          <div>
-            <p className="text-ivory text-sm font-semibold">Tài liệu đang được hoàn thiện</p>
-            <p className="text-mist mt-1 text-[13px] leading-6">
-              Chưa công bố ngày hiệu lực. Đầu mối tiếp nhận yêu cầu, thời hạn xử lý và lưu giữ dữ liệu cần được xác nhận
-              trước khi áp dụng chính thức.
-            </p>
-          </div>
-        </aside>
+        {intro && (
+          // Admin nhập HTML, đã lọc bằng sanitize-html trên server (policy-html.ts).
+          <div className={INTRO_CLASS} dangerouslySetInnerHTML={{ __html: intro }} />
+        )}
 
         <div
           id="bat-dau"
           className="mt-8 scroll-mt-8 lg:mt-12 lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:items-start lg:gap-14 xl:grid-cols-[270px_minmax(0,1fr)] xl:gap-20"
         >
           <aside className="lg:sticky lg:top-6">
-            <details className="border-border bg-panel group border lg:hidden">
-              <summary className="text-ivory flex min-h-14 list-none items-center justify-between gap-3 px-5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-                Mục lục <span className="text-mist ml-auto text-xs font-normal">{document.sections.length} mục</span>
-                <ChevronDown size={16} className="text-gold transition-transform group-open:rotate-180" />
-              </summary>
-              <nav aria-label="Mục lục" className="border-border max-h-80 overflow-y-auto border-t p-2">
-                <Contents document={document} />
-              </nav>
-            </details>
+            {sections.length > 0 && (
+              <details className="border-border bg-panel group border lg:hidden">
+                <summary className="text-ivory flex min-h-14 list-none items-center justify-between gap-3 px-5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                  Mục lục <span className="text-mist ml-auto text-xs font-normal">{sections.length} mục</span>
+                  <ChevronDown size={16} className="text-gold transition-transform group-open:rotate-180" />
+                </summary>
+                <nav aria-label="Mục lục" className="border-border max-h-80 overflow-y-auto border-t p-2">
+                  <Contents sections={sections} />
+                </nav>
+              </details>
+            )}
             <div className="hidden lg:block">
-              <div className="border-gold/50 border-t-2 pt-5">
-                <p className="text-gold text-[10px] font-semibold tracking-[0.2em] uppercase">Trong tài liệu này</p>
-                <div className="mt-3 flex items-baseline justify-between gap-3">
-                  <h2 className="font-editorial text-2xl font-bold">Mục lục</h2>
-                  <span className="text-dim text-xs">{document.sections.length} mục</span>
-                </div>
-              </div>
-              <nav aria-label="Mục lục" className="mt-4 max-h-[56vh] overflow-y-auto pr-1">
-                <Contents document={document} />
-              </nav>
+              {sections.length > 0 && (
+                <>
+                  <div className="border-gold/50 border-t-2 pt-5">
+                    <p className="text-gold text-[10px] font-semibold tracking-[0.2em] uppercase">Trong tài liệu này</p>
+                    <div className="mt-3 flex items-baseline justify-between gap-3">
+                      <h2 className="font-editorial text-2xl font-bold">Mục lục</h2>
+                      <span className="text-dim text-xs">{sections.length} mục</span>
+                    </div>
+                  </div>
+                  <nav aria-label="Mục lục" className="mt-4 max-h-[56vh] overflow-y-auto pr-1">
+                    <Contents sections={sections} />
+                  </nav>
+                </>
+              )}
               <a
                 href="https://zalo.me/0932000035"
                 target="_blank"
@@ -154,12 +191,12 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
             </div>
           </aside>
 
-          <article aria-label={document.title} className="mt-10 min-w-0 lg:mt-0">
+          <article aria-label={page.title} className="mt-10 min-w-0 lg:mt-0">
             <div className="border-border text-mist flex items-center justify-between gap-4 border-b pb-5 text-[11px] font-semibold tracking-[0.16em] uppercase">
               <span>Nội dung chi tiết</span>
-              <span className="text-gold">{isPrivacy ? "Bảo mật" : "Điều khoản"}</span>
+              <span className="text-gold">{label}</span>
             </div>
-            {document.sections.map((section, index) => (
+            {sections.map((section, index) => (
               <section
                 key={section.id}
                 id={section.id}
@@ -171,30 +208,19 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
                     aria-hidden="true"
                     className="font-editorial text-gold/70 pt-1 text-base tabular-nums sm:text-lg"
                   >
-                    {String(index + 1).padStart(2, "0")}
+                    {sectionNumber(index)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <h2
                       id={`${section.id}-title`}
                       className="font-editorial text-ivory text-[23px] leading-snug font-bold sm:text-[27px]"
                     >
-                      {section.title.replace(/^\d+\.\s*/, "")}
+                      {section.title}
                     </h2>
-                    <div className="text-sand mt-5 space-y-4 text-[15px] leading-[1.9] break-words sm:mt-6 sm:text-base">
-                      {section.paragraphs.map((paragraph) => (
-                        <p key={paragraph}>{paragraph}</p>
-                      ))}
-                      {section.items && (
-                        <ul className="border-gold/20 bg-panel mt-6 space-y-4 border-l-2 px-5 py-5 sm:px-6">
-                          {section.items.map((item) => (
-                            <li key={item} className="flex gap-3">
-                              <span aria-hidden="true" className="bg-gold mt-[0.8em] size-1.5 shrink-0 rounded-full" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
+                    {section.html && (
+                      // Admin nhập HTML, đã lọc bằng sanitize-html trên server (policy-html.ts).
+                      <div className={BODY_CLASS} dangerouslySetInnerHTML={{ __html: section.html }} />
+                    )}
                   </div>
                 </div>
               </section>
@@ -202,10 +228,10 @@ export function PolicyPage({ document }: { document: PolicyDocument }) {
             <div className="bg-panel border-border mt-10 flex flex-col items-start justify-between gap-5 border p-6 sm:flex-row sm:items-center sm:p-8">
               <div>
                 <p className="text-gold text-[10px] font-semibold tracking-[0.2em] uppercase">Đọc tiếp</p>
-                <p className="font-editorial mt-2 text-xl font-bold">{otherTitle}</p>
+                <p className="font-editorial mt-2 text-xl font-bold">{related.title}</p>
               </div>
               <Link
-                href={otherHref}
+                href={related.href}
                 className="text-gold inline-flex min-h-11 items-center gap-3 text-sm font-semibold"
               >
                 Xem chính sách <ArrowRight size={17} />
