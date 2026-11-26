@@ -2,7 +2,7 @@
 
 > BẢN DỰ THẢO — soạn ngày 12/11/2026, chưa có ngày hiệu lực.
 
-> Xuất từ apps/storefront/src/features/legal/content.ts. Sửa nguồn rồi chạy node scripts/export-policy-drafts.mjs để cập nhật.
+> Bản chụp nội dung lúc chuyển sang backend (seed migration `AddStaticPages`). Nội dung đang chạy nằm ở `GET /api/v1/pages/{slug}`, file này không tự cập nhật.
 
 Điều kiện sử dụng tài khoản, lựa chọn sách, đặt hàng, thanh toán, giao nhận và giải quyết yêu cầu tại Sách Luật Việt Nam.
 
