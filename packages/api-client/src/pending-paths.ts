@@ -221,6 +221,9 @@ export interface PendingPaths {
     post?: never;
     delete?: never;
   } & OtherMethods;
+  /** Trang tĩnh (BE docs/features/static-pages.md): danh sách không kèm nội dung, chi tiết kèm `contentHtml`. */
+  "/api/v1/admin/pages": Collection;
+  "/api/v1/admin/pages/{id}": Item;
   "/api/v1/admin/shipping/zones": Collection;
   "/api/v1/admin/shipping/zones/{id}": Omit<Item, "get"> & { get?: never };
   "/api/v1/admin/shipping/settings": {
