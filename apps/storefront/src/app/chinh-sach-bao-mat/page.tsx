@@ -1,13 +1,11 @@
-import type { Metadata } from "next";
-import { PolicyPage } from "@/features/legal/PolicyPage";
-import { privacy } from "@/features/legal/content";
+import { PolicyRoute, policyMetadata } from "@/features/legal/policy-route";
 
-export const metadata: Metadata = {
-  title: privacy.title,
-  description: privacy.description,
-  robots: { index: false, follow: true },
-};
+const SLUG = "chinh-sach-bao-mat";
+
+export function generateMetadata() {
+  return policyMetadata(SLUG);
+}
 
 export default function PrivacyPage() {
-  return <PolicyPage document={privacy} />;
+  return <PolicyRoute slug={SLUG} />;
 }
