@@ -157,6 +157,18 @@ export interface PendingPaths {
     post?: never;
     delete?: never;
   } & OtherMethods;
+  /** Trang tĩnh đã xuất bản (BE docs/features/static-pages.md): 200 `StaticPageResponse`, 404 khi không có/chưa xuất bản. */
+  "/api/v1/pages/{slug}": {
+    parameters: NoParameters;
+    get: {
+      parameters: Omit<NoParameters, "path"> & { path: { slug: string } };
+      requestBody?: never;
+      responses: Ok;
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+  } & OtherMethods;
   /** Tìm SKU cho kho (`q` là một phần tên sách, mã SKU hoặc ISBN): thủ kho dùng được, không cần quyền Catalog. */
   "/api/v1/admin/inventory/sku-search": {
     parameters: NoParameters;
