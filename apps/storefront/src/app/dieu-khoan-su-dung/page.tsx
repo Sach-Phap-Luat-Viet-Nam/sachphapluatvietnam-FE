@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
-import { PolicyPage } from "@/features/legal/PolicyPage";
-import { terms } from "@/features/legal/content";
+import { PolicyRoute, policyMetadata } from "@/features/legal/policy-route";
 
-export const metadata: Metadata = {
-  title: terms.title,
-  description: terms.description,
-  // Drafts must not be presented by search engines as effective policies.
-  robots: { index: false, follow: true },
-};
+const SLUG = "dieu-khoan-su-dung";
+
+export function generateMetadata() {
+  return policyMetadata(SLUG);
+}
 
 export default function TermsPage() {
-  return <PolicyPage document={terms} />;
+  return <PolicyRoute slug={SLUG} />;
 }
