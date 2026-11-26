@@ -21,10 +21,7 @@ import type { AdminStaticPage } from "./schemas";
 
 function BackLink() {
   return (
-    <Link
-      href={STATIC_PAGES_PATH}
-      className="text-muted hover:text-foreground flex min-h-11 w-fit items-center gap-2"
-    >
+    <Link href={STATIC_PAGES_PATH} className="text-muted hover:text-foreground flex min-h-11 w-fit items-center gap-2">
       <ArrowLeft size={16} aria-hidden="true" /> Danh sách trang tĩnh
     </Link>
   );

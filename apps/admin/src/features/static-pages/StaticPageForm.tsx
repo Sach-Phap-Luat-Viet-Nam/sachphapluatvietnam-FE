@@ -85,14 +85,21 @@ export function StaticPageForm({ defaultValues, submitLabel, isNew = false, onSa
         />
       </Field>
       {slug !== "" && !routed && !errors.slug && (
-        <p role="status" className="border-warning/40 bg-warning-surface text-warning rounded-md border px-4 py-3 text-sm">
-          Website hiện chỉ có trang cho “dieu-khoan-su-dung” và “chinh-sach-bao-mat”. Trang này lưu được nhưng khách chưa
-          xem được cho tới khi bổ sung đường dẫn bên Storefront.
+        <p
+          role="status"
+          className="border-warning/40 bg-warning-surface text-warning rounded-md border px-4 py-3 text-sm"
+        >
+          Website hiện chỉ có trang cho “dieu-khoan-su-dung” và “chinh-sach-bao-mat”. Trang này lưu được nhưng khách
+          chưa xem được cho tới khi bổ sung đường dẫn bên Storefront.
         </p>
       )}
       {slugChanged && (
-        <p role="status" className="border-warning/40 bg-warning-surface text-warning rounded-md border px-4 py-3 text-sm">
-          Đổi đường dẫn làm link cũ (/{defaultValues.slug}) không mở được nữa, kể cả link trong form đăng ký và chân trang.
+        <p
+          role="status"
+          className="border-warning/40 bg-warning-surface text-warning rounded-md border px-4 py-3 text-sm"
+        >
+          Đổi đường dẫn làm link cũ (/{defaultValues.slug}) không mở được nữa, kể cả link trong form đăng ký và chân
+          trang.
         </p>
       )}
 
@@ -112,9 +119,7 @@ export function StaticPageForm({ defaultValues, submitLabel, isNew = false, onSa
       </Field>
 
       <div className="flex flex-col gap-2">
-        <span className="text-foreground text-base font-medium">
-          Nội dung
-        </span>
+        <span className="text-foreground text-base font-medium">Nội dung</span>
         <Controller
           control={control}
           name="contentHtml"

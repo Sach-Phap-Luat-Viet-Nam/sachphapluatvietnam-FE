@@ -141,7 +141,12 @@ function LinkEditor({ editor, onClose }: { editor: Editor; onClose: () => void }
   );
 }
 
-function Toolbar({ editor, onLink, sourceMode, onToggleSource }: {
+function Toolbar({
+  editor,
+  onLink,
+  sourceMode,
+  onToggleSource,
+}: {
   editor: Editor;
   onLink: () => void;
   sourceMode: boolean;
@@ -266,7 +271,15 @@ export interface RichTextEditorProps {
  * Trình soạn thảo WYSIWYG (Tiptap) cho trang tĩnh, kèm chế độ sửa mã HTML. HTML lưu đi qua schema của Tiptap nên chỉ
  * còn thẻ trình soạn thảo hỗ trợ; Storefront vẫn lọc lại trước khi hiển thị.
  */
-export function RichTextEditor({ id, label, value, onChange, onBlur, invalid = false, describedBy }: RichTextEditorProps) {
+export function RichTextEditor({
+  id,
+  label,
+  value,
+  onChange,
+  onBlur,
+  invalid = false,
+  describedBy,
+}: RichTextEditorProps) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [source, setSource] = useState<string | null>(null);
   const editor = useEditor({
